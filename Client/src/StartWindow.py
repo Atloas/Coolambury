@@ -9,21 +9,21 @@ class StartWindow(QtWidgets.QWidget):
         self.setWindowTitle("Coolambury")
 
         self.vBox = QtWidgets.QVBoxLayout()
-        self.label1 = QtWidgets.QLabel('Enter your nickname:')
-        self.lineEdit1 = QtWidgets.QLineEdit()
-        self.lineEdit1.maxLength = 15
-        self.label2 = QtWidgets.QLabel('Enter room code:')
-        self.lineEdit2 = QtWidgets.QLineEdit()
-        self.lineEdit2.maxLength = 4
-        self.button = QtWidgets.QPushButton("Join room")
-        self.button.clicked.connect(self.join_clicked)
+        self.nicknameLabel = QtWidgets.QLabel('Enter your nickname:')
+        self.nicknameField = QtWidgets.QLineEdit()
+        self.nicknameField.maxLength = 15
+        self.roomCodeLabel = QtWidgets.QLabel('Enter room code:')
+        self.roomCodeField = QtWidgets.QLineEdit()
+        self.roomCodeField.maxLength = 4
+        self.joinButton = QtWidgets.QPushButton("Join room")
+        self.joinButton.clicked.connect(self.join_clicked)
 
         self.setLayout(self.vBox)
-        self.vBox.addWidget(self.label1)
-        self.vBox.addWidget(self.lineEdit1)
-        self.vBox.addWidget(self.label2)
-        self.vBox.addWidget(self.lineEdit2)
-        self.vBox.addWidget(self.button)
+        self.vBox.addWidget(self.nicknameLabel)
+        self.vBox.addWidget(self.nicknameField)
+        self.vBox.addWidget(self.roomCodeLabel)
+        self.vBox.addWidget(self.roomCodeField)
+        self.vBox.addWidget(self.joinButton)
 
     def validate_inputs(self):
         if True:  # self.lineEdit1.text and len(self.lineEdit2.text) == 4:
@@ -43,7 +43,8 @@ class StartWindow(QtWidgets.QWidget):
     def join_clicked(self):
         if self.validate_inputs():
             if self.connect_to_room():
-                self.switch_window.emit(self.lineEdit2.text)
+                roomNumber = self.roomCodeField.text()
+                self.switch_window.emit(roomNumber)
             else:
                 self.display_message("Could not connect to room!")
         else:
