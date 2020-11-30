@@ -1,6 +1,6 @@
 PYTHON = python3
 SERVER_APP := $(shell pwd)/Server/src/app.py
-CLIENT_APP := $(shell pwd)/Client/src/app.py
+CLIENT_APP := $(shell pwd)/Client/src/Communication/app.py
 COMMON_PATH := $(shell pwd)/Common/
 
 
