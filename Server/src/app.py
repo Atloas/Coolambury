@@ -17,8 +17,6 @@ def handle_client(conn, addr):
     logging.debug('[NEW CONNECTION] {} connected'.format(addr))
     connected = True
 
-    conn.recv(0) # receive connection message - just ignore
-
     while connected:
         msg_handler.receive(conn, config)
 
