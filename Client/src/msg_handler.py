@@ -21,4 +21,6 @@ def receive(conn, config):
         msg_body_bytes = conn.recv(msg_header.length)
         msg_body = pickle.loads(msg_body_bytes)
 
-        print(msg_body)
+        return msg_body
+    
+    return None

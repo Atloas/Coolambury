@@ -21,10 +21,7 @@ def receive(conn, config):
         msg_body_bytes = conn.recv(msg_header.length)
         msg_body = pickle.loads(msg_body_bytes)
 
-        print(msg_body)
+        return msg_body
 
-        resp = messages.CreateRoomResp()
-        resp.status = 'OK'
-        resp.status = 'OK'
-        resp.room_code = 'Jakis losowy room code hehe'
-        send(conn, resp, config)
+
+        

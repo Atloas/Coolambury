@@ -10,7 +10,9 @@ import msg_handler
 def receive(conn, config):
     connected = True
     while connected:
-        msg_handler.receive(conn, config)
+        received_msg = msg_handler.receive(conn, config)
+        if received_msg:
+            print(received_msg) # TODO jakis handler trzeba sobie zrobic 
 
 
 config = config.Config()
