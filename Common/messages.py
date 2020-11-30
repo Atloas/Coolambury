@@ -11,7 +11,6 @@ class CreateRoomReq:
     def __str__(self):
         return self.username + ' ' + self.roomname
 
-
 class CreateRoomResp:
     def __init__(self):
         self.status = ''
