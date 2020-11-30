@@ -2,10 +2,10 @@ import socket
 import threading
 import logging
 
-
 import common
 import config
 import msg_handler
+import messages
 
 
 config = config.Config()
@@ -17,10 +17,14 @@ def handle_client(conn, addr):
     logging.debug('[NEW CONNECTION] {} connected'.format(addr))
     connected = True
 
-    conn.recv(0) # receive connection message - just ignore
-
     while connected:
-        msg_handler.receive(conn, config)
+        received_msg = msg_handler.receive(conn, config)
+        if received_msg:
+            print(received_msg)
+            resp = messages.CreateRoomResp()
+            resp.status = 'OK'
+            resp.room_code = 'Jakis losowy room code hehe'
+            msg_handler.send(conn, resp, config)
 
     conn.close()
 
