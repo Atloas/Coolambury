@@ -2,6 +2,14 @@ import socket
 import threading
 import logging
 
+
+import common
+import config
+import msg_handler
+
+
+config = config.Config()
+ADDR = ('', config.PORT)
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(ADDR)
 
@@ -9,16 +17,10 @@ def handle_client(conn, addr):
     logging.debug('[NEW CONNECTION] {} connected'.format(addr))
     connected = True
 
-    while connected:
-        msg_len = conn.recv(HEADER_LEN).decode(FORMAT)
-        if msg_len:
-            msg_len = int(msg_len)
-            msg = conn.recv(msg_len).decode(FORMAT)
-            logging.info('[MESSAGE RECEIVED] from: {} | msg: {}'.format(addr, msg))
-            if msg == DISCONNECT_MSG:
-                connected = False
+    conn.recv(0) # receive connection message - just ignore
 
-            conn.send('Hello from server!'.encode(FORMAT))
+    while connected:
+        msg_handler.receive(conn, config)
 
     conn.close()
 
@@ -35,5 +37,5 @@ def start():
 
 
 if __name__ == '__main__':
-    logging.basicConfig(filename='logs/server.log', filemode='w', level=logging.DEBUG)
+    logging.basicConfig(filename='Server/logs/server.log', filemode='w', level=logging.DEBUG)
     start()
