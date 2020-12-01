@@ -17,7 +17,7 @@ class Server:
 
         self.rooms = {}
 
-        logging.debug('[INITIALIZING]')
+        logging.debug('[INITIALIZING SERVER]')
 
 
     def start(self):
