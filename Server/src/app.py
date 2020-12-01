@@ -15,7 +15,7 @@ class App:
         self.server.start()
 
 if __name__ == '__main__':
-    logging.basicConfig(filename='Server/logs/server.log', filemode='w', level=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG)
     while True:
         app = App()
         app.run()
