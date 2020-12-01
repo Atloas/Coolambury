@@ -1,4 +1,4 @@
-# 50%
+# 50% - 18.12
 
 Podstawowy klient i serwer. Bez rysowania, ale z selekcja pokoi i czatem. Dodatkowo przykładowe wykorzystanie Google Quick Draw, niekoniecznie w projekcie.
 
