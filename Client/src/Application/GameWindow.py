@@ -13,10 +13,8 @@ class GameWindow(QtWidgets.QWidget):
         self.vBox = QtWidgets.QVBoxLayout()
 
         self.topHBox = QtWidgets.QHBoxLayout()
-        self.vBox.addLayout(self.topHBox)
 
         self.bottomHBox = QtWidgets.QHBoxLayout()
-        self.vBox.addLayout(self.bottomHBox)
 
         self.disconnectButton = QtWidgets.QPushButton("Disconnect")
         self.disconnectButton.clicked.connect(self.disconnect_clicked)
