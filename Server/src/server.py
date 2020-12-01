@@ -4,6 +4,7 @@ import threading
 import msg_handling
 import messages
 from clientconnection import ClientConnection
+from messagedispatcher import MessageDispatcher
 
 class Server:
     def __init__(self, config):
@@ -11,12 +12,9 @@ class Server:
         ADDR = ('', config.PORT)
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.bind(ADDR)
-
         self.connected_clients = []
-        self.connected_clients_lock = threading.Lock()
-
         self.rooms = {}
-
+        self.message_dispatcher = MessageDispatcher(self.rooms, self.connected_clients, self.config)
         logging.debug('[INITIALIZING SERVER]')
 
 
@@ -27,10 +25,9 @@ class Server:
         while True:
             conn, addr = self.server_socket.accept()
 
-            with self.connected_clients_lock:
-                new_client = ClientConnection(conn, addr, self.config)
-                self.connected_clients.append(new_client)
-                thread = threading.Thread(target=new_client.handle_client_messages)
-                thread.start()
+            new_client = ClientConnection(conn, addr, self.config, self.message_dispatcher)
+            self.connected_clients.append(new_client)
+            thread = threading.Thread(target=new_client.handle_client_messages)
+            thread.start()
 
             logging.debug('[ACTIVE CONNECTIONS] {}'.format(threading.activeCount() - 1))
