@@ -1,11 +1,10 @@
 import socket
 import threading
 import logging
-
-import common
-import config
-import messages
 import msg_handler
+
+from common import messages
+from common import config
 
 def receive(conn, config):
     connected = True

@@ -2,9 +2,7 @@ import socket
 import threading
 import logging
 
-
-import common
-import config
+from common import config
 from server import Server
 
 class App:
