@@ -2,6 +2,7 @@ import logging
 import socket
 import threading
 import msg_handling
+import messages
 
 from clientconnection import ClientConnection
 from messagedispatcher import MessageDispatcher

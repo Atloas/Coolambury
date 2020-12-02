@@ -1,6 +1,6 @@
 import pickle
-from common import config
-from common import messages
+import config
+import messages
 
 
 def send(conn, msg_body, config):

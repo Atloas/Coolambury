@@ -1,6 +1,6 @@
 import logging
 import msg_handling
-from common import messages
+import messages
 
 class ClientConnection:
     def __init__(self, conn, addr, server_config, msg_dispatcher):
