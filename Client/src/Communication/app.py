@@ -28,8 +28,8 @@ receiver_thread.start()
 
 create_room_msg = messages.CreateRoomReq()
 
-create_room_msg.username = 'TestowyUser'
-create_room_msg.roomname = 'TestowyRoom'
+create_room_msg.user_name = 'TestowyUser'
+create_room_msg.room_name = 'TestowyRoom'
 
 msg_handler.send(conn, create_room_msg, config)
 

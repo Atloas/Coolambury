@@ -1,15 +1,18 @@
 import logging
-from handlerfactory import HandlerFactory
 
 class MessageDispatcher:
-    def __init__(self, rooms, clients, config):
-        self._handler_factory = HandlerFactory(rooms, clients, config)
+    def __init__(self):
+        self.registered_handlers = {}
 
     def dispatch(self, conn, msg_name, msg_body):
-        logging.debug('[DISPATCHER] dispatching message {} containing: {}'.format(msg_name, msg_body))
+        logging.debug('[DISPATCHER] dispatching message {}'.format(msg_name))
         try:
-            _handler = self._handler_factory.create_handler(conn, msg_name)
-            _handler.handle(msg_body)
+            _handler = self.registered_handlers[msg_name]
+            _handler.handle(conn, msg_body)
         except:
             logging.error('An error ocured when handling {} = {}'.format(msg_name, msg_body))
+
+    def register_handler(self, message_name, message_handler):
+        self.registered_handlers[message_name] = message_handler
+        logging.debug('[DISPATCHER] : registered handler for {}'.format(message_name))
 
