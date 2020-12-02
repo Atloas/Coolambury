@@ -3,8 +3,10 @@ import socket
 import threading
 import msg_handling
 import messages
+
 from clientconnection import ClientConnection
 from messagedispatcher import MessageDispatcher
+from messagehandlers import *
 
 class Server:
     def __init__(self, config):
@@ -14,9 +16,9 @@ class Server:
         self.server_socket.bind(ADDR)
         self.connected_clients = []
         self.rooms = {}
-        self.message_dispatcher = MessageDispatcher(self.rooms, self.connected_clients, self.config)
+        self.message_dispatcher = MessageDispatcher()
+        self._register_dispatcher_handlers()
         logging.debug('[INITIALIZING SERVER]')
-
 
     def start(self):
         logging.debug('[STARTING] server is starting...')
@@ -31,3 +33,10 @@ class Server:
             thread.start()
 
             logging.debug('[ACTIVE CONNECTIONS] {}'.format(threading.activeCount() - 1))
+
+    def _register_dispatcher_handlers(self):
+        self.message_dispatcher.register_handler('CreateRoomReq',
+                                                 CreateRoomReqHandler(
+                                                     self.rooms,
+                                                     self.connected_clients,
+                                                     self.config))

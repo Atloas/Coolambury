@@ -5,11 +5,11 @@ class MessageHeader:
 
 class CreateRoomReq:
     def __init__(self):
-        self.username = ''
-        self.roomname = ''
+        self.user_name = ''
+        self.room_name = ''
 
     def __str__(self):
-        return self.username + ' ' + self.roomname
+        return self.user_name + ' ' + self.room_name
 
 class CreateRoomResp:
     def __init__(self):
@@ -18,3 +18,12 @@ class CreateRoomResp:
 
     def __str__(self):
         return self.status + ' ' + self.room_code
+
+class JoinRoomReq:
+    def __init__(self):
+        self.user_name = ''
+        self.room_code = ''
+
+class JoinRoomResp:
+    def __init__(self):
+        self.status = ''
