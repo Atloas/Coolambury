@@ -27,3 +27,11 @@ class JoinRoomReq:
 class JoinRoomResp:
     def __init__(self):
         self.status = ''
+
+class ExitClientReq():
+    def __init__(self):
+        self.user_name = ''
+
+class ExitClientResp():
+    def __init__(self):
+        self.status = ''

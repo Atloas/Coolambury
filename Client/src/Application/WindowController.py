@@ -1,5 +1,5 @@
-from GameWindow import GameWindow
-from StartWindow import StartWindow
+from .GameWindow import GameWindow
+from .StartWindow import StartWindow
 
 
 class WindowController:
@@ -10,7 +10,8 @@ class WindowController:
 
     def show_start(self):
         self.startWindow = StartWindow()
-        self.startWindow.switch_window.connect(self.show_game)  # TODO: Should be show_game, this is for debugging
+        # TODO: Should be show_game, this is for debugging
+        self.startWindow.switch_window.connect(self.show_game)
         if self.gameWindow is not None:
             self.gameWindow.close()
         self.startWindow.show()

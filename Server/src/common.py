@@ -3,7 +3,6 @@ import sys
 import pathlib
 
 app_path = pathlib.Path().absolute()
-print(sys.platform)
 
 if sys.platform == "linux" or sys.platform == "linux2" or sys.platform == "darwin":
     common_path = str(app_path) + '/Common/'

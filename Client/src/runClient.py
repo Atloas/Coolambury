@@ -1,9 +1,11 @@
 from PyQt5.QtWidgets import QApplication
-from WindowController import WindowController
+from Application.WindowController import WindowController
 import sys
+import logging
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
     app = QApplication([])
     windowController = WindowController()
     windowController.show_start()
