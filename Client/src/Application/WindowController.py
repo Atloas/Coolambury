@@ -16,8 +16,12 @@ class WindowController:
             self.gameWindow.close()
         self.startWindow.show()
 
-    def show_game(self, roomNumber):
-        self.gameWindow = GameWindow(roomNumber)
+    def show_game(self, roomNumber, connHandler):
+        self.gameWindow = GameWindow(roomNumber, connHandler)
         self.gameWindow.switch_window.connect(self.show_start)
         self.startWindow.close()
         self.gameWindow.show()
+
+
+if __name__ == '__main__':
+    pass
