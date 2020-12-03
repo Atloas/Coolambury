@@ -4,9 +4,11 @@ from PyQt5 import QtCore, QtWidgets, QtGui
 class GameWindow(QtWidgets.QWidget):
     switch_window = QtCore.pyqtSignal()
 
-    def __init__(self, roomCode):
+    def __init__(self, roomCode, connHandler):
         QtWidgets.QWidget.__init__(self)
         self.roomCode = roomCode
+        self.connHandler = connHandler
+        
         self.setWindowTitle("Coolambury: {}".format(self.roomCode))
 
         # TODO: Drawing
@@ -15,6 +17,10 @@ class GameWindow(QtWidgets.QWidget):
         self.topHBox = QtWidgets.QHBoxLayout()
 
         self.bottomHBox = QtWidgets.QHBoxLayout()
+
+        self.chatVBox = QtWidgets.QVBoxLayout()
+
+        self.chatBottomHBox = QtWidgets.QHBoxLayout()
 
         self.disconnectButton = QtWidgets.QPushButton("Disconnect")
         self.disconnectButton.clicked.connect(self.disconnect_clicked)
@@ -31,15 +37,34 @@ class GameWindow(QtWidgets.QWidget):
         self.canvasContainer.setPixmap(canvas)
         self.bottomHBox.addWidget(self.canvasContainer)
 
-        self.chat = QtWidgets.QLabel("*CHAT*")
-        self.bottomHBox.addWidget(self.chat)
+        self.chat = QtWidgets.QTextEdit()
+
+        self.chatEntryLine = QtWidgets.QLineEdit()
+        self.chatEntryButton = QtWidgets.QPushButton("Send")
+        # self.chatEntryButton.clicked.connect(self.connHandler.send_create_room_req)
+        self.chatEntryButton.clicked.connect(self.handle_message_send)
+
+        self.chatBottomHBox.addWidget(self.chatEntryLine)
+        self.chatBottomHBox.addWidget(self.chatEntryButton)
+
+        self.chatVBox.addWidget(self.chat)
+        self.chatVBox.addLayout(self.chatBottomHBox)
+
+        self.bottomHBox.addLayout(self.chatVBox)
 
         self.vBox.addLayout(self.topHBox)
         self.vBox.addLayout(self.bottomHBox)
 
         self.setLayout(self.vBox)
 
+    def handle_message_send(self):
+        self.connHandler.send_chat_msg_req(
+            'michalloska', self.roomCode, '***** ***')
 
     def disconnect_clicked(self):
         # TODO: disconnect socket
         self.switch_window.emit()
+
+
+if __name__ == '__main__':
+    pass

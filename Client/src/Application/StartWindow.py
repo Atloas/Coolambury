@@ -3,10 +3,13 @@ import socket
 import threading
 import logging
 
-from Communication import common, msg_handler
+from Communication import common, msg_handler, ConnectionHandler
+from Communication.ConnectionHandler import ConnectionHandler
 # from common:
-import config, messages
+import config
+import messages
 
+import traceback
 
 class ServerConnectionFailed(Exception):
     def __init__(self, server_ip, server_port, message="Server unreachable"):
@@ -31,29 +34,20 @@ class PopUpWindow(QtWidgets.QDialog):
 
 
 class StartWindow(QtWidgets.QWidget):
-    switch_window = QtCore.pyqtSignal(str)
+    switch_window = QtCore.pyqtSignal(str, ConnectionHandler)
 
     def __init__(self):
         super().__init__()
-        # Socket initialization
-        self.connectedReceiverStatus = True
-        self.server_config = config.Config()
-        self.SERVER = self.server_config.SERVER
-        self.PORT = self.server_config.PORT
-        self.ADDR = (self.SERVER, self.PORT)
-        try:
-            self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.conn.connect(self.ADDR)
-            self.receiver_thread = threading.Thread(
-                target=self.receive, args=(self.conn, self.server_config))
-            self.receiver_thread.start()
-        except:
-            logging.debug("[SOCKET CONNECTION] Connection to server failed")
-            self.connectedReceiverStatus = False
-            w1 = PopUpWindow('Game server is unreachable!')
-            raise ServerConnectionFailed(self.SERVER, self.PORT)
 
-        QtWidgets.QWidget.__init__(self)
+        try:
+            self.connHandler = ConnectionHandler(self.switch_window)
+        except:
+            traceback.print_exc()
+            logging.debug("[SOCKET CONNECTION] Connection to server failed")
+            # self.connHandler.kill_receiver()
+            w1 = PopUpWindow('Game server is unreachable!')
+            exit()  # correct?
+
         self.setWindowTitle("Coolambury")
 
         self.vBox = QtWidgets.QVBoxLayout()
@@ -66,8 +60,8 @@ class StartWindow(QtWidgets.QWidget):
         self.joinButton = QtWidgets.QPushButton("Join room")
         self.joinButton.clicked.connect(self.join_clicked)
         self.createRoombutton = QtWidgets.QPushButton(
-            "Send a test Msg To Server :))))")
-        self.createRoombutton.clicked.connect(self.send_create_room_req)
+            "Create Room")
+        self.createRoombutton.clicked.connect(self.connHandler.send_create_room_req)
         self.serverOutputLabel = QtWidgets.QLabel('server output')
 
         self.setLayout(self.vBox)
@@ -95,32 +89,16 @@ class StartWindow(QtWidgets.QWidget):
         alert.exec_()
 
     def closeEvent(self, event):
-        if self.connectedReceiverStatus == True:
+        if self.connHandler.get_connected_receiver_status() == True:
             logging.debug(
                 "[EXITING] Killing all threads and exiting the client window")
-            self.kill_receiver()
-            self.send_create_room_req() # temporary
+            # self.connHandler.kill_receiver()
+            # self.connHandler.send_create_room_req()  # temporary
         # TODO: Add a Message notifying the Server about a user leaving (kills the thread)
         # notify_server_about_leaving = messages.ExitClientReq()
         # notify_server_about_leaving.user_name = 'TestUser'
         # msg_handler.send(
         #     self.conn, notify_server_about_leaving, self.server_config)
-
-    def receive(self, conn, server_config):
-        while self.connectedReceiverStatus:
-            received_msg = msg_handler.receive(conn, server_config)
-            if received_msg:
-                print(received_msg)  # TODO jakis handler trzeba sobie zrobic
-                self.serverOutputLabel.setText(received_msg.__str__())
-
-    def kill_receiver(self):
-        self.connectedReceiverStatus = False
-
-    def send_create_room_req(self):
-        send_create_room_req_msg = messages.CreateRoomReq()
-        send_create_room_req_msg.user_name = 'TestowyUser'
-        send_create_room_req_msg.room_name = 'TestowyRoom'
-        msg_handler.send(self.conn, send_create_room_req_msg, self.server_config)
 
     def join_clicked(self):
         if self.validate_inputs():
@@ -131,3 +109,7 @@ class StartWindow(QtWidgets.QWidget):
                 self.display_message("Could not connect to room!")
         else:
             self.display_message("invalid inputs!")
+
+
+if __name__ == '__main__':
+    pass

@@ -3,6 +3,7 @@ class MessageHeader:
         self.length = length
         self.name = name
 
+
 class CreateRoomReq:
     def __init__(self):
         self.user_name = ''
@@ -10,6 +11,7 @@ class CreateRoomReq:
 
     def __str__(self):
         return self.user_name + ' ' + self.room_name
+
 
 class CreateRoomResp:
     def __init__(self):
@@ -19,10 +21,12 @@ class CreateRoomResp:
     def __str__(self):
         return self.status + ' ' + self.room_code
 
+
 class JoinRoomReq:
     def __init__(self):
         self.user_name = ''
         self.room_code = ''
+
 
 class JoinRoomResp:
     def __init__(self):
@@ -32,24 +36,28 @@ class JoinRoomResp:
     def __str__(self):
         return self.status + ' ' + self.return_message
 
+
 class WriteChatReq:
     def __init__(self):
         self.user_name = ''
         self.room_code = ''
         self.message = ''
 
-class NewChatMessage:
+
+class NewChatMessage: # TODO: rename eg. ClientMsgBroadcast
     def __init__(self):
         self.author = ''
         self.message = ''
+
+    def __str__(self):
+        return self.author + ' ' + self.message
 
 
 class ExitClientReq():
     def __init__(self):
         self.user_name = ''
 
+
 class ExitClientResp():
     def __init__(self):
         self.status = ''
-
-
