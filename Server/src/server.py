@@ -40,3 +40,17 @@ class Server:
                                                      self.rooms,
                                                      self.connected_clients,
                                                      self.config))
+
+
+        self.message_dispatcher.register_handler('JoinRoomReq',
+                                                  JoinRoomReqHandler(
+                                                     self.rooms,
+                                                     self.connected_clients,
+                                                     self.config))
+
+        self.message_dispatcher.register_handler('WriteChatReq',
+                                                  WriteChatReqHandler(
+                                                     self.rooms,
+                                                     self.connected_clients,
+                                                     self.config))
+                                                     

@@ -17,6 +17,13 @@ def generate_unique_code(length, rooms):
     return result_str
 
 
+class RoomNotExistsException(Exception):
+    pass
+
+class UsernameTakenException(Exception):
+    pass
+
+
 class JoinRoomReqHandler:
     def __init__(self, rooms, clients, server_config):
         self.rooms = rooms
@@ -25,8 +32,25 @@ class JoinRoomReqHandler:
 
     def handle(self, sender_conn, msg):
         try:
+            if msg.room_code not in self.rooms:
+                raise RoomNotExistsException()
+            
+            room = self.rooms[msg.room_code]
+
+            if msg.user_name in room.joined_clients:
+                raise UsernameTakenException()
+
+            room.add_client(msg.user_name, sender_conn)
+
+            resp = messages.JoinRoomResp()
+            resp.status = 'OK'
+            resp.return_message = 'Joined correctly'
+
+            msg_handling.send(sender_conn, resp, self.server_config)
+
             logging.debug('[JOIN_ROOM_REQ_HANDLER] User {} joined to room {}'.format(
                 msg.user_name, msg.room_code))
+
         except:
             traceback.print_exc()
             logging.error(

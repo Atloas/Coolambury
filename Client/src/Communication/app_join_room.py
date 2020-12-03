@@ -7,21 +7,15 @@ import config
 import messages
 import msg_handler
 
-c_room_resp = messages.CreateRoomResp()
-
 def receive(conn, config):
-    global c_room_resp
     connected = True
     while connected:
         (name, received_msg) = msg_handler.receive(conn, config)
         if received_msg:
-            if name == 'CreateRoomResp':
-                c_room_resp = received_msg
             if name == 'NewChatMessage':
                 print('{} : {}'.format(received_msg.author, received_msg.message))
             else:
                 print(received_msg) # TODO jakis handler trzeba sobie zrobic 
-
 
 config = config.Config()
 SERVER = config.SERVER
@@ -36,19 +30,18 @@ receiver_thread.start()
 
 if __name__ == "__main__":
     
-    create_room_msg = messages.CreateRoomReq()
+    join_room_msg = messages.JoinRoomReq()
 
-    create_room_msg.user_name = 'room_owner_user_hehe'
-    create_room_msg.room_name = 'TestowyRoom'
+    join_room_msg.user_name = 'jakis_nick_inny'
+    join_room_msg.room_code = 'eqnwnqpj'
 
-    msg_handler.send(conn, create_room_msg, config)
-
+    msg_handler.send(conn, join_room_msg, config)
 
     while True:
         mes = input()
         write_chat_req = messages.WriteChatReq()
-        write_chat_req.user_name = create_room_msg.user_name
-        write_chat_req.room_code = c_room_resp.room_code
+        write_chat_req.user_name = join_room_msg.user_name
+        write_chat_req.room_code = join_room_msg.room_code
         write_chat_req.message = mes
         msg_handler.send(conn, write_chat_req, config)
 
