@@ -27,6 +27,22 @@ class JoinRoomReq:
 class JoinRoomResp:
     def __init__(self):
         self.status = ''
+        self.return_message = ''
+
+    def __str__(self):
+        return self.status + ' ' + self.return_message
+
+class WriteChatReq:
+    def __init__(self):
+        self.user_name = ''
+        self.room_code = ''
+        self.message = ''
+
+class NewChatMessage:
+    def __init__(self):
+        self.author = ''
+        self.message = ''
+
 
 class ExitClientReq():
     def __init__(self):
@@ -35,3 +51,5 @@ class ExitClientReq():
 class ExitClientResp():
     def __init__(self):
         self.status = ''
+
+
