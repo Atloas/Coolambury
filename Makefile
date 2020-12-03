@@ -1,7 +1,7 @@
 PYTHON = python3
 SERVER_APP := $(shell pwd)/Server/src/app.py
 CLIENT_APP := $(shell pwd)/Client/src/Communication/app.py
-CLIENT_APP_WINDOW := $(shell pwd)/Client/src/Application/main.py
+CLIENT_APP_WINDOW := $(shell pwd)/Client/src/runClient.py
 COMMON_PATH := $(shell pwd)/Common/
 
 server: .FORCE
