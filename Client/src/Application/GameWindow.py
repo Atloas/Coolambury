@@ -3,20 +3,24 @@ from PyQt5 import QtCore, QtWidgets, QtGui
 
 class GameWindow(QtWidgets.QWidget):
     switch_window = QtCore.pyqtSignal()
+    chat_message_signal = QtCore.pyqtSignal(str)
 
-    def __init__(self, roomCode, connHandler):
+    def __init__(self, clientContext, connHandler):
         QtWidgets.QWidget.__init__(self)
-        self.roomCode = roomCode
+
+        self.clientContext = clientContext
         self.connHandler = connHandler
-        
-        self.setWindowTitle("Coolambury: {}".format(self.roomCode))
+        self.connHandler.chat_message_signal.connect(self.display_user_msg)
+
+        self.setWindowTitle("Coolambury: {}".format(
+            self.clientContext['roomCode']))
 
         # TODO: Drawing
         self.vBox = QtWidgets.QVBoxLayout()
-
         self.topHBox = QtWidgets.QHBoxLayout()
-
         self.bottomHBox = QtWidgets.QHBoxLayout()
+        self.chatVBox = QtWidgets.QVBoxLayout()
+        self.chatBottomHBox = QtWidgets.QHBoxLayout()
 
         self.chatVBox = QtWidgets.QVBoxLayout()
 
@@ -33,15 +37,17 @@ class GameWindow(QtWidgets.QWidget):
         self.bottomHBox.addWidget(self.scoreboard)
 
         self.canvasContainer = QtWidgets.QLabel()
-        canvas = QtGui.QPixmap(400, 300)
-        self.canvasContainer.setPixmap(canvas)
+        self.canvas = QtGui.QPixmap(400, 300)
+        self.canvasContainer.setPixmap(self.canvas)
         self.bottomHBox.addWidget(self.canvasContainer)
 
         self.chat = QtWidgets.QTextEdit()
+        self.chat.setReadOnly(True)
 
         self.chatEntryLine = QtWidgets.QLineEdit()
         self.chatEntryButton = QtWidgets.QPushButton("Send")
-        # self.chatEntryButton.clicked.connect(self.connHandler.send_create_room_req)
+        # TODO: add Enter support/trigger
+
         self.chatEntryButton.clicked.connect(self.handle_message_send)
 
         self.chatBottomHBox.addWidget(self.chatEntryLine)
@@ -57,9 +63,15 @@ class GameWindow(QtWidgets.QWidget):
 
         self.setLayout(self.vBox)
 
+    def display_user_msg(self, message):
+        self.chat.insertPlainText("{}{}".format(message, "\n"))
+
+    # TODO: move to connHandler if possible!
     def handle_message_send(self):
-        self.connHandler.send_chat_msg_req(
-            'michalloska', self.roomCode, '***** ***')
+        if self.chatEntryLine.isModified():
+            self.connHandler.send_chat_msg_req(
+                self.clientContext['username'], self.clientContext['roomCode'], self.chatEntryLine.text())
+
 
     def disconnect_clicked(self):
         # TODO: disconnect socket
