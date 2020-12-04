@@ -64,6 +64,7 @@ class ConnectionHandler(QtCore.QObject):
         send_char_msg.user_name = user_name
         print("msg room_code = {}".format(room_code))
         send_char_msg.room_code = room_code
+
         send_char_msg.message = message
         msg_handler.send(self.conn, send_char_msg,
                          self.server_config)

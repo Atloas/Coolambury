@@ -22,6 +22,10 @@ class GameWindow(QtWidgets.QWidget):
         self.chatVBox = QtWidgets.QVBoxLayout()
         self.chatBottomHBox = QtWidgets.QHBoxLayout()
 
+        self.chatVBox = QtWidgets.QVBoxLayout()
+
+        self.chatBottomHBox = QtWidgets.QHBoxLayout()
+
         self.disconnectButton = QtWidgets.QPushButton("Disconnect")
         self.disconnectButton.clicked.connect(self.disconnect_clicked)
         self.topHBox.addWidget(self.disconnectButton)
@@ -43,6 +47,7 @@ class GameWindow(QtWidgets.QWidget):
         self.chatEntryLine = QtWidgets.QLineEdit()
         self.chatEntryButton = QtWidgets.QPushButton("Send")
         # TODO: add Enter support/trigger
+
         self.chatEntryButton.clicked.connect(self.handle_message_send)
 
         self.chatBottomHBox.addWidget(self.chatEntryLine)
@@ -66,6 +71,7 @@ class GameWindow(QtWidgets.QWidget):
         if self.chatEntryLine.isModified():
             self.connHandler.send_chat_msg_req(
                 self.clientContext['username'], self.clientContext['roomCode'], self.chatEntryLine.text())
+
 
     def disconnect_clicked(self):
         # TODO: disconnect socket

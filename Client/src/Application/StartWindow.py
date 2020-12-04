@@ -8,6 +8,8 @@ from Communication import msg_handler, ConnectionHandler
 from Communication.ConnectionHandler import ConnectionHandler
 
 
+import traceback
+
 class ServerConnectionFailed(Exception):
     def __init__(self, server_ip, server_port, message="Server unreachable"):
         self.server_ip = server_ip
@@ -23,6 +25,7 @@ class StartWindow(QtWidgets.QWidget):
 
         self.connHandler = connHandler
         self.clientContext = clientContext
+
 
         self.setMinimumSize(150, 100)
         self.setWindowTitle("Coolambury")
@@ -95,6 +98,7 @@ class StartWindow(QtWidgets.QWidget):
             self.clientContext['username'] = self.nicknameField.text()
             self.connHandler.send_create_room_req(
                 self.clientContext['username'])
+
 
     def join_clicked(self):
         if self.validate_inputs():
