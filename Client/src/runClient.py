@@ -3,7 +3,7 @@ from Application.WindowController import WindowController
 import sys
 import logging
 
-# for windows:
+# for windows (PowerShell):
 # $env:PYTHONPATH = "."
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
