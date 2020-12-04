@@ -7,20 +7,18 @@ class GameWindow(QtWidgets.QWidget):
 
     def __init__(self, roomCode, connHandler):
         QtWidgets.QWidget.__init__(self)
+
         self.roomCode = roomCode
         self.connHandler = connHandler
+        self.connHandler.chat_message_signal.connect(self.display_user_msg)
         
         self.setWindowTitle("Coolambury: {}".format(self.roomCode))
 
         # TODO: Drawing
         self.vBox = QtWidgets.QVBoxLayout()
-
         self.topHBox = QtWidgets.QHBoxLayout()
-
         self.bottomHBox = QtWidgets.QHBoxLayout()
-
         self.chatVBox = QtWidgets.QVBoxLayout()
-
         self.chatBottomHBox = QtWidgets.QHBoxLayout()
 
         self.disconnectButton = QtWidgets.QPushButton("Disconnect")
@@ -34,15 +32,15 @@ class GameWindow(QtWidgets.QWidget):
         self.bottomHBox.addWidget(self.scoreboard)
 
         self.canvasContainer = QtWidgets.QLabel()
-        canvas = QtGui.QPixmap(400, 300)
-        self.canvasContainer.setPixmap(canvas)
+        self.canvas = QtGui.QPixmap(400, 300)
+        self.canvasContainer.setPixmap(self.canvas)
         self.bottomHBox.addWidget(self.canvasContainer)
 
         self.chat = QtWidgets.QTextEdit()
+        self.chat.setReadOnly(True)
 
         self.chatEntryLine = QtWidgets.QLineEdit()
         self.chatEntryButton = QtWidgets.QPushButton("Send")
-        # self.chatEntryButton.clicked.connect(self.connHandler.send_create_room_req)
         self.chatEntryButton.clicked.connect(self.handle_message_send)
 
         self.chatBottomHBox.addWidget(self.chatEntryLine)
@@ -59,7 +57,7 @@ class GameWindow(QtWidgets.QWidget):
         self.setLayout(self.vBox)
 
     def display_user_msg(self, message):
-        self.chat.setText(message)
+        self.chat.insertPlainText("{}{}".format(message, "\n"))
 
     def handle_message_send(self):
         self.connHandler.send_chat_msg_req(

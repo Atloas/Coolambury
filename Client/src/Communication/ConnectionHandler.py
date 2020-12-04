@@ -4,6 +4,7 @@ from . import common
 from . import msg_handler
 import Common.config as config
 import Common.messages as messages
+from Utils import PopUpWindow
 
 import socket
 import threading
@@ -23,8 +24,7 @@ class ConnectionHandler(QtCore.QObject):
         self.ADDR = (self.SERVER, self.PORT)
         self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.conn.connect(self.ADDR)
-        
-
+    
         self.receiver_thread = threading.Thread(
             target=self.receive, args=(self.conn, self.server_config))
         self.receiver_thread.start()
@@ -39,34 +39,32 @@ class ConnectionHandler(QtCore.QObject):
 
     def receive(self, conn, server_config):
         while self.connectedReceiverStatus:
-            received_msg = msg_handler.receive(conn, server_config)
-            received_msg_name = received_msg[0]
-            received_msg = received_msg[1]
+            received_msg_name, received_msg = msg_handler.receive(conn, server_config)
+            
             if received_msg:
                 logging.debug(
                     "[RECEIVE MSG] {}".format(received_msg))
-                if received_msg_name == 'CreateRoomResp' and received_msg.status == 'OK':
-                    print("yo")
-                    # self.serverOutputLabel.setText(str(received_msg))
-                    self.switch_window.emit(received_msg.room_code, self)
-                elif isinstance(received_msg_name, messages.NewChatMessage):
-                    print(str(received_msg))
-                    # self.chat_message_signal.emit(received_msg.author + ' ' + received_msg.message)
+                if received_msg_name == 'CreateRoomResp':
+                    # print("yo")
+                    if received_msg.status == 'OK':
+                        self.switch_window.emit(received_msg.room_code, self)
+                    else:
+                        PopUpWindow('Room could not be created!', 'ERROR')
+                elif received_msg_name == 'NewChatMessage':
+                    # print("yo2")
                     self.chat_message_signal.emit("{}: {}".format(received_msg.author, received_msg.message))
-                    # self.serverOutputLabel.setText(str(received_msg))
-                    # self.switch_window.emit(received_msg.room_code, self)
 
-    def send_create_room_req(self):
+    def send_create_room_req(self, user_name):
         send_create_room_req_msg = messages.CreateRoomReq()
-        send_create_room_req_msg.user_name = 'michalloska'
-        send_create_room_req_msg.room_name = 'TestowyRoom'
+        send_create_room_req_msg.user_name = user_name
+        send_create_room_req_msg.room_code = 'TestowyRoom'
         msg_handler.send(self.conn, send_create_room_req_msg,
                          self.server_config)
 
-    def send_chat_msg_req(self, user_name, room_name, message):
+    def send_chat_msg_req(self, user_name, room_code, message):
         send_char_msg = messages.WriteChatReq()
         send_char_msg.user_name = user_name
-        send_char_msg.room_code = room_name
+        send_char_msg.room_code = room_code
         send_char_msg.message = message
         msg_handler.send(self.conn, send_char_msg,
                          self.server_config)
