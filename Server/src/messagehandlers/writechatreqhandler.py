@@ -34,5 +34,5 @@ class WriteChatReqHandler:
         except:
             traceback.print_exc()
             logging.error(
-                '[WRITE_CHAT_REQ_HANDLER] Error ocured when handling message')
+                '[WRITE_CHAT_REQ_HANDLER] Room of code {} not registered on the server'.format(msg.room_code))
 

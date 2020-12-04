@@ -8,7 +8,6 @@ from Communication import msg_handler, ConnectionHandler
 from Communication.ConnectionHandler import ConnectionHandler
 
 
-
 class ServerConnectionFailed(Exception):
     def __init__(self, server_ip, server_port, message="Server unreachable"):
         self.server_ip = server_ip
@@ -19,21 +18,13 @@ class ServerConnectionFailed(Exception):
 
 
 class StartWindow(QtWidgets.QWidget):
-    switch_window = QtCore.pyqtSignal(str, ConnectionHandler)
-
-    def __init__(self):
+    def __init__(self, connHandler, clientContext):
         super().__init__()
 
-        try:
-            self.connHandler = ConnectionHandler(self.switch_window)
-        except:
-            logging.debug("[SOCKET CONNECTION] Connection to server failed")
-            PopUpWindow('Game server is unreachable!')
-            exit()
+        self.connHandler = connHandler
+        self.clientContext = clientContext
 
-        self.username = ''
-
-        self.setMinimumSize(150,100)
+        self.setMinimumSize(150, 100)
         self.setWindowTitle("Coolambury")
         self.vBox = QtWidgets.QVBoxLayout()
         self.nicknameLabel = QtWidgets.QLabel('Enter your nickname:')
@@ -46,8 +37,10 @@ class StartWindow(QtWidgets.QWidget):
         self.joinButton.clicked.connect(self.join_clicked)
         self.createRoombutton = QtWidgets.QPushButton(
             "Create Room")
-        self.createRoombutton.clicked.connect(self.delegate_room_creation_to_handler)
-        self.killReceiverButton = QtWidgets.QPushButton("Kill Receiver before leaving")
+        self.createRoombutton.clicked.connect(
+            self.delegate_room_creation_to_handler)
+        self.killReceiverButton = QtWidgets.QPushButton(
+            "Kill Receiver before leaving")
         self.killReceiverButton.clicked.connect(self.connHandler.kill_receiver)
 
         self.setLayout(self.vBox)
@@ -62,11 +55,12 @@ class StartWindow(QtWidgets.QWidget):
     def validate_nickname(self):
         isNickNameValid = self.nicknameField.isModified()
         logging.debug(
-                "[NICKNAME VALIDATION] Given nickname is valid: {}".format(isNickNameValid))
+            "[NICKNAME VALIDATION] Given nickname is valid: {}".format(isNickNameValid))
         if isNickNameValid:
             return True
         else:
-            PopUpWindow("Chłopcze, jak chcesz grać bez nickname'a ? :) ", 'ERROR')
+            PopUpWindow(
+                "Nickname not valid!", 'ERROR')
             return False
 
     def validate_inputs(self):
@@ -84,12 +78,12 @@ class StartWindow(QtWidgets.QWidget):
         alert.setText(message)
         alert.exec_()
 
-    def closeEvent(self, event):
-        if self.connHandler.get_connected_receiver_status() == True:
-            logging.debug(
-                "[EXITING] Killing all threads and exiting the client window")
-            # self.connHandler.kill_receiver()
-            # self.connHandler.send_create_room_req()  # temporary
+    # def closeEvent(self, event):
+        # if self.connHandler.get_connected_receiver_status() == True:
+        #     logging.debug(
+        #         "[EXITING] Killing all threads and exiting the client window")
+        # self.connHandler.kill_receiver()
+        # self.connHandler.send_create_room_req()  # temporary
         # TODO: Add a Message notifying the Server about a user leaving (kills the thread)
         # notify_server_about_leaving = messages.ExitClientReq()
         # notify_server_about_leaving.user_name = 'TestUser'
@@ -98,8 +92,9 @@ class StartWindow(QtWidgets.QWidget):
 
     def delegate_room_creation_to_handler(self):
         if self.validate_nickname():
-            self.username = self.nicknameField.text()
-            self.connHandler.send_create_room_req(self.username)
+            self.clientContext['username'] = self.nicknameField.text()
+            self.connHandler.send_create_room_req(
+                self.clientContext['username'])
 
     def join_clicked(self):
         if self.validate_inputs():

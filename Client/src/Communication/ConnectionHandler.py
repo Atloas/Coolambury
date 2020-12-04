@@ -13,10 +13,10 @@ import logging
 
 class ConnectionHandler(QtCore.QObject):
     chat_message_signal = QtCore.pyqtSignal(str)
-
-    def __init__(self, switch_window):
+    switch_window = QtCore.pyqtSignal(str)
+    
+    def __init__(self):
         super().__init__()
-        self.switch_window = switch_window
         self.connectedReceiverStatus = True
         self.server_config = config.Config()
         self.SERVER = self.server_config.SERVER
@@ -28,11 +28,11 @@ class ConnectionHandler(QtCore.QObject):
         self.receiver_thread = threading.Thread(
             target=self.receive, args=(self.conn, self.server_config))
         self.receiver_thread.start()
-        # raise ServerConnectionFailed(self.SERVER, self.PORT)
 
     def kill_receiver(self):
+        self.connectedReceiverStatus = False
+        self.receiver_thread.join()
         self.receiver_thread.close()
-        # self.connectedReceiverStatus = False
 
     def get_connected_receiver_status(self):
         return self.connectedReceiverStatus
@@ -45,25 +45,24 @@ class ConnectionHandler(QtCore.QObject):
                 logging.debug(
                     "[RECEIVE MSG] {}".format(received_msg))
                 if received_msg_name == 'CreateRoomResp':
-                    # print("yo")
                     if received_msg.status == 'OK':
-                        self.switch_window.emit(received_msg.room_code, self)
+                        self.switch_window.emit(received_msg.room_code)
                     else:
                         PopUpWindow('Room could not be created!', 'ERROR')
                 elif received_msg_name == 'NewChatMessage':
-                    # print("yo2")
                     self.chat_message_signal.emit("{}: {}".format(received_msg.author, received_msg.message))
 
     def send_create_room_req(self, user_name):
         send_create_room_req_msg = messages.CreateRoomReq()
         send_create_room_req_msg.user_name = user_name
-        send_create_room_req_msg.room_code = 'TestowyRoom'
+        send_create_room_req_msg.room_name = ''
         msg_handler.send(self.conn, send_create_room_req_msg,
                          self.server_config)
 
     def send_chat_msg_req(self, user_name, room_code, message):
         send_char_msg = messages.WriteChatReq()
         send_char_msg.user_name = user_name
+        print("msg room_code = {}".format(room_code))
         send_char_msg.room_code = room_code
         send_char_msg.message = message
         msg_handler.send(self.conn, send_char_msg,

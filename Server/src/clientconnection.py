@@ -9,6 +9,7 @@ class ClientConnection:
         self.addr = addr
         self.dispatcher = msg_dispatcher
         self.connected = True
+        # TODO: Add time of logging
         logging.debug('[NEW CONNECTION] {} connected'.format(addr))
 
     def handle_client_messages(self):
