@@ -1,6 +1,7 @@
 import pickle
-import config
-import messages
+import Common.config 
+import Common.messages as messages 
+# import messages
 
 
 def send(conn, msg_body, config):
@@ -23,4 +24,4 @@ def receive(conn, config):
 
         return (msg_header.name, msg_body)
     
-    return ('', None)
+    return None

@@ -3,6 +3,7 @@ from PyQt5 import QtCore, QtWidgets, QtGui
 
 class GameWindow(QtWidgets.QWidget):
     switch_window = QtCore.pyqtSignal()
+    chat_message_signal = QtCore.pyqtSignal(str)
 
     def __init__(self, roomCode, connHandler):
         QtWidgets.QWidget.__init__(self)
@@ -56,6 +57,9 @@ class GameWindow(QtWidgets.QWidget):
         self.vBox.addLayout(self.bottomHBox)
 
         self.setLayout(self.vBox)
+
+    def display_user_msg(self, message):
+        self.chat.setText(message)
 
     def handle_message_send(self):
         self.connHandler.send_chat_msg_req(

@@ -3,11 +3,11 @@ import socket
 import threading
 import logging
 
-from Communication import common, msg_handler, ConnectionHandler
+
+import Common.config
+from Communication import msg_handler, ConnectionHandler
 from Communication.ConnectionHandler import ConnectionHandler
-# from common:
-import config
-import messages
+
 
 import traceback
 
@@ -47,7 +47,7 @@ class StartWindow(QtWidgets.QWidget):
             # self.connHandler.kill_receiver()
             w1 = PopUpWindow('Game server is unreachable!')
             exit()  # correct?
-
+        self.setMinimumSize(150,100)
         self.setWindowTitle("Coolambury")
 
         self.vBox = QtWidgets.QVBoxLayout()
@@ -62,7 +62,8 @@ class StartWindow(QtWidgets.QWidget):
         self.createRoombutton = QtWidgets.QPushButton(
             "Create Room")
         self.createRoombutton.clicked.connect(self.connHandler.send_create_room_req)
-        self.serverOutputLabel = QtWidgets.QLabel('server output')
+        self.killReceiverButton = QtWidgets.QPushButton("Kill Receiver before leaving")
+        self.killReceiverButton.clicked.connect(self.connHandler.kill_receiver)
 
         self.setLayout(self.vBox)
         self.vBox.addWidget(self.nicknameLabel)
@@ -71,7 +72,7 @@ class StartWindow(QtWidgets.QWidget):
         self.vBox.addWidget(self.roomCodeField)
         self.vBox.addWidget(self.joinButton)
         self.vBox.addWidget(self.createRoombutton)
-        self.vBox.addWidget(self.serverOutputLabel)
+        self.vBox.addWidget(self.killReceiverButton)
 
     def validate_inputs(self):
         if True:  # self.lineEdit1.text and len(self.lineEdit2.text) == 4:
