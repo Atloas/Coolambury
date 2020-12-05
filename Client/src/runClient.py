@@ -5,22 +5,22 @@ import logging
 
 from Communication.ConnectionHandler import ConnectionHandler
 from Utils.PopUpWindow import PopUpWindow
-import traceback
 
 # for windows (PowerShell):
 # $env:PYTHONPATH = "."
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
+    logging.debug('[STARTING] Client is being loaded ...')
+    app = QApplication([])
     try:
         connHandler = ConnectionHandler()
     except:
-        traceback.print_exc()
         logging.debug("[SOCKET CONNECTION] Connection to server failed")
         PopUpWindow('Game server is unreachable!')
         exit()
 
-    logging.basicConfig(level=logging.DEBUG)
-    app = QApplication([])
     windowController = WindowController(connHandler)
+    logging.debug('[CLIENT STARTED]')
     windowController.show_start()
     sys.exit(app.exec_())
     connHandler.kill_receiver()

@@ -1,9 +1,11 @@
 from PyQt5 import QtCore, QtWidgets, QtGui
+import logging
 
 
 class GameWindow(QtWidgets.QWidget):
     switch_window = QtCore.pyqtSignal()
     chat_message_signal = QtCore.pyqtSignal(str)
+    key_pressed_signal = QtCore.pyqtSignal(QtCore.QEvent)
 
     def __init__(self, clientContext, connHandler):
         QtWidgets.QWidget.__init__(self)
@@ -11,7 +13,7 @@ class GameWindow(QtWidgets.QWidget):
         self.clientContext = clientContext
         self.connHandler = connHandler
         self.connHandler.chat_message_signal.connect(self.display_user_msg)
-
+        self.key_pressed_signal.connect(self.on_key)
         self.setWindowTitle("Coolambury: {}".format(
             self.clientContext['roomCode']))
 
@@ -45,6 +47,7 @@ class GameWindow(QtWidgets.QWidget):
         self.chat.setReadOnly(True)
 
         self.chatEntryLine = QtWidgets.QLineEdit()
+        self.chatEntryLine.setPlaceholderText("Have a guess!")
         self.chatEntryButton = QtWidgets.QPushButton("Send")
         # TODO: add Enter support/trigger
 
@@ -63,7 +66,35 @@ class GameWindow(QtWidgets.QWidget):
 
         self.setLayout(self.vBox)
 
+    def closeEvent(self, event):
+        logging.debug(
+            "[EXITING ATTEMPT] Client is requesting for client exit")
+        if self.connHandler.get_connected_receiver_status() == True:
+            # temporary:
+            self.connHandler.kill_receiver()
+            # TODO: implement ExitClientReq handling on the server:
+            # self.connHandler.send_exit_client_req(self.clientContext['username'])
+            # self.connHandler.receiver_thread.join()
+
+    def keyPressEvent(self, event):
+        pressedKey = event.key()
+        if pressedKey == QtCore.Qt.Key_Enter or pressedKey == QtCore.Qt.Key_Return:
+            if not self.isModified():
+                self.handle_message_send()
+
+    def keyPressEvent(self, event):
+        super(GameWindow, self).keyPressEvent(event)
+        self.key_pressed_signal.emit(event)
+
+    def on_key(self, event):
+        logging.debug(
+            "[KEY PRESSED] {} was pressed".format(event.key()))
+        if event.key() == QtCore.Qt.Key_Enter or event.key() == QtCore.Qt.Key_Return:
+            self.handle_message_send()
+
     def display_user_msg(self, message):
+        self.chatEntryLine.clear()
+        self.chatEntryLine.setText('')
         self.chat.insertPlainText("{}{}".format(message, "\n"))
 
     # TODO: move to connHandler if possible!
@@ -71,7 +102,6 @@ class GameWindow(QtWidgets.QWidget):
         if self.chatEntryLine.isModified():
             self.connHandler.send_chat_msg_req(
                 self.clientContext['username'], self.clientContext['roomCode'], self.chatEntryLine.text())
-
 
     def disconnect_clicked(self):
         # TODO: disconnect socket

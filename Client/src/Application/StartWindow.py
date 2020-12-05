@@ -27,7 +27,7 @@ class StartWindow(QtWidgets.QWidget):
         self.clientContext = clientContext
 
 
-        self.setMinimumSize(150, 100)
+        self.setMinimumSize(250, 100)
         self.setWindowTitle("Coolambury")
         self.vBox = QtWidgets.QVBoxLayout()
         self.nicknameLabel = QtWidgets.QLabel('Enter your nickname:')
@@ -35,16 +35,13 @@ class StartWindow(QtWidgets.QWidget):
         self.nicknameField.maxLength = 15
         self.roomCodeLabel = QtWidgets.QLabel('Enter room code:')
         self.roomCodeField = QtWidgets.QLineEdit()
-        self.roomCodeField.maxLength = 4
+        self.roomCodeField.maxLength = 8
         self.joinButton = QtWidgets.QPushButton("Join room")
         self.joinButton.clicked.connect(self.join_clicked)
         self.createRoombutton = QtWidgets.QPushButton(
             "Create Room")
         self.createRoombutton.clicked.connect(
             self.delegate_room_creation_to_handler)
-        self.killReceiverButton = QtWidgets.QPushButton(
-            "Kill Receiver before leaving")
-        self.killReceiverButton.clicked.connect(self.connHandler.kill_receiver)
 
         self.setLayout(self.vBox)
         self.vBox.addWidget(self.nicknameLabel)
@@ -53,7 +50,6 @@ class StartWindow(QtWidgets.QWidget):
         self.vBox.addWidget(self.roomCodeField)
         self.vBox.addWidget(self.joinButton)
         self.vBox.addWidget(self.createRoombutton)
-        self.vBox.addWidget(self.killReceiverButton)
 
     def validate_nickname(self):
         isNickNameValid = self.nicknameField.isModified()
@@ -61,11 +57,20 @@ class StartWindow(QtWidgets.QWidget):
             "[NICKNAME VALIDATION] Given nickname is valid: {}".format(isNickNameValid))
         if isNickNameValid:
             return True
-        else:
-            PopUpWindow(
-                "Nickname not valid!", 'ERROR')
-            return False
+        PopUpWindow(
+            "Nickname not valid!", 'ERROR')
+        return False
 
+    def validate_room_code(self):
+        isRoomCodeValid = self.roomCodeField.isModified()
+        logging.debug(
+            "[ROOM CODE VALIDATION] Room code specified: {}".format(isRoomCodeValid))
+        if isRoomCodeValid:
+            return True
+        PopUpWindow(
+            "Room code not specified!", 'ERROR')
+        return False
+        
     def validate_inputs(self):
         if True:  # self.lineEdit1.text and len(self.lineEdit2.text) == 4:
             return True
@@ -74,24 +79,20 @@ class StartWindow(QtWidgets.QWidget):
 
     def connect_to_room(self):
         # TODO
-        return True
+        PopUpWindow(
+            "Chłopcze, tego jeszcze nie zaimplementowaliśmy!", 'ERROR')
+        return False
 
     def display_message(self, message):
         alert = QtWidgets.QMessageBox()
         alert.setText(message)
         alert.exec_()
 
-    # def closeEvent(self, event):
-        # if self.connHandler.get_connected_receiver_status() == True:
-        #     logging.debug(
-        #         "[EXITING] Killing all threads and exiting the client window")
-        # self.connHandler.kill_receiver()
-        # self.connHandler.send_create_room_req()  # temporary
-        # TODO: Add a Message notifying the Server about a user leaving (kills the thread)
-        # notify_server_about_leaving = messages.ExitClientReq()
-        # notify_server_about_leaving.user_name = 'TestUser'
-        # msg_handler.send(
-        #     self.conn, notify_server_about_leaving, self.server_config)
+    def closeEvent(self, event):
+        logging.debug(
+            "[EXITING ATTEMPT] Client is requesting for client exit")
+        if self.connHandler.get_connected_receiver_status() == True:
+            self.connHandler.kill_receiver()
 
     def delegate_room_creation_to_handler(self):
         if self.validate_nickname():
@@ -101,14 +102,12 @@ class StartWindow(QtWidgets.QWidget):
 
 
     def join_clicked(self):
-        if self.validate_inputs():
+        if self.validate_nickname() and self.validate_room_code():
             if self.connect_to_room():
                 roomNumber = self.roomCodeField.text()
                 self.switch_window.emit(roomNumber)
             else:
                 self.display_message("Could not connect to room!")
-        else:
-            self.display_message("invalid inputs!")
 
 
 if __name__ == '__main__':
