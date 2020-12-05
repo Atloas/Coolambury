@@ -5,12 +5,12 @@ import logging
 import common
 import config
 import messages
-import msg_handler
+import SocketMsgHandler
 
 def receive(conn, config):
     connected = True
     while connected:
-        (name, received_msg) = msg_handler.receive(conn, config)
+        (name, received_msg) = SocketMsgHandler.receive(conn, config)
         if received_msg:
             if name == 'NewChatMessage':
                 print('{} : {}'.format(received_msg.author, received_msg.message))
@@ -35,7 +35,7 @@ if __name__ == "__main__":
     join_room_msg.user_name = 'jakis_nick_inny'
     join_room_msg.room_code = 'eqnwnqpj'
 
-    msg_handler.send(conn, join_room_msg, config)
+    SocketMsgHandler.send(conn, join_room_msg, config)
 
     while True:
         mes = input()
@@ -43,7 +43,7 @@ if __name__ == "__main__":
         write_chat_req.user_name = join_room_msg.user_name
         write_chat_req.room_code = join_room_msg.room_code
         write_chat_req.message = mes
-        msg_handler.send(conn, write_chat_req, config)
+        SocketMsgHandler.send(conn, write_chat_req, config)
 
 
     receiver_thread.join()

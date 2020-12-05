@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QApplication
-from Application.WindowController import WindowController
+from Application.AppResourceManager import AppResourceManager
 import sys
 import logging
 
@@ -19,8 +19,8 @@ if __name__ == "__main__":
         PopUpWindow('Game server is unreachable!')
         exit()
 
-    windowController = WindowController(connHandler)
+    AppResourceManager = AppResourceManager(connHandler)
     logging.debug('[CLIENT STARTED]')
-    windowController.show_start()
+    AppResourceManager.show_start()
     sys.exit(app.exec_())
     connHandler.kill_receiver()

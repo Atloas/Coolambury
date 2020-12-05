@@ -5,7 +5,7 @@ import logging
 import common
 import config
 import messages
-import msg_handler
+import SocketMsgHandler
 
 c_room_resp = messages.CreateRoomResp()
 
@@ -13,7 +13,7 @@ def receive(conn, config):
     global c_room_resp
     connected = True
     while connected:
-        (name, received_msg) = msg_handler.receive(conn, config)
+        (name, received_msg) = SocketMsgHandler.receive(conn, config)
         if received_msg:
             if name == 'CreateRoomResp':
                 c_room_resp = received_msg
@@ -41,7 +41,7 @@ if __name__ == "__main__":
     create_room_msg.user_name = 'room_owner_user_hehe'
     create_room_msg.room_name = 'TestowyRoom'
 
-    msg_handler.send(conn, create_room_msg, config)
+    SocketMsgHandler.send(conn, create_room_msg, config)
 
 
     while True:
@@ -50,7 +50,7 @@ if __name__ == "__main__":
         write_chat_req.user_name = create_room_msg.user_name
         write_chat_req.room_code = c_room_resp.room_code
         write_chat_req.message = mes
-        msg_handler.send(conn, write_chat_req, config)
+        SocketMsgHandler.send(conn, write_chat_req, config)
 
 
     receiver_thread.join()

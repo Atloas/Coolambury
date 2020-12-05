@@ -4,7 +4,7 @@ import threading
 import logging
 from Utils.PopUpWindow import PopUpWindow
 import Common.config
-from Communication import msg_handler, ConnectionHandler
+from Communication import SocketMsgHandler, ConnectionHandler
 from Communication.ConnectionHandler import ConnectionHandler
 
 
@@ -28,6 +28,7 @@ class StartWindow(QtWidgets.QWidget):
 
 
         self.setMinimumSize(250, 100)
+        self.setMaximumSize(350, 200)
         self.setWindowTitle("Coolambury")
         self.vBox = QtWidgets.QVBoxLayout()
         self.nicknameLabel = QtWidgets.QLabel('Enter your nickname:')
@@ -90,7 +91,7 @@ class StartWindow(QtWidgets.QWidget):
 
     def closeEvent(self, event):
         logging.debug(
-            "[EXITING ATTEMPT] Client is requesting for client exit")
+            "[EXITING ATTEMPT] Client is requesting for application exit")
         if self.connHandler.get_connected_receiver_status() == True:
             self.connHandler.kill_receiver()
 

@@ -1,7 +1,7 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
 
 from . import common
-from . import msg_handler
+from . import SocketMsgHandler
 import Common.config as config
 import Common.messages as messages
 from Utils import PopUpWindow
@@ -31,19 +31,33 @@ class ConnectionHandler(QtCore.QObject):
         self.receiver_thread.start()
 
     def kill_receiver(self):
+        try:
+            self.connectedReceiverStatus = False
+            self.conn.shutdown(socket.SHUT_RDWR)
+            self.conn.close()
+            self.receiver_thread.join()
+        except:
+            logging.debug(
+                "[SOCKET RECEIVER] Unsuccessful socket shutdown!")
         logging.debug(
-            "[EXITING CONFIRMED] Killing all threads and exiting the client window")
-        self.connectedReceiverStatus = False
-        self.conn.close()
-        self.receiver_thread.join()
+            '[EXITING CONFIRMED] Killing all threads and exiting the client window')
+
 
     def get_connected_receiver_status(self):
         return self.connectedReceiverStatus
 
     def receive(self, conn, server_config):
         while self.connectedReceiverStatus:
-            logging.debug("[SOCKET RECEIVER] Awaiting for incoming messages ...")
-            received_msg_name, received_msg = msg_handler.receive(conn, server_config)
+            logging.debug(
+                "[SOCKET RECEIVER] Awaiting for incoming messages ...")
+            received_msg_name = None
+            received_msg = None
+            try:
+                received_msg_name, received_msg = SocketMsgHandler.receive(
+                    conn, server_config)
+            except:
+                logging.debug(
+                    "[SOCKET RECEIVER] Shutting down and closing socket connection")
             if received_msg:
                 logging.debug(
                     "[SOCKET RECEIVER] Received Message: {}".format(received_msg))
@@ -64,23 +78,22 @@ class ConnectionHandler(QtCore.QObject):
         send_create_room_req_msg = messages.CreateRoomReq()
         send_create_room_req_msg.user_name = user_name
         send_create_room_req_msg.room_name = ''
-        msg_handler.send(self.conn, send_create_room_req_msg,
+        SocketMsgHandler.send(self.conn, send_create_room_req_msg,
                          self.server_config)
 
     def send_chat_msg_req(self, user_name, room_code, message):
         send_char_msg = messages.WriteChatReq()
         send_char_msg.user_name = user_name
-        print("msg room_code = {}".format(room_code))
         send_char_msg.room_code = room_code
 
         send_char_msg.message = message
-        msg_handler.send(self.conn, send_char_msg,
+        SocketMsgHandler.send(self.conn, send_char_msg,
                          self.server_config)
 
     def send_exit_client_req(self, user_name):
         notify_server_about_leaving = messages.ExitClientReq()
         notify_server_about_leaving.user_name = user_name
-        msg_handler.send(
+        SocketMsgHandler.send(
             self.conn, notify_server_about_leaving, self.server_config)
 
 

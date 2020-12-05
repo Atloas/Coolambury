@@ -6,7 +6,7 @@ from Utils.PopUpWindow import PopUpWindow
 
 
 # ApplicationResourcesManager
-class WindowController:
+class AppResourceManager:
 
     def __init__(self, connHandler):
         self.connHandler = connHandler
@@ -29,7 +29,6 @@ class WindowController:
         self.clientContext['roomCode'] = roomCode
         self.startWindow.hide()
         self.gameWindow.show()
-
 
 
 if __name__ == '__main__':
