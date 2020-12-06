@@ -48,9 +48,9 @@ class GameWindow(QtWidgets.QWidget):
 
         self.chatEntryLine = QtWidgets.QLineEdit()
         self.chatEntryLine.setPlaceholderText("Have a guess!")
-        self.chatEntryButton = QtWidgets.QPushButton("Send")
-        # TODO: add Enter support/trigger
+        self.chatEntryLine.returnPressed.connect(self.handle_message_send)
 
+        self.chatEntryButton = QtWidgets.QPushButton("Send")
         self.chatEntryButton.clicked.connect(self.handle_message_send)
 
         self.chatBottomHBox.addWidget(self.chatEntryLine)
@@ -76,26 +76,16 @@ class GameWindow(QtWidgets.QWidget):
             # self.connHandler.send_exit_client_req(self.clientContext['username'])
             # self.connHandler.receiver_thread.join()
 
-    def keyPressEvent(self, event):
-        pressedKey = event.key()
-        if pressedKey == QtCore.Qt.Key_Enter or pressedKey == QtCore.Qt.Key_Return:
-            if not self.isModified():
-                self.handle_message_send()
-
-    def keyPressEvent(self, event):
-        super(GameWindow, self).keyPressEvent(event)
-        self.key_pressed_signal.emit(event)
-
-    def on_key(self, event):
-        logging.debug(
-            "[KEY PRESSED] {} was pressed".format(event.key()))
-        if event.key() == QtCore.Qt.Key_Enter or event.key() == QtCore.Qt.Key_Return:
-            self.handle_message_send()
-
     def display_user_msg(self, message):
         self.chatEntryLine.clear()
         self.chatEntryLine.setText('')
         self.chat.insertPlainText("{}{}".format(message, "\n"))
+
+    def mouseMoveEvent(self, e):
+        painter = QtGui.QPainter(self.label.pixmap())
+        painter.drawPoint(e.x(), e.y())
+        painter.end()
+        self.update()
 
     # TODO: move to connHandler if possible!
     def handle_message_send(self):
