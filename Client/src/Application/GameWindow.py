@@ -13,7 +13,6 @@ class GameWindow(QtWidgets.QWidget):
         self.clientContext = clientContext
         self.connHandler = connHandler
         self.connHandler.chat_message_signal.connect(self.display_user_msg)
-        self.key_pressed_signal.connect(self.on_key)
         self.setWindowTitle("Coolambury: {}".format(
             self.clientContext['roomCode']))
 
@@ -40,6 +39,7 @@ class GameWindow(QtWidgets.QWidget):
 
         self.canvasContainer = QtWidgets.QLabel()
         self.canvas = QtGui.QPixmap(400, 300)
+        self.canvas.fill(QtGui.QColor("white"))
         self.canvasContainer.setPixmap(self.canvas)
         self.bottomHBox.addWidget(self.canvasContainer)
 
@@ -82,8 +82,13 @@ class GameWindow(QtWidgets.QWidget):
         self.chat.insertPlainText("{}{}".format(message, "\n"))
 
     def mouseMoveEvent(self, e):
-        painter = QtGui.QPainter(self.label.pixmap())
-        painter.drawPoint(e.x(), e.y())
+        x = e.x() - self.canvasContainer.x()
+        y = e.y() - self.canvasContainer.y()
+        painter = QtGui.QPainter(self.canvasContainer.pixmap())
+        painter.begin(self.canvas)
+        painter.setPen(QtGui.QColor("black"))
+        painter.drawPoint(x, y)
+        logging.debug("MouseMoveEvent at x: {}, y: {}".format(x, y))
         painter.end()
         self.update()
 
