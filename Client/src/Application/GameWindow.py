@@ -8,6 +8,8 @@ class GameWindow(QtWidgets.QWidget):
     key_pressed_signal = QtCore.pyqtSignal(QtCore.QEvent)
 
     def __init__(self, clientContext, connHandler):
+        # TODO: Reset windows state on switch
+
         QtWidgets.QWidget.__init__(self)
 
         self.clientContext = clientContext
@@ -16,7 +18,6 @@ class GameWindow(QtWidgets.QWidget):
         self.setWindowTitle("Coolambury: {}".format(
             self.clientContext['roomCode']))
 
-        # TODO: Drawing
         self.vBox = QtWidgets.QVBoxLayout()
         self.topHBox = QtWidgets.QHBoxLayout()
         self.bottomHBox = QtWidgets.QHBoxLayout()
@@ -31,7 +32,7 @@ class GameWindow(QtWidgets.QWidget):
         self.disconnectButton.clicked.connect(self.disconnect_clicked)
         self.topHBox.addWidget(self.disconnectButton)
 
-        self.hints = QtWidgets.QLabel("*HINTS*")   # TODO
+        self.hints = QtWidgets.QLabel("*HINTS*")   # TODO: Hints
         self.topHBox.addWidget(self.hints)
 
         self.scoreboard = QtWidgets.QTableView()
@@ -66,6 +67,11 @@ class GameWindow(QtWidgets.QWidget):
 
         self.setLayout(self.vBox)
 
+        self.previousX = None
+        self.previousY = None
+        self.strokes = []
+        self.stroke = []
+
     def closeEvent(self, event):
         logging.debug(
             "[EXITING ATTEMPT] Client is requesting for client exit")
@@ -84,13 +90,37 @@ class GameWindow(QtWidgets.QWidget):
     def mouseMoveEvent(self, e):
         x = e.x() - self.canvasContainer.x()
         y = e.y() - self.canvasContainer.y()
+
+        if self.previousX == None:
+            self.previousX = x
+            self.previousY = y
+
         painter = QtGui.QPainter(self.canvasContainer.pixmap())
+        pen = painter.pen()
+        pen.setColor(QtGui.QColor("black"))
+        pen.setWidth(4)
         painter.begin(self.canvas)
-        painter.setPen(QtGui.QColor("black"))
-        painter.drawPoint(x, y)
+        painter.setPen(pen)
+        painter.drawLine(self.previousX, self.previousY, x, y)
         logging.debug("MouseMoveEvent at x: {}, y: {}".format(x, y))
         painter.end()
         self.update()
+
+        self.previousX = x
+        self.previousY = y
+
+        self.stroke.append((x, y))
+
+    def mouseReleaseEvent(self, e):
+        self.strokes.append(self.stroke.copy())
+        self.previousX = None
+        self.previousY = None
+
+        logging.debug(self.strokes)
+
+        # TODO: send stroke data to server
+
+        self.stroke = []
 
     # TODO: move to connHandler if possible!
     def handle_message_send(self):
