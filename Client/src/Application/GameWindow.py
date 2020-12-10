@@ -67,10 +67,25 @@ class GameWindow(QtWidgets.QWidget):
 
         self.setLayout(self.vBox)
 
+        # Drawing
         self.previousX = None
         self.previousY = None
+        # TODO: Stores a history of pictures from past rounds. Add a copy of strokes here after a round is over.
+        self.pictures = []
         self.strokes = []
         self.stroke = []
+
+        # Game
+        # Contains a list of all player names and their scores, ex. [["Atloas", 100], ["loska", 110]]
+        # Used to keep round order. Has to be able to handle new players joining at any time
+        self.playersList = []
+        # The currently painting person
+        self.currentPainter = None
+        # The hint text, modifiable on server request.
+        # For the painter, should display the full word. Placeholder for now.
+        self.hint = "____"
+
+
 
     def closeEvent(self, event):
         logging.debug(
@@ -121,6 +136,23 @@ class GameWindow(QtWidgets.QWidget):
         # TODO: send stroke data to server
 
         self.stroke = []
+
+    def handleReceivedStroke(self, stroke):
+        # TODO: Nothing actually receives data yet
+
+        self.strokes.append(stroke.copy())
+
+        painter = QtGui.QPainter(self.canvasContainer.pixmap())
+        pen = painter.pen()
+        pen.setColor(QtGui.QColor("black"))
+        pen.setWidth(4)
+        painter.begin(self.canvas)
+        painter.setPen(pen)
+        for i in range(len(stroke) - 1):
+            painter.drawLine(stroke[i][0], stroke[i][1], stroke[i+1][0], stroke[i+1][1])
+        logging.debug("Received and drew stroke.")
+        painter.end()
+        self.update()
 
     # TODO: move to connHandler if possible!
     def handle_message_send(self):
