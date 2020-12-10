@@ -26,10 +26,11 @@ class AppResourceManager:
             self.startWindow.setVisible(True)
     
     def show_game(self, roomCode):
-        self.clientContext['roomCode'] = roomCode
+        if roomCode != 'Joining':
+            self.clientContext['roomCode'] = roomCode
         self.startWindow.hide()
         self.gameWindow.show()
-
+        
 
 if __name__ == '__main__':
     pass

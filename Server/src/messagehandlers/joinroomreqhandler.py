@@ -37,7 +37,7 @@ class JoinRoomReqHandler:
             
             room = self._rooms[msg.room_code]
 
-            if msg.user_name in room.joined_clients:
+            if msg.user_name in room._joined_clients:
                 raise UsernameTakenException()
 
             room.add_client(msg.user_name, sender_conn)
