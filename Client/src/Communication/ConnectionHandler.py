@@ -15,6 +15,7 @@ import sys
 
 class ConnectionHandler(QtCore.QObject):
     chat_message_signal = QtCore.pyqtSignal(str)
+    scoreboard_update_signal = QtCore.pyqtSignal(str)
     switch_window = QtCore.pyqtSignal(str)
 
     def __init__(self):

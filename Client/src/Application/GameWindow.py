@@ -5,7 +5,7 @@ import logging
 class GameWindow(QtWidgets.QWidget):
     switch_window = QtCore.pyqtSignal()
     chat_message_signal = QtCore.pyqtSignal(str)
-    user_joined_signal = QtCore.pyqtSignal(str)
+    scoreboard_update_signal = QtCore.pyqtSignal(str)
     key_pressed_signal = QtCore.pyqtSignal(QtCore.QEvent)
 
     def __init__(self, clientContext, connHandler):
@@ -39,6 +39,10 @@ class GameWindow(QtWidgets.QWidget):
 
         # Window
         self.setWindowTitle("Coolambury: {}".format(
+        self.connHandler.scoreboard_update_signal.connect(self.update_scoreboard)
+        self.key_pressed_signal.connect(self.on_key)
+        self.setWindowTitle("Coolambury [{}] {}".format(
+            self.clientContext['username'],
             self.clientContext['roomCode']))
 
         self.vBox = QtWidgets.QVBoxLayout()
@@ -68,8 +72,10 @@ class GameWindow(QtWidgets.QWidget):
         self.bottomHBox.addWidget(self.canvasContainer)
 
         self.chat = QtWidgets.QTextEdit()
+        self.chat.append('GAME ROOM ID: {}\n'.format(self.clientContext['roomCode']))
         self.chat.setReadOnly(True)
 
+        print(self.clientContext['roomCode'])
         self.chatEntryLine = QtWidgets.QLineEdit()
         self.chatEntryLine.setPlaceholderText("Have a guess!")
         self.chatEntryLine.returnPressed.connect(self.handle_message_send)
@@ -161,6 +167,10 @@ class GameWindow(QtWidgets.QWidget):
         self.playerList.append(username)
         # TODO: Add to scoreboard and update it.
 
+        self.chat.ensureCursorVisible()
+    
+    def update_scoreboard(self, message):
+        pass
     # TODO: move to connHandler if possible!
     def handle_message_send(self):
         if self.chatEntryLine.isModified():
