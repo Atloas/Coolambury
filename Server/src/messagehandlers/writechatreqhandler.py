@@ -12,16 +12,16 @@ class RoomNotExistsException(Exception):
 
 class WriteChatReqHandler:
     def __init__(self, rooms, clients, server_config):
-        self.rooms = rooms
-        self.clients = clients
-        self.server_config = server_config
+        self._rooms = rooms
+        self._clients = clients
+        self._server_config = server_config
 
     def handle(self, sender_conn, msg):
         try:
-            if msg.room_code not in self.rooms:
+            if msg.room_code not in self._rooms:
                 raise RoomNotExistsException()
             
-            room = self.rooms[msg.room_code]
+            room = self._rooms[msg.room_code]
 
             room.add_client(msg.user_name, sender_conn)
 
