@@ -5,6 +5,7 @@ import logging
 class GameWindow(QtWidgets.QWidget):
     switch_window = QtCore.pyqtSignal()
     chat_message_signal = QtCore.pyqtSignal(str)
+    user_joined_signal = QtCore.pyqtSignal(str)
     key_pressed_signal = QtCore.pyqtSignal(QtCore.QEvent)
 
     def __init__(self, clientContext, connHandler):
@@ -15,6 +16,28 @@ class GameWindow(QtWidgets.QWidget):
         self.clientContext = clientContext
         self.connHandler = connHandler
         self.connHandler.chat_message_signal.connect(self.display_user_msg)
+
+        # Drawing
+        self.previousX = None
+        self.previousY = None
+        # TODO: Stores a history of pictures from past rounds. Add a copy of strokes here after a round is over.
+        self.pictures = []
+        self.strokes = []
+        self.stroke = []
+
+        # TODO: Before initializing game variables the window needs to know if it's a new game or if the user joined in progress
+
+        # Game
+        # Contains a list of all player names and their scores, ex. [["Atloas", 100], ["loska", 110]]
+        # Player drawing order enforced by server?
+        self.playerList = []
+        # The currently painting person
+        self.currentPainter = None
+        # The hint text, modifiable on server request.
+        # For the painter, should display the full word. Placeholder for now.
+        self.hint = "____"
+
+        # Window
         self.setWindowTitle("Coolambury: {}".format(
             self.clientContext['roomCode']))
 
@@ -67,26 +90,6 @@ class GameWindow(QtWidgets.QWidget):
 
         self.setLayout(self.vBox)
 
-        # Drawing
-        self.previousX = None
-        self.previousY = None
-        # TODO: Stores a history of pictures from past rounds. Add a copy of strokes here after a round is over.
-        self.pictures = []
-        self.strokes = []
-        self.stroke = []
-
-        # Game
-        # Contains a list of all player names and their scores, ex. [["Atloas", 100], ["loska", 110]]
-        # Used to keep round order. Has to be able to handle new players joining at any time
-        self.playersList = []
-        # The currently painting person
-        self.currentPainter = None
-        # The hint text, modifiable on server request.
-        # For the painter, should display the full word. Placeholder for now.
-        self.hint = "____"
-
-
-
     def closeEvent(self, event):
         logging.debug(
             "[EXITING ATTEMPT] Client is requesting for client exit")
@@ -106,7 +109,7 @@ class GameWindow(QtWidgets.QWidget):
         x = e.x() - self.canvasContainer.x()
         y = e.y() - self.canvasContainer.y()
 
-        if self.previousX == None:
+        if self.previousX is None:
             self.previousX = x
             self.previousY = y
 
@@ -153,6 +156,10 @@ class GameWindow(QtWidgets.QWidget):
         logging.debug("Received and drew stroke.")
         painter.end()
         self.update()
+
+    def userJoined(self, username):
+        self.playerList.append(username)
+        # TODO: Add to scoreboard and update it.
 
     # TODO: move to connHandler if possible!
     def handle_message_send(self):
