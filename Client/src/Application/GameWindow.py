@@ -45,6 +45,29 @@ class GameWindow(QtWidgets.QWidget):
         # Window
         # self.key_pressed_signal.connect(self.on_key)
 
+
+
+        # Drawing
+        self.previousX = None
+        self.previousY = None
+        # TODO: Stores a history of pictures from past rounds. Add a copy of strokes here after a round is over.
+        self.pictures = []
+        self.strokes = []
+        self.stroke = []
+
+        # TODO: Before initializing game variables the window needs to know if it's a new game or if the user joined in progress
+
+        # Game
+        # Contains a list of all player names and their scores, ex. [["Atloas", 100], ["loska", 110]]
+        # Player drawing order enforced by server?
+        self.playerList = []
+        # The currently painting person
+        self.currentPainter = None
+        # The hint text, modifiable on server request.
+        # For the painter, should display the full word. Placeholder for now.
+        self.hint = "____"
+
+        # Window
         self.vBox = QtWidgets.QVBoxLayout()
         self.topHBox = QtWidgets.QHBoxLayout()
         self.bottomHBox = QtWidgets.QHBoxLayout()

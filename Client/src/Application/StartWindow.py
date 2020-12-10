@@ -111,6 +111,7 @@ class StartWindow(QtWidgets.QWidget):
                   ' ' + self.clientContext['username'])
             print("self.clientContext['roomCode']" +
                   ' ' + self.clientContext['roomCode'])
+
             self.connHandler.send_join_room_req(
                 self.clientContext['username'], self.clientContext['roomCode'])
 
