@@ -14,20 +14,22 @@ class AppResourceManager:
         self.clientContext['username'] = ''
         self.clientContext['roomCode'] = ''
         self.startWindow = StartWindow(self.connHandler, self.clientContext)
+        self.gameWindow = None
         # TODO: sort out the parameter order:
-        self.gameWindow = GameWindow(self.clientContext, self.connHandler) 
         self.connHandler.switch_window.connect(self.show_game)
-        self.gameWindow.switch_window.connect(self.show_start)
         self.startWindow.show()
 
     def show_start(self):
-        if self.gameWindow is not None and self.gameWindow.isVisible():
-            self.gameWindow.hide()
+        if self.startWindow is not None:
+            if self.gameWindow is not None and self.gameWindow.isVisible():
+                self.gameWindow.hide()
             self.startWindow.setVisible(True)
     
     def show_game(self, roomCode):
         if roomCode != 'Joining':
             self.clientContext['roomCode'] = roomCode
+        self.gameWindow = GameWindow(self.clientContext, self.connHandler) 
+        self.gameWindow.switch_window.connect(self.show_start)
         self.startWindow.hide()
         self.gameWindow.show()
         

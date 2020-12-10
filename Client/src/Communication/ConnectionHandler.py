@@ -15,6 +15,7 @@ import sys
 
 class ConnectionHandler(QtCore.QObject):
     chat_message_signal = QtCore.pyqtSignal(str)
+    scoreboard_update_signal = QtCore.pyqtSignal(str)
     switch_window = QtCore.pyqtSignal(str)
 
     def __init__(self):
@@ -55,7 +56,7 @@ class ConnectionHandler(QtCore.QObject):
                 '[LOADING CONFIG FILE] Error occured when loading configuration file!')
             exit()
 
-    def get_connected_receiver_status(self):
+    def is_connection_receiver_connected(self):
         return self.connectedReceiverStatus
 
     def receive(self, conn, server_config):
