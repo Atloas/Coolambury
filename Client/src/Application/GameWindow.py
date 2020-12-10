@@ -44,6 +44,7 @@ class GameWindow(QtWidgets.QWidget):
 
         # Window
         # self.key_pressed_signal.connect(self.on_key)
+<<<<<<< HEAD
 
 
 
@@ -54,6 +55,8 @@ class GameWindow(QtWidgets.QWidget):
         self.pictures = []
         self.strokes = []
         self.stroke = []
+=======
+>>>>>>> [Client] Adapted drawing into current code
 
         # TODO: Before initializing game variables the window needs to know if it's a new game or if the user joined in progress
 
