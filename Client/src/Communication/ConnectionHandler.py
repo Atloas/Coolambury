@@ -56,7 +56,7 @@ class ConnectionHandler(QtCore.QObject):
                 '[LOADING CONFIG FILE] Error occured when loading configuration file!')
             exit()
 
-    def get_connected_receiver_status(self):
+    def is_connection_receiver_connected(self):
         return self.connectedReceiverStatus
 
     def receive(self, conn, server_config):

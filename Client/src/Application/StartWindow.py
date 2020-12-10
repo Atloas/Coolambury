@@ -92,13 +92,14 @@ class StartWindow(QtWidgets.QWidget):
     def closeEvent(self, event):
         logging.debug(
             "[EXITING ATTEMPT] Client is requesting for application exit")
-        if self.connHandler.get_connected_receiver_status() == True:
+        if self.connHandler.is_connection_receiver_connected() == True:
             self.connHandler.kill_receiver()
 
     def delegate_room_creation_to_handler(self):
         if self.validate_nickname():
             self.clientContext['username'] = self.nicknameField.text()
-            print("self.clientContext['username']" + ' ' + self.clientContext['username'])                
+            print("self.clientContext['username']" +
+                  ' ' + self.clientContext['username'])
             self.connHandler.send_create_room_req(
                 self.clientContext['username'])
 
@@ -106,8 +107,10 @@ class StartWindow(QtWidgets.QWidget):
         if self.validate_nickname() and self.validate_room_code():
             self.clientContext['username'] = self.nicknameField.text()
             self.clientContext['roomCode'] = self.roomCodeField.text()
-            print("self.clientContext['username']" + ' ' + self.clientContext['username'])                
-            print("self.clientContext['roomCode']" + ' ' + self.clientContext['roomCode'])                    
+            print("self.clientContext['username']" +
+                  ' ' + self.clientContext['username'])
+            print("self.clientContext['roomCode']" +
+                  ' ' + self.clientContext['roomCode'])
             self.connHandler.send_join_room_req(
                 self.clientContext['username'], self.clientContext['roomCode'])
 

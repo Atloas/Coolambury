@@ -16,6 +16,11 @@ class GameWindow(QtWidgets.QWidget):
         self.clientContext = clientContext
         self.connHandler = connHandler
         self.connHandler.chat_message_signal.connect(self.display_user_msg)
+        self.connHandler.scoreboard_update_signal.connect(
+            self.update_scoreboard)
+        self.setWindowTitle("Coolambury [{}] {}".format(
+            self.clientContext['username'],
+            self.clientContext['roomCode']))
 
         # Drawing
         self.previousX = None
@@ -38,12 +43,7 @@ class GameWindow(QtWidgets.QWidget):
         self.hint = "____"
 
         # Window
-        self.setWindowTitle("Coolambury: {}".format(
-        self.connHandler.scoreboard_update_signal.connect(self.update_scoreboard)
-        self.key_pressed_signal.connect(self.on_key)
-        self.setWindowTitle("Coolambury [{}] {}".format(
-            self.clientContext['username'],
-            self.clientContext['roomCode']))
+        # self.key_pressed_signal.connect(self.on_key)
 
         self.vBox = QtWidgets.QVBoxLayout()
         self.topHBox = QtWidgets.QHBoxLayout()
@@ -72,7 +72,8 @@ class GameWindow(QtWidgets.QWidget):
         self.bottomHBox.addWidget(self.canvasContainer)
 
         self.chat = QtWidgets.QTextEdit()
-        self.chat.append('GAME ROOM ID: {}\n'.format(self.clientContext['roomCode']))
+        self.chat.append('GAME ROOM ID: {}\n'.format(
+            self.clientContext['roomCode']))
         self.chat.setReadOnly(True)
 
         print(self.clientContext['roomCode'])
@@ -99,7 +100,7 @@ class GameWindow(QtWidgets.QWidget):
     def closeEvent(self, event):
         logging.debug(
             "[EXITING ATTEMPT] Client is requesting for client exit")
-        if self.connHandler.get_connected_receiver_status() == True:
+        if self.connHandler.is_connection_receiver_connected():
             # temporary:
             self.connHandler.kill_receiver()
             # TODO: implement ExitClientReq handling on the server:
@@ -158,7 +159,8 @@ class GameWindow(QtWidgets.QWidget):
         painter.begin(self.canvas)
         painter.setPen(pen)
         for i in range(len(stroke) - 1):
-            painter.drawLine(stroke[i][0], stroke[i][1], stroke[i+1][0], stroke[i+1][1])
+            painter.drawLine(stroke[i][0], stroke[i][1],
+                             stroke[i+1][0], stroke[i+1][1])
         logging.debug("Received and drew stroke.")
         painter.end()
         self.update()
@@ -168,9 +170,10 @@ class GameWindow(QtWidgets.QWidget):
         # TODO: Add to scoreboard and update it.
 
         self.chat.ensureCursorVisible()
-    
+
     def update_scoreboard(self, message):
         pass
+
     # TODO: move to connHandler if possible!
     def handle_message_send(self):
         if self.chatEntryLine.isModified():
