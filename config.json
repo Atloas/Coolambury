@@ -1,0 +1,7 @@
+{
+    "PORT": 5050,
+    "HEADER_LEN": 1024,
+    "SERVER": "localhost",
+    "DISCONNECT_MSG": "!DISCONNECT",
+    "FORMAT": "utf-8"
+}

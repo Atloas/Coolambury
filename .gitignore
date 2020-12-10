@@ -128,5 +128,9 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+
+# IDE files
 .idea
 QuickDraw/.quickdrawcache/
+
+.vscode
