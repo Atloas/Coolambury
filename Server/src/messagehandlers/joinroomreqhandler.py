@@ -26,16 +26,16 @@ class UsernameTakenException(Exception):
 
 class JoinRoomReqHandler:
     def __init__(self, rooms, clients, server_config):
-        self.rooms = rooms
-        self.clients = clients
-        self.server_config = server_config
+        self._rooms = rooms
+        self._clients = clients
+        self._server_config = server_config
 
     def handle(self, sender_conn, msg):
         try:
-            if msg.room_code not in self.rooms:
+            if msg.room_code not in self._rooms:
                 raise RoomNotExistsException()
             
-            room = self.rooms[msg.room_code]
+            room = self._rooms[msg.room_code]
 
             if msg.user_name in room.joined_clients:
                 raise UsernameTakenException()
@@ -46,7 +46,7 @@ class JoinRoomReqHandler:
             resp.status = 'OK'
             resp.return_message = 'Joined correctly'
 
-            msg_handling.send(sender_conn, resp, self.server_config)
+            msg_handling.send(sender_conn, resp, self._server_config)
 
             logging.debug('[JOIN_ROOM_REQ_HANDLER] User {} joined to room {}'.format(
                 msg.user_name, msg.room_code))
@@ -57,4 +57,4 @@ class JoinRoomReqHandler:
                 '[JOIN_ROOM_REQ_HANDLER] Error ocured when handling message')
             resp = messages.JoinRoomResp()
             resp.status = 'NOT_OK'
-            msg_handling.send(sender_conn, resp, self.server_config)
+            msg_handling.send(sender_conn, resp, self._server_config)

@@ -19,22 +19,22 @@ def generate_unique_code(length, rooms):
 
 class CreateRoomReqHandler:
     def __init__(self, rooms, clients, server_config):
-        self.rooms = rooms
-        self.clients = clients
-        self.server_config = server_config
+        self._rooms = rooms
+        self._clients = clients
+        self._server_config = server_config
 
     def handle(self, sender_conn, msg):
         try:
-            room_code = generate_unique_code(8, self.rooms)
-            room = Room(self.server_config, msg.room_name,
+            room_code = generate_unique_code(8, self._rooms)
+            room = Room(self._server_config, msg.room_name,
                         msg.user_name, sender_conn)
 
             resp = messages.CreateRoomResp()
             resp.status = 'OK'
             resp.room_code = room_code
 
-            self.rooms[room_code] = room
-            msg_handling.send(sender_conn, resp, self.server_config)
+            self._rooms[room_code] = room
+            msg_handling.send(sender_conn, resp, self._server_config)
 
             logging.debug(
                 '[CREATE_ROOM_REQ_HANDLER] Created new room with room code {}'.format(room_code))
@@ -45,4 +45,4 @@ class CreateRoomReqHandler:
                 '[CREATE_ROOM_REQ_HANDLER] Error ocured when handling message')
             resp = messages.CreateRoomResp()
             resp.status = 'NOT_OK'
-            msg_handling.send(sender_conn, resp, self.server_config)
+            msg_handling.send(sender_conn, resp, self._server_config)
