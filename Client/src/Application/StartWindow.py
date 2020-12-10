@@ -10,6 +10,7 @@ from Communication.ConnectionHandler import ConnectionHandler
 
 import traceback
 
+
 class ServerConnectionFailed(Exception):
     def __init__(self, server_ip, server_port, message="Server unreachable"):
         self.server_ip = server_ip
@@ -26,7 +27,6 @@ class StartWindow(QtWidgets.QWidget):
         self.connHandler = connHandler
         self.clientContext = clientContext
 
-
         self.setMinimumSize(250, 100)
         self.setMaximumSize(350, 200)
         self.setWindowTitle("Coolambury")
@@ -38,7 +38,7 @@ class StartWindow(QtWidgets.QWidget):
         self.roomCodeField = QtWidgets.QLineEdit()
         self.roomCodeField.maxLength = 8
         self.joinButton = QtWidgets.QPushButton("Join room")
-        self.joinButton.clicked.connect(self.join_clicked)
+        self.joinButton.clicked.connect(self.delegate_room_join_to_handler)
         self.createRoombutton = QtWidgets.QPushButton(
             "Create Room")
         self.createRoombutton.clicked.connect(
@@ -71,7 +71,7 @@ class StartWindow(QtWidgets.QWidget):
         PopUpWindow(
             "Room code not specified!", 'ERROR')
         return False
-        
+
     def validate_inputs(self):
         if True:  # self.lineEdit1.text and len(self.lineEdit2.text) == 4:
             return True
@@ -101,14 +101,20 @@ class StartWindow(QtWidgets.QWidget):
             self.connHandler.send_create_room_req(
                 self.clientContext['username'])
 
-
-    def join_clicked(self):
+    def delegate_room_join_to_handler(self):
         if self.validate_nickname() and self.validate_room_code():
-            if self.connect_to_room():
-                roomNumber = self.roomCodeField.text()
-                self.switch_window.emit(roomNumber)
-            else:
-                self.display_message("Could not connect to room!")
+            self.clientContext['username'] = self.nicknameField.text()
+            self.clientContext['roomCode'] = self.roomCodeField.text()
+            self.connHandler.send_join_room_req(
+                self.clientContext['username'], self.clientContext['roomCode'])
+
+    # def join_clicked(self):
+    #     if self.validate_nickname() and self.validate_room_code():
+    #         if self.connect_to_room():
+    #             roomNumber = self.roomCodeField.text()
+    #             self.switch_window.emit(roomNumber)
+    #         else:
+    #             self.display_message("Could not connect to room!")
 
 
 if __name__ == '__main__':

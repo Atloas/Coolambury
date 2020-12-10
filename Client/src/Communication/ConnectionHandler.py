@@ -9,6 +9,8 @@ from Utils import PopUpWindow
 import socket
 import threading
 import logging
+import json
+import sys
 
 
 class ConnectionHandler(QtCore.QObject):
@@ -18,9 +20,10 @@ class ConnectionHandler(QtCore.QObject):
     def __init__(self):
         super().__init__()
         self.connectedReceiverStatus = True
-        self.server_config = config.Config()
-        self.SERVER = self.server_config.SERVER
-        self.PORT = self.server_config.PORT
+
+        self.server_config = self._load_config_file()
+        self.SERVER = self.server_config['SERVER']
+        self.PORT = self.server_config['PORT']
         self.ADDR = (self.SERVER, self.PORT)
         self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.conn.connect(self.ADDR)
@@ -42,6 +45,15 @@ class ConnectionHandler(QtCore.QObject):
         logging.debug(
             '[EXITING CONFIRMED] Killing all threads and exiting the client window')
 
+    def _load_config_file(self):
+        try:
+            config_path = sys.argv[1]
+            with open(config_path, 'r') as config_file:
+                return json.load(config_file)
+        except:
+            logging.error(
+                '[LOADING CONFIG FILE] Error occured when loading configuration file!')
+            exit()
 
     def get_connected_receiver_status(self):
         return self.connectedReceiverStatus
@@ -66,6 +78,11 @@ class ConnectionHandler(QtCore.QObject):
                         self.switch_window.emit(received_msg.room_code)
                     else:
                         PopUpWindow('Room could not be created!', 'ERROR')
+                if received_msg_name == 'JoinRoomResp':
+                    if received_msg.status == 'OK':
+                        self.switch_window.emit('Joining')
+
+                    
                 elif received_msg_name == 'NewChatMessage':
                     self.chat_message_signal.emit("{}: {}".format(
                         received_msg.author, received_msg.message))
@@ -79,7 +96,14 @@ class ConnectionHandler(QtCore.QObject):
         send_create_room_req_msg.user_name = user_name
         send_create_room_req_msg.room_name = ''
         SocketMsgHandler.send(self.conn, send_create_room_req_msg,
-                         self.server_config)
+                              self.server_config)
+
+    def send_join_room_req(self, user_name, room_code):
+        send_join_room_req_msg = messages.JoinRoomReq()
+        send_join_room_req_msg.user_name = user_name
+        send_join_room_req_msg.room_code = room_code
+        SocketMsgHandler.send(self.conn, send_join_room_req_msg,
+                              self.server_config)
 
     def send_chat_msg_req(self, user_name, room_code, message):
         send_char_msg = messages.WriteChatReq()
@@ -88,7 +112,7 @@ class ConnectionHandler(QtCore.QObject):
 
         send_char_msg.message = message
         SocketMsgHandler.send(self.conn, send_char_msg,
-                         self.server_config)
+                              self.server_config)
 
     def send_exit_client_req(self, user_name):
         notify_server_about_leaving = messages.ExitClientReq()

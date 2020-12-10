@@ -27,6 +27,8 @@ class JoinRoomReq:
         self.user_name = ''
         self.room_code = ''
 
+    def __str__(self):
+        return self.user_name + ' ' + self.room_code
 
 class JoinRoomResp:
     def __init__(self):
