@@ -1,6 +1,6 @@
 import msg_handling
 import logging
-import messages
+import Common.messages as messages
 from room import Room
 import random
 import string
