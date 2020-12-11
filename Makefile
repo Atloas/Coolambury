@@ -10,5 +10,7 @@ server: .FORCE
 client: .FORCE
 	$(SET_PYTHONPATH) $(PYTHON) $(CLIENT_APP) $(CONFIG_PATH)
 
+clean: .FORCE
+	find . -name '__pycache__' -exec rm -rf {} \;
 .PHONY: .FORCE
 FORCE:
