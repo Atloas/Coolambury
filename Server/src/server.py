@@ -4,9 +4,8 @@ import threading
 import sys
 
 import json
-import common
 import msg_handling
-import messages
+import Common.messages
 
 from clientconnection import ClientConnection
 from messagedispatcher import MessageDispatcher

@@ -1,6 +1,5 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
 
-from . import common
 from . import SocketMsgHandler
 import Common.config as config
 import Common.messages as messages
