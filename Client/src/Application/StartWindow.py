@@ -72,18 +72,6 @@ class StartWindow(QtWidgets.QWidget):
             "Room code not specified!", 'ERROR')
         return False
 
-    def validate_inputs(self):
-        if True:  # self.lineEdit1.text and len(self.lineEdit2.text) == 4:
-            return True
-        else:
-            return False
-
-    def connect_to_room(self):
-        # TODO
-        PopUpWindow(
-            "Chłopcze, tego jeszcze nie zaimplementowaliśmy!", 'ERROR')
-        return False
-
     def display_message(self, message):
         alert = QtWidgets.QMessageBox()
         alert.setText(message)
@@ -107,14 +95,6 @@ class StartWindow(QtWidgets.QWidget):
             self.clientContext['roomCode'] = self.roomCodeField.text()
             self.connHandler.send_join_room_req(
                 self.clientContext['username'], self.clientContext['roomCode'])
-
-    # def join_clicked(self):
-    #     if self.validate_nickname() and self.validate_room_code():
-    #         if self.connect_to_room():
-    #             roomNumber = self.roomCodeField.text()
-    #             self.switch_window.emit(roomNumber)
-    #         else:
-    #             self.display_message("Could not connect to room!")
 
 
 if __name__ == '__main__':
