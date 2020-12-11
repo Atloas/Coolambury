@@ -48,6 +48,11 @@ class JoinRoomReqHandler:
 
             msg_handling.send(sender_conn, resp, self._server_config)
 
+            joinNotification = messages.NewChatMessage()
+            joinNotification.author = 'SERVER'
+            joinNotification.message = '{} has joined the game'.format(msg.user_name)
+            msg_handling.send(sender_conn, joinNotification, self._server_config)
+
             logging.debug('[JOIN_ROOM_REQ_HANDLER] User {} joined to room {}'.format(
                 msg.user_name, msg.room_code))
 
