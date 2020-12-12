@@ -6,7 +6,7 @@ from Utils.PopUpWindow import PopUpWindow
 class GameWindow(QtWidgets.QWidget):
     switch_window = QtCore.pyqtSignal()
     chat_message_signal = QtCore.pyqtSignal(str)
-    scoreboard_update_signal = QtCore.pyqtSignal(str)
+    user_joined_signal = QtCore.pyqtSignal(str)
     key_pressed_signal = QtCore.pyqtSignal(QtCore.QEvent)
 
     def __init__(self, clientContext, connHandler):
@@ -17,11 +17,6 @@ class GameWindow(QtWidgets.QWidget):
         self.clientContext = clientContext
         self.connHandler = connHandler
         self.connHandler.chat_message_signal.connect(self.display_user_msg)
-        self.connHandler.scoreboard_update_signal.connect(
-            self.update_scoreboard)
-        self.setWindowTitle("Coolambury [{}] {}".format(
-            self.clientContext['username'],
-            self.clientContext['roomCode']))
 
         # Drawing
         self.previousX = None
@@ -44,38 +39,18 @@ class GameWindow(QtWidgets.QWidget):
         self.hint = "____"
 
         # Window
-        # self.key_pressed_signal.connect(self.on_key)
+        self.chat.insertPlainText("GAME ROOM ID: {}{}".format(
+            self.clientContext['roomCode'], "\n"))
 
-        # Drawing
-        self.previousX = None
-        self.previousY = None
-        # TODO: Stores a history of pictures from past rounds. Add a copy of strokes here after a round is over.
-        self.pictures = []
-        self.strokes = []
-        self.stroke = []
-
-        # TODO: Before initializing game variables the window needs to know if it's a new game or if the user joined in progress
-
-        # Game
-        # Contains a list of all player names and their scores, ex. [["Atloas", 100], ["loska", 110]]
-        # Player drawing order enforced by server?
-        self.playerList = []
-        # The currently painting person
-        self.currentPainter = None
-        # The hint text, modifiable on server request.
-        # For the painter, should display the full word. Placeholder for now.
-        self.hint = "____"
-
-        # Window
         self.vBox = QtWidgets.QVBoxLayout()
         self.topHBox = QtWidgets.QHBoxLayout()
         self.bottomHBox = QtWidgets.QHBoxLayout()
         self.chatVBox = QtWidgets.QVBoxLayout()
         self.chatBottomHBox = QtWidgets.QHBoxLayout()
-
         self.chatVBox = QtWidgets.QVBoxLayout()
-
         self.chatBottomHBox = QtWidgets.QHBoxLayout()
+        self.gameAndControlsVBox = QtWidgets.QVBoxLayout()
+        self.controlsHBox = QtWidgets.QHBoxLayout()
 
         self.disconnectButton = QtWidgets.QPushButton("Disconnect")
         self.disconnectButton.setMaximumSize(100, 50)
@@ -96,11 +71,17 @@ class GameWindow(QtWidgets.QWidget):
         self.canvas = QtGui.QPixmap(400, 300)
         self.canvas.fill(QtGui.QColor("white"))
         self.canvasContainer.setPixmap(self.canvas)
-        self.bottomHBox.addWidget(self.canvasContainer)
+        self.gameAndControlsVBox.addWidget(self.canvasContainer)
+
+        self.undoButton = QtWidgets.QPushButton("Undo")
+        self.clearButton.clicked.connect(self.undoClicked)
+        self.controlsHBox.addWidget(self.undoButton)
+
+        self.clearButton = QtWidgets.QPushButton("Clear")
+        self.clearButton.clicked.connect(self.clearClicked)
+        self.controlsHBox.addWidget(self.clearButton)
 
         self.chat = QtWidgets.QTextEdit()
-        self.chat.insertPlainText("GAME ROOM ID: {}{}".format(
-            self.clientContext['roomCode'], "\n"))
         self.chat.setReadOnly(True)
 
         self.chatEntryLine = QtWidgets.QLineEdit()
@@ -116,6 +97,7 @@ class GameWindow(QtWidgets.QWidget):
         self.chatVBox.addWidget(self.chat)
         self.chatVBox.addLayout(self.chatBottomHBox)
 
+        self.bottomHBox.addLayout(self.gameAndControlsVBox)
         self.bottomHBox.addLayout(self.chatVBox)
 
         self.vBox.addLayout(self.topHBox)
@@ -126,7 +108,7 @@ class GameWindow(QtWidgets.QWidget):
     def closeEvent(self, event):
         logging.debug(
             "[EXITING ATTEMPT] Client is requesting for client exit")
-        if self.connHandler.is_connection_receiver_connected():
+        if self.connHandler.get_connected_receiver_status() == True:
             # temporary:
             self.connHandler.kill_receiver()
             # TODO: implement ExitClientReq handling on the server:
@@ -147,11 +129,9 @@ class GameWindow(QtWidgets.QWidget):
             self.previousY = y
 
         painter = QtGui.QPainter(self.canvasContainer.pixmap())
-        pen = painter.pen()
-        pen.setColor(QtGui.QColor("black"))
-        pen.setWidth(4)
-        painter.begin(self.canvas)
+        pen = self.configurePen(painter)
         painter.setPen(pen)
+        painter.begin(self.canvas)
         painter.drawLine(self.previousX, self.previousY, x, y)
         logging.debug("MouseMoveEvent at x: {}, y: {}".format(x, y))
         painter.end()
@@ -179,11 +159,9 @@ class GameWindow(QtWidgets.QWidget):
         self.strokes.append(stroke.copy())
 
         painter = QtGui.QPainter(self.canvasContainer.pixmap())
-        pen = painter.pen()
-        pen.setColor(QtGui.QColor("black"))
-        pen.setWidth(4)
-        painter.begin(self.canvas)
+        pen = self.configurePen(painter)
         painter.setPen(pen)
+        painter.begin(self.canvas)
         for i in range(len(stroke) - 1):
             painter.drawLine(stroke[i][0], stroke[i][1],
                              stroke[i+1][0], stroke[i+1][1])
@@ -191,14 +169,44 @@ class GameWindow(QtWidgets.QWidget):
         painter.end()
         self.update()
 
+    def undoClicked(self):
+        logging.debug("Undo")
+        self.stroke = []
+        if len(self.strokes) > 0:
+            self.strokes.pop()
+        self.redraw()
+        # TODO: Send undo message to server
+
+    def clearClicked(self):
+        logging.debug("Clear")
+        self.stroke = []
+        self.strokes = []
+        self.redraw()
+        # TODO: Send clear message to server
+
+    def redraw(self):
+        logging.debug("Redraw")
+        painter = QtGui.QPainter(self.canvasContainer.pixmap())
+        painter.eraseRect(0, 0, self.canvas.width(), self.canvas.height())
+        pen = self.configurePen(painter)
+        painter.begin(self.canvas)
+        painter.setPen(pen)
+        for stroke in self.strokes:
+            for i in range(len(stroke) - 1):
+                painter.drawLine(stroke[i][0], stroke[i]
+                                 [1], stroke[i + 1][0], stroke[i + 1][1])
+        painter.end()
+        self.update()
+
+    def configurePen(self, painter):
+        pen = painter.pen()
+        pen.setColor(QtGui.QColor("black"))
+        pen.setWidth(4)
+        return pen
+
     def userJoined(self, username):
         self.playerList.append(username)
         # TODO: Add to scoreboard and update it.
-
-        self.chat.ensureCursorVisible()
-
-    def update_scoreboard(self, message):
-        pass
 
     # TODO: move to connHandler if possible!
     def handle_message_send(self):
