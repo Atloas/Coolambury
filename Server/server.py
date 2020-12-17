@@ -5,7 +5,6 @@ import sys
 
 import json
 import msg_handling
-import Common.messages
 
 from clientconnection import ClientConnection
 from messagedispatcher import MessageDispatcher
@@ -47,7 +46,7 @@ class Server:
                                                      self._config))
 
         self._message_dispatcher.register_handler('WriteChatReq',
-                                                  WriteChatReqHandler(
+                                                  ChatMessageReqHandler(
                                                      self._rooms,
                                                      self._connected_clients,
                                                      self._config))

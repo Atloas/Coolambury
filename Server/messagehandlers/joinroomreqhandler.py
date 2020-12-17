@@ -1,6 +1,5 @@
 import msg_handling
 import logging
-import Common.messages as messages
 from room import Room
 import random
 import string
@@ -32,34 +31,38 @@ class JoinRoomReqHandler:
 
     def handle(self, sender_conn, msg):
         try:
-            if msg.room_code not in self._rooms:
+            if msg['room_code'] not in self._rooms:
                 raise RoomNotExistsException()
             
-            room = self._rooms[msg.room_code]
+            room = self._rooms[msg['room_code']]
 
-            if msg.user_name in room._joined_clients:
+            if msg['user_name'] in room._joined_clients:
                 raise UsernameTakenException()
 
-            room.add_client(msg.user_name, sender_conn)
+            room.add_client(msg['user_name'], sender_conn)
 
-            resp = messages.JoinRoomResp()
-            resp.status = 'OK'
-            resp.return_message = 'Joined correctly'
-
+            resp = {
+                'msg_name': 'JoinRoomResp',
+                'status': 'OK'
+            }
             msg_handling.send(sender_conn, resp, self._server_config)
 
-            joinNotification = messages.NewChatMessage()
-            joinNotification.author = 'SERVER'
-            joinNotification.message = '{} has joined the game'.format(msg.user_name)
-            room.broadcast_chat_message(joinNotification)
+            join_notification = {
+                'msg_name': 'NewChatMessage',
+                'author': 'SERVER',
+                'message': '{} has joined the game'.format(msg['user_name'])
+            }
+
+            room.broadcast_chat_message(join_notification)
 
             logging.debug('[JOIN_ROOM_REQ_HANDLER] User {} joined to room {}\n'.format(
-                msg.user_name, msg.room_code))
+                msg['user_name'], msg['room_code']))
 
         except:
-            traceback.print_exc()
             logging.error(
                 '[JOIN_ROOM_REQ_HANDLER] Error ocured when handling message')
-            resp = messages.JoinRoomResp()
-            resp.status = 'NOT_OK'
+            resp = {
+                'msg_name': 'JoinRoomResp',
+                'status': 'NOT_OK'
+            }
             msg_handling.send(sender_conn, resp, self._server_config)

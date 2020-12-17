@@ -1,6 +1,5 @@
 import msg_handling
 import logging
-import Common.messages as messages
 from room import Room
 import random
 import string
@@ -26,13 +25,13 @@ class CreateRoomReqHandler:
     def handle(self, sender_conn, msg):
         try:
             room_code = generate_unique_code(8, self._rooms)
-            room = Room(self._server_config, msg.room_name,
-                        msg.user_name, sender_conn)
+            room = Room(self._server_config, msg['user_name'], sender_conn)
 
-            resp = messages.CreateRoomResp()
-            resp.status = 'OK'
-            resp.room_code = room_code
-
+            resp = {
+                'msg_name': 'CreateRoomResp',
+                'status': 'OK',
+                'room_code': room_code
+            }
             self._rooms[room_code] = room
             msg_handling.send(sender_conn, resp, self._server_config)
 
@@ -43,6 +42,8 @@ class CreateRoomReqHandler:
             traceback.print_exc()
             logging.error(
                 '[CREATE_ROOM_REQ_HANDLER] Error ocured when handling message')
-            resp = messages.CreateRoomResp()
-            resp.status = 'NOT_OK'
+
+            resp = {
+                'status': 'NOT_OK'
+            }
             msg_handling.send(sender_conn, resp, self._server_config)

@@ -1,9 +1,8 @@
 import msg_handling
 
 class Room:
-    def __init__(self, server_config, room_name, owner_name, owner_connection): 
+    def __init__(self, server_config, owner_name, owner_connection): 
         self._server_config = server_config
-        self._room_name = room_name
         self._owner = (owner_name, owner_connection)
         self._joined_clients = {owner_name : owner_connection}
 
