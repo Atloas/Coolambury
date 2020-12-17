@@ -1,0 +1,28 @@
+CreateRoomReq:
+    msg_name (str)
+    user_name (str)
+
+CreateRoomResp:
+    msg_name (str)
+    status (str)
+    room_code (str)
+
+JoinRoomReq:
+    msg_name (str)
+    user_name (str)
+    room_code (str)
+
+JoinRoomResp:
+    msg_name (str)
+    status (str)
+
+WriteChatReq:
+    msg_name (str)
+    user_name (str)
+    room_code (str)
+    message (str)
+
+NewChatMessage:
+    msg_name (str)
+    author (str)
+    message (str)
