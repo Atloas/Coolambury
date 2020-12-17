@@ -1,6 +1,6 @@
 PYTHON = python3
-SERVER_APP := $(shell pwd)/Server/src/server.py
-CLIENT_APP := $(shell pwd)/Client/src/runClient.py
+SERVER_APP := $(shell pwd)/Server/server.py
+CLIENT_APP := $(shell pwd)/Client/RunClient.py
 CONFIG_PATH = $(shell pwd)/config.json
 SET_PYTHONPATH := PYTHONPATH='.'
 

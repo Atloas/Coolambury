@@ -1,6 +1,5 @@
 import msg_handling
 import logging
-import Common.messages as messages
 from room import Room
 import random
 import string
@@ -10,7 +9,7 @@ import traceback
 class RoomNotExistsException(Exception):
     pass
 
-class WriteChatReqHandler:
+class ChatMessageReqHandler:
     def __init__(self, rooms, clients, server_config):
         self._rooms = rooms
         self._clients = clients
@@ -18,16 +17,18 @@ class WriteChatReqHandler:
 
     def handle(self, sender_conn, msg):
         try:
-            if msg.room_code not in self._rooms:
+            if msg['room_code'] not in self._rooms:
                 raise RoomNotExistsException()
             
-            room = self._rooms[msg.room_code]
+            room = self._rooms[msg['room_code']]
 
-            room.add_client(msg.user_name, sender_conn)
+            room.add_client(msg['user_name'], sender_conn)
 
-            chat_msg = messages.NewChatMessage()
-            chat_msg.author = msg.user_name
-            chat_msg.message = msg.message
+            chat_msg = {
+                'msg_name': 'NewChatMessage',
+                'author': msg['user_name'],
+                'message': msg['message']
+            }
 
             room.broadcast_chat_message(chat_msg)
 

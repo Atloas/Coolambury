@@ -3,7 +3,6 @@ import socket
 import threading
 import logging
 from Utils.PopUpWindow import PopUpWindow
-import Common.config
 from Communication import SocketMsgHandler, ConnectionHandler
 from Communication.ConnectionHandler import ConnectionHandler
 
