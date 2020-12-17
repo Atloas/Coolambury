@@ -1,13 +1,21 @@
 from PyQt5 import QtCore, QtWidgets, QtGui
+from enum import Enum
 import logging
 from Utils.PopUpWindow import PopUpWindow
+
+
+class GameState(Enum):
+    PREGAME = 0
+    PROMPT_SELECTION = 1
+    DRAWING = 2
+    POSTGAME = 3
 
 
 class GameWindow(QtWidgets.QWidget):
     switch_window = QtCore.pyqtSignal()
     chat_message_signal = QtCore.pyqtSignal(str)
-    user_joined_signal = QtCore.pyqtSignal(str)
-    key_pressed_signal = QtCore.pyqtSignal(QtCore.QEvent)
+    scoreboard_update_signal = QtCore.pyqtSignal(str)
+    game_start_signal = QtCore.pyqtSignal(dict)
 
     def __init__(self, clientContext, connHandler):
         # TODO: Reset windows state on switch
@@ -17,6 +25,11 @@ class GameWindow(QtWidgets.QWidget):
         self.clientContext = clientContext
         self.connHandler = connHandler
         self.connHandler.chat_message_signal.connect(self.display_user_msg)
+        self.connHandler.scoreboard_update_signal.connect(
+            self.updateScoreboard)
+        self.setWindowTitle("Coolambury [{}] {}".format(
+            self.clientContext['username'],
+            self.clientContext['roomCode']))
 
         # Drawing
         self.previousX = None
@@ -31,6 +44,9 @@ class GameWindow(QtWidgets.QWidget):
         # Game
         # Contains a list of all player names and their scores, ex. [["Atloas", 100], ["loska", 110]]
         # Player drawing order enforced by server?
+        self.gameState = ""
+        self.player = self.clientContext['username']
+        self.owner = None  # TODO
         self.playerList = []
         # The currently painting person
         self.currentPainter = None
@@ -42,15 +58,28 @@ class GameWindow(QtWidgets.QWidget):
         self.chat.insertPlainText("GAME ROOM ID: {}{}".format(
             self.clientContext['roomCode'], "\n"))
 
+        # TODO: Before initializing game variables the window needs to know if it's a new game or if the user joined in progress
+
+        # Game
+        # Contains a list of all player names and their scores, ex. [["Atloas", 100], ["loska", 110]]
+        # Player drawing order enforced by server?
+        self.playerList = []
+        # The currently painting person
+        self.currentPainter = None
+        # The hint text, modifiable on server request.
+        # For the painter, should display the full word. Placeholder for now.
+        self.hint = "____"
+
+        # Window
         self.vBox = QtWidgets.QVBoxLayout()
         self.topHBox = QtWidgets.QHBoxLayout()
         self.bottomHBox = QtWidgets.QHBoxLayout()
         self.chatVBox = QtWidgets.QVBoxLayout()
         self.chatBottomHBox = QtWidgets.QHBoxLayout()
+
         self.chatVBox = QtWidgets.QVBoxLayout()
+
         self.chatBottomHBox = QtWidgets.QHBoxLayout()
-        self.gameAndControlsVBox = QtWidgets.QVBoxLayout()
-        self.controlsHBox = QtWidgets.QHBoxLayout()
 
         self.disconnectButton = QtWidgets.QPushButton("Disconnect")
         self.disconnectButton.setMaximumSize(100, 50)
@@ -61,10 +90,11 @@ class GameWindow(QtWidgets.QWidget):
         self.topHBox.addWidget(self.disconnectButton)
         self.topHBox.addWidget(self.startButton)
 
-        self.hints = QtWidgets.QLabel("*HINTS*")   # TODO: Hints
+        self.hints = QtWidgets.QLabel("*HINTS*")  # TODO: Hints
         self.topHBox.addWidget(self.hints)
 
-        self.scoreboard = QtWidgets.QTableView()
+        self.scoreboard = QtWidgets.QTableWidget()
+        self.scoreboard.setColumnCount(2)
         self.bottomHBox.addWidget(self.scoreboard)
 
         self.canvasContainer = QtWidgets.QLabel()
@@ -82,11 +112,14 @@ class GameWindow(QtWidgets.QWidget):
         self.controlsHBox.addWidget(self.clearButton)
 
         self.chat = QtWidgets.QTextEdit()
+        self.chat.append('GAME ROOM ID: {}\n'.format(
+            self.clientContext['roomCode']))
         self.chat.setReadOnly(True)
 
+        print(self.clientContext['roomCode'])
         self.chatEntryLine = QtWidgets.QLineEdit()
         self.chatEntryLine.setPlaceholderText("Have a guess!")
-        self.chatEntryLine.returnPressed.connect(self.handle_message_send)
+        self.chatEntryLine.returnPressed.connect(self.newChatMessage)
 
         self.chatEntryButton = QtWidgets.QPushButton("Send")
         self.chatEntryButton.clicked.connect(self.handle_message_send)
@@ -97,7 +130,6 @@ class GameWindow(QtWidgets.QWidget):
         self.chatVBox.addWidget(self.chat)
         self.chatVBox.addLayout(self.chatBottomHBox)
 
-        self.bottomHBox.addLayout(self.gameAndControlsVBox)
         self.bottomHBox.addLayout(self.chatVBox)
 
         self.vBox.addLayout(self.topHBox)
@@ -105,15 +137,46 @@ class GameWindow(QtWidgets.QWidget):
 
         self.setLayout(self.vBox)
 
+    def initializeNewRoom(self):
+        # Set room state to a fresh one with just the owner
+        self.gameState = GameState.PREGAME
+        self.owner = self.clientContext['username']
+        self.playerList.append([self.owner, 0])
+        self.hint = "PREGAME"
+        self.previousX = None
+        self.previousY = None
+        self.pictures = []
+        self.strokes = []
+        self.stroke = []
+
+        self.clear()
+        self.updateScoreboard()
+
+        self.displayChatMessage("Type !start to start the game once there's at least two players in the room!")
+
+    def initializeJoinedRoom(self, roomState):
+        self.gameState = roomState['gameState']
+        self.owner = roomState['owner']
+        self.playerList.append(roomState['playerList'])
+        self.hint = roomState['hint']
+        self.strokes = roomState['strokes']
+        # Pictures, stroke, previousX, previousY don't need to be initialized here?
+
+        self.redraw()
+        self.updateScoreboard()
+
     def closeEvent(self, event):
         logging.debug(
             "[EXITING ATTEMPT] Client is requesting for client exit")
-        if self.connHandler.get_connected_receiver_status() == True:
+        if self.connHandler.is_connection_receiver_connected():
             # temporary:
             self.connHandler.kill_receiver()
             # TODO: implement ExitClientReq handling on the server:
             # self.connHandler.send_exit_client_req(self.clientContext['username'])
             # self.connHandler.receiver_thread.join()
+
+    def displayChatMessage(self, message):
+        self.chat.insertPlainText("{}{}".format(message, "\n"))
 
     def display_user_msg(self, message):
         self.chatEntryLine.clear()
@@ -121,6 +184,10 @@ class GameWindow(QtWidgets.QWidget):
         self.chat.insertPlainText("{}{}".format(message, "\n"))
 
     def mouseMoveEvent(self, e):
+        # TODO: Enable this
+        # if self.currentPainter != self.player:
+        #     return
+
         x = e.x() - self.canvasContainer.x()
         y = e.y() - self.canvasContainer.y()
 
@@ -129,11 +196,13 @@ class GameWindow(QtWidgets.QWidget):
             self.previousY = y
 
         painter = QtGui.QPainter(self.canvasContainer.pixmap())
-        pen = self.configurePen(painter)
-        painter.setPen(pen)
+        pen = painter.pen()
+        pen.setColor(QtGui.QColor("black"))
+        pen.setWidth(4)
         painter.begin(self.canvas)
+        painter.setPen(pen)
         painter.drawLine(self.previousX, self.previousY, x, y)
-        logging.debug("MouseMoveEvent at x: {}, y: {}".format(x, y))
+        # logging.debug("MouseMoveEvent at x: {}, y: {}".format(x, y))
         painter.end()
         self.update()
 
@@ -143,19 +212,21 @@ class GameWindow(QtWidgets.QWidget):
         self.stroke.append((x, y))
 
     def mouseReleaseEvent(self, e):
+        # TODO: Enable this
+        # if self.currentPainter != self.player:
+        #     return
+
         self.strokes.append(self.stroke.copy())
         self.previousX = None
         self.previousY = None
 
-        logging.debug(self.strokes)
-
+        # logging.debug(self.strokes)
         # TODO: send stroke data to server
 
         self.stroke = []
 
     def handleReceivedStroke(self, stroke):
         # TODO: Nothing actually receives data yet
-
         self.strokes.append(stroke.copy())
 
         painter = QtGui.QPainter(self.canvasContainer.pixmap())
@@ -181,13 +252,13 @@ class GameWindow(QtWidgets.QWidget):
         logging.debug("Clear")
         self.stroke = []
         self.strokes = []
-        self.redraw()
+        self.clear()
         # TODO: Send clear message to server
 
     def redraw(self):
         logging.debug("Redraw")
+        self.clear()
         painter = QtGui.QPainter(self.canvasContainer.pixmap())
-        painter.eraseRect(0, 0, self.canvas.width(), self.canvas.height())
         pen = self.configurePen(painter)
         painter.begin(self.canvas)
         painter.setPen(pen)
@@ -198,21 +269,42 @@ class GameWindow(QtWidgets.QWidget):
         painter.end()
         self.update()
 
-    def configurePen(self, painter):
-        pen = painter.pen()
-        pen.setColor(QtGui.QColor("black"))
-        pen.setWidth(4)
-        return pen
+    def clear(self):
+        painter = QtGui.QPainter(self.canvasContainer.pixmap())
+        painter.begin(self.canvas)
+        painter.eraseRect(0, 0, self.canvas.width(), self.canvas.height())
+        painter.end()
 
     def userJoined(self, username):
-        self.playerList.append(username)
-        # TODO: Add to scoreboard and update it.
+        self.playerList.append([username, 0])
+        self.updateScoreboard()
+
+    def updateScoreboard(self):
+        self.scoreboard.setRowCount(len(self.playerList))
+        for i in range(len(self.playerList)):
+            name = QtWidgets.QTableWidgetItem(self.playerList[i][0])
+            score = QtWidgets.QTableWidgetItem(self.playerList[i][1])
+            self.scoreboard.setItem(i, 0, name)
+            self.scoreboard.setItem(i, 1, score)
+
+    def newChatMessage(self):
+        message = self.chatEntryLine.text()
+        if message != "":
+            if message.startswith("!"):
+                if message == "!start" and self.player == self.owner:
+                    pass
+                    # TODO: send "start_game_message"
+            else:
+                self.handle_message_send(message)
+
+    def startMessage(self, data):
+        self.currentPainter = data['painter']
+
 
     # TODO: move to connHandler if possible!
-    def handle_message_send(self):
-        if self.chatEntryLine.isModified():
-            self.connHandler.send_chat_msg_req(
-                self.clientContext['username'], self.clientContext['roomCode'], self.chatEntryLine.text())
+    def handle_message_send(self, message):
+        self.connHandler.send_chat_msg_req(
+            self.clientContext['username'], self.clientContext['roomCode'], message)
 
     def disconnect_clicked(self):
         # TODO: disconnect socket
