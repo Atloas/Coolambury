@@ -11,7 +11,6 @@ from Utils.PopUpWindow import PopUpWindow
 
 # for UT:
 # $env:PYTHONPATH = ".\Client\"
-
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     logging.debug('[STARTING] Client is being loaded ...')

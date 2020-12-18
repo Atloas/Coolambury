@@ -41,6 +41,7 @@ class StartWindow(QtWidgets.QWidget):
 
     def validate_nickname(self):
         isNickNameValid = not self.nicknameField.text() == ''
+
         logging.debug(
             "[NICKNAME VALIDATION] Given nickname is valid: {}".format(isNickNameValid))
         if isNickNameValid:
@@ -50,7 +51,9 @@ class StartWindow(QtWidgets.QWidget):
         return False
 
     def validate_room_code(self):
+
         isRoomCodeValid = not self.roomCodeField.text() == ''
+
         logging.debug(
             "[ROOM CODE VALIDATION] Room code specified: {}".format(isRoomCodeValid))
         if isRoomCodeValid:
