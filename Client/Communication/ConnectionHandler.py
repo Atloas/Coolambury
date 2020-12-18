@@ -79,8 +79,6 @@ class ConnectionHandler(QtCore.QObject):
                 if received_msg_name == 'JoinRoomResp':
                     if received_msg['status'] == 'OK':
                         self.switch_window.emit('Joining')
-
-                    
                 elif received_msg_name == 'NewChatMessage':
                     self.chat_message_signal.emit("{}: {}".format(
                         received_msg['author'], received_msg['message']))

@@ -93,7 +93,7 @@ class GameWindow(QtWidgets.QWidget):
         self.bottomHBox.addWidget(self.canvasContainer)
 
         self.chat = QtWidgets.QTextEdit()
-        self.chat.append('GAME ROOM ID: {}\n'.format(
+        self.chat.insertPlainText('GAME ROOM ID: {}\n'.format(
             self.clientContext['roomCode']))
         self.chat.setReadOnly(True)
 

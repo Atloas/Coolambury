@@ -81,7 +81,7 @@ class JoinRoomReqHandler(BaseHandler):
             join_notification = mc.build_join_notification(msg['user_name'])
             room.broadcast_chat_message(join_notification)
 
-            logging.debug('[JOIN_ROOM_REQ_HANDLER] User {} joined to room {}\n'.format(
+            logging.debug('[JOIN_ROOM_REQ_HANDLER] User {} joined to room {}'.format(
                 msg['user_name'], msg['room_code']))
 
         except:
