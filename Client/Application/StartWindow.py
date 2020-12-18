@@ -7,18 +7,6 @@ from Communication import SocketMsgHandler, ConnectionHandler
 from Communication.ConnectionHandler import ConnectionHandler
 
 
-import traceback
-
-
-class ServerConnectionFailed(Exception):
-    def __init__(self, server_ip, server_port, message="Server unreachable"):
-        self.server_ip = server_ip
-        self.server_port = server_port
-        self.message = "Server at the address {}:{} unreachable".format(
-            server_ip, server_port)
-        super().__init__(self.message)
-
-
 class StartWindow(QtWidgets.QWidget):
     def __init__(self, connHandler, clientContext):
         super().__init__()
@@ -52,7 +40,7 @@ class StartWindow(QtWidgets.QWidget):
         self.vBox.addWidget(self.createRoombutton)
 
     def validate_nickname(self):
-        isNickNameValid = self.nicknameField.isModified()
+        isNickNameValid = not self.nicknameField.text() == ''
         logging.debug(
             "[NICKNAME VALIDATION] Given nickname is valid: {}".format(isNickNameValid))
         if isNickNameValid:
@@ -62,7 +50,7 @@ class StartWindow(QtWidgets.QWidget):
         return False
 
     def validate_room_code(self):
-        isRoomCodeValid = self.roomCodeField.isModified()
+        isRoomCodeValid = not self.roomCodeField.text() == ''
         logging.debug(
             "[ROOM CODE VALIDATION] Room code specified: {}".format(isRoomCodeValid))
         if isRoomCodeValid:
@@ -70,11 +58,6 @@ class StartWindow(QtWidgets.QWidget):
         PopUpWindow(
             "Room code not specified!", 'ERROR')
         return False
-
-    def display_message(self, message):
-        alert = QtWidgets.QMessageBox()
-        alert.setText(message)
-        alert.exec_()
 
     def closeEvent(self, event):
         logging.debug(

@@ -103,7 +103,6 @@ class GameWindow(QtWidgets.QWidget):
             self.clientContext['roomCode'], "\n"))
         self.chat.setReadOnly(True)
 
-        print(self.clientContext['roomCode'])
         self.chatEntryLine = QtWidgets.QLineEdit()
         self.chatEntryLine.setPlaceholderText("Have a guess!")
         self.chatEntryLine.returnPressed.connect(self.handle_message_send)
