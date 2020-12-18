@@ -1,24 +1,17 @@
 import logging
-import socket
 import threading
 import sys
-
 import json
-import msg_handling
-
-from clientconnection import ClientConnection
-from messagedispatcher import MessageDispatcher
-from messagehandlers import *
+import msghandling as mh
+import networking as nw
 
 class Server:
     def __init__(self):
         self._load_config_file()
-        ADDR = ('', self._config['PORT'])
-        self._server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self._server_socket.bind(ADDR)
+        self._server_socket = nw.create_and_bind_socket(self._config)
         self._connected_clients = []
         self._rooms = {}
-        self._message_dispatcher = MessageDispatcher()
+        self._message_dispatcher = mh.MessageDispatcher()
         self._register_dispatcher_handlers()
         logging.debug('[INITIALIZING SERVER]')
 
@@ -33,20 +26,20 @@ class Server:
 
     def _register_dispatcher_handlers(self):
         self._message_dispatcher.register_handler('CreateRoomReq',
-                                                 CreateRoomReqHandler(
+                                                 mh.CreateRoomReqHandler(
                                                      self._rooms,
                                                      self._connected_clients,
                                                      self._config))
 
 
         self._message_dispatcher.register_handler('JoinRoomReq',
-                                                  JoinRoomReqHandler(
+                                                  mh.JoinRoomReqHandler(
                                                      self._rooms,
                                                      self._connected_clients,
                                                      self._config))
 
         self._message_dispatcher.register_handler('WriteChatReq',
-                                                  ChatMessageReqHandler(
+                                                  mh.ChatMessageReqHandler(
                                                      self._rooms,
                                                      self._connected_clients,
                                                      self._config))
@@ -58,7 +51,7 @@ class Server:
         while True:
             conn, addr = self._server_socket.accept()
 
-            new_client = ClientConnection(conn, addr, self._config, self._message_dispatcher)
+            new_client = nw.ClientConnection(conn, addr, self._config, self._message_dispatcher)
             self._connected_clients.append(new_client)
             thread = threading.Thread(target=new_client.handle_client_messages)
             thread.start()
@@ -71,3 +64,4 @@ if __name__ == '__main__':
 
     coolambury_server = Server()
     coolambury_server.start()
+    
