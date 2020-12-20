@@ -1,7 +1,8 @@
-from PyQt5 import QtCore, QtWidgets, QtGui
-from enum import Enum
 import logging
 from Utils.PopUpWindow import PopUpWindow
+from enum import Enum
+
+from PyQt5 import QtCore, QtWidgets, QtGui
 
 
 class GameState(Enum):
@@ -13,13 +14,20 @@ class GameState(Enum):
 
 class GameWindow(QtWidgets.QWidget):
     switch_window = QtCore.pyqtSignal()
-    chat_message_signal = QtCore.pyqtSignal(str)
     scoreboard_update_signal = QtCore.pyqtSignal(str)
-    game_start_signal = QtCore.pyqtSignal(dict)
-    stroke_received_signal = QtCore.pyqtSignal(list)
+    key_pressed_signal = QtCore.pyqtSignal(QtCore.QEvent)
+    start_signal = QtCore.pyqtSignal(dict)
+    select_prompt_signal = QtCore.pyqtSignal(dict)
+    stroke_signal = QtCore.pyqtSignal(dict)
+    undo_signal = QtCore.pyqtSignal()
+    clear_signal = QtCore.pyqtSignal()
+    guess_correct_signal = QtCore.pyqtSignal(dict)
+    chat_message_signal = QtCore.pyqtSignal(str)
+    artist_change_signal = QtCore.pyqtSignal(dict)
+    game_over_signal = QtCore.pyqtSignal(dict)
 
     def __init__(self, clientContext, connHandler):
-        # TODO: Reset windows state on switch
+        # TODO: Reset window's state on switch
 
         QtWidgets.QWidget.__init__(self)
 
@@ -32,23 +40,15 @@ class GameWindow(QtWidgets.QWidget):
             self.clientContext['username'],
             self.clientContext['roomCode']))
 
-        # Drawing
-        self.previousX = None
-        self.previousY = None
-        # TODO: Stores a history of pictures from past rounds. Add a copy of strokes here after a round is over.
-        self.pictures = []
-        self.strokes = []
-        self.stroke = []
-
         # Game
         # Contains a list of all player names and their scores, ex. [["Atloas", 100], ["loska", 110]]
         # Player drawing order enforced by server?
-        self.gameState = ""
+        self.gameState = None
         self.player = self.clientContext['username']
         self.owner = None  # TODO
         self.playerList = []
         # The currently painting person
-        self.currentPainter = None
+        self.artist = None
         # The hint text, modifiable on server request.
         # For the painter, should display the full word. Placeholder for now.
         self.hint = "____"
@@ -56,18 +56,6 @@ class GameWindow(QtWidgets.QWidget):
         # Window
         self.chat.insertPlainText("GAME ROOM ID: {}{}".format(
             self.clientContext['roomCode'], "\n"))
-
-        # TODO: Before initializing game variables the window needs to know if it's a new game or if the user joined in progress
-
-        # Game
-        # Contains a list of all player names and their scores, ex. [["Atloas", 100], ["loska", 110]]
-        # Player drawing order enforced by server?
-        self.playerList = []
-        # The currently painting person
-        self.currentPainter = None
-        # The hint text, modifiable on server request.
-        # For the painter, should display the full word. Placeholder for now.
-        self.hint = "____"
 
         # Window
         self.rootVBox = QtWidgets.QVBoxLayout()
@@ -137,8 +125,6 @@ class GameWindow(QtWidgets.QWidget):
 
         self.setLayout(self.rootVBox)
 
-    # Game control methods, they run in response to a server message
-
     def initialize_new_room(self):
         # Set room state to a fresh one with just the owner
         self.gameState = GameState.PREGAME
@@ -167,24 +153,6 @@ class GameWindow(QtWidgets.QWidget):
         self.redraw()
         self.updateScoreboard()
 
-    def select_prompt(self, prompts):
-        # TODO: Switches state from PREGAME/DRAWING -> PROMPT_SELECTION
-        # TODO: Only ran by the artist. Display a popup with 3 prompts to select from, message selection to server
-        self.gameState = GameState.PROMPT_SELECTION
-        pass
-
-    def wait_for_prompt_selection(self):
-        # TODO: Switches state from PREGAME/DRAWING -> PROMPT_SELECTION
-        # TODO: Ran by other players, the artist runs select_prompt()
-        self.gameState = GameState.PROMPT_SELECTION
-        pass
-
-    def prompt_selected(self, prompt):
-        # TODO: Switches state from PROMPT_SELECTION to DRAWING
-        self.gameState = GameState.DRAWING
-        self.clear()
-        pass
-
     def closeEvent(self, event):
         logging.debug(
             "[EXITING ATTEMPT] Client is requesting for client exit")
@@ -194,8 +162,6 @@ class GameWindow(QtWidgets.QWidget):
             # TODO: implement ExitClientReq handling on the server:
             # self.connHandler.send_exit_client_req(self.clientContext['username'])
             # self.connHandler.receiver_thread.join()
-
-    # End of game control methods
 
     def display_chat_message(self, message):
         self.chat.insertPlainText("{}{}".format(message, "\n"))
@@ -207,7 +173,7 @@ class GameWindow(QtWidgets.QWidget):
 
     def mouseMoveEvent(self, event):
         # TODO: Enable this
-        # if self.currentPainter != self.player:
+        # if self.artist != self.player:
         #     return
 
         x = event.x() - self.canvasContainer.x()
@@ -232,7 +198,7 @@ class GameWindow(QtWidgets.QWidget):
 
     def mouseReleaseEvent(self, event):
         # TODO: Enable this
-        # if self.currentPainter != self.player:
+        # if self.artist != self.player:
         #     return
 
         self.strokes.append(self.stroke.copy())
@@ -244,7 +210,19 @@ class GameWindow(QtWidgets.QWidget):
 
         self.stroke = []
 
-    def handleReceivedStroke(self, stroke):
+    def handleSelectPromptSignal(self, contents):
+        # TODO: Switches state from PREGAME/DRAWING -> PROMPT_SELECTION
+        # TODO: Only ran by the artist. Display a popup with 3 prompts to select from, message selection to server
+        self.gameState = GameState.PROMPT_SELECTION
+        pass
+
+    def handlePromptSelectedSignal(self, contents):
+        # TODO
+        self.gameState = GameState.DRAWING
+        self.clear()
+        pass
+
+    def handleStrokeSignal(self, stroke):
         # TODO: Nothing actually receives data yet
         self.strokes.append(stroke.copy())
 
@@ -257,6 +235,28 @@ class GameWindow(QtWidgets.QWidget):
         logging.debug("Received and drew stroke.")
         painter.end()
         self.update()
+
+    def handleUndoSignal(self):
+        # TODO
+        pass
+
+    def handleClearSignal(self):
+        # TODO
+        pass
+
+    def handleGuessCorrectSignal(self, contents):
+        # TODO
+        pass
+
+    def handleArtistChangeSignal(self, contents):
+        # TODO
+        self.gameState = GameState.PROMPT_SELECTION
+        pass
+
+    def handleGameOverSignal(self, contents):
+        # TODO
+        self.gameState = GameState.POSTGAME
+        pass
 
     def undoClicked(self):
         logging.debug("Undo")
@@ -322,8 +322,7 @@ class GameWindow(QtWidgets.QWidget):
                 self.handle_message_send(message)
 
     def startMessage(self, data):
-        self.currentPainter = data['painter']
-
+        self.artist = data['painter']
 
     # TODO: move to connHandler if possible!
     def handle_message_send(self, message):
