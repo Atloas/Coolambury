@@ -16,6 +16,8 @@ class GameWindow(QtWidgets.QWidget):
     switch_window = QtCore.pyqtSignal()
     scoreboard_update_signal = QtCore.pyqtSignal(str)
     key_pressed_signal = QtCore.pyqtSignal(QtCore.QEvent)
+    player_joined_signal = QtCore.pyqtSignal(dict)
+    player_left_signal = QtCore.pyqtSignal(dict)
     start_signal = QtCore.pyqtSignal(dict)
     select_prompt_signal = QtCore.pyqtSignal(dict)
     stroke_signal = QtCore.pyqtSignal(dict)
@@ -41,12 +43,12 @@ class GameWindow(QtWidgets.QWidget):
             self.clientContext['roomCode']))
 
         # Game
-        # Contains a list of all player names and their scores, ex. [["Atloas", 100], ["loska", 110]]
+        # Contains a dict of all player names and their scores, ex. {"Atloas": 100, "loska": 110}
         # Player drawing order enforced by server?
         self.gameState = None
         self.player = self.clientContext['username']
         self.owner = None  # TODO
-        self.playerList = []
+        self.players = {}
         # The currently painting person
         self.artist = None
         # The hint text, modifiable on server request.
@@ -56,6 +58,13 @@ class GameWindow(QtWidgets.QWidget):
         # Window
         self.chat.insertPlainText("GAME ROOM ID: {}{}".format(
             self.clientContext['roomCode'], "\n"))
+        # Drawing
+        self.previousX = None
+        self.previousY = None
+        # TODO: Stores a history of pictures from past rounds. Add a copy of strokes here after a round is over.
+        self.drawings = []
+        self.strokes = []
+        self.stroke = []
 
         # Window
         self.rootVBox = QtWidgets.QVBoxLayout()
@@ -129,11 +138,11 @@ class GameWindow(QtWidgets.QWidget):
         # Set room state to a fresh one with just the owner
         self.gameState = GameState.PREGAME
         self.owner = self.clientContext['username']
-        self.playerList.append([self.owner, 0])
+        self.players[self.owner] = 0
         self.hint = "PREGAME"
         self.previousX = None
         self.previousY = None
-        self.pictures = []
+        self.drawings = []
         self.strokes = []
         self.stroke = []
 
@@ -145,7 +154,8 @@ class GameWindow(QtWidgets.QWidget):
     def initialize_joined_room(self, room_state):
         self.gameState = room_state['gameState']
         self.owner = room_state['owner']
-        self.playerList.append(room_state['playerList'])
+        self.players = room_state['playerList']
+        self.players[self.player] = 0
         self.hint = room_state['hint']
         self.strokes = room_state['strokes']
         # Pictures, stroke, previousX, previousY don't need to be initialized here?
@@ -164,6 +174,7 @@ class GameWindow(QtWidgets.QWidget):
             # self.connHandler.receiver_thread.join()
 
     def display_chat_message(self, message):
+        # TODO: Have a separate "System message" chat message with different formatting to differentiate chat and information
         self.chat.insertPlainText("{}{}".format(message, "\n"))
 
     def display_user_msg(self, message):
@@ -210,16 +221,36 @@ class GameWindow(QtWidgets.QWidget):
 
         self.stroke = []
 
+    def handlePlayerJoinedSignal(self, contents):
+        self.display_chat_message("{} joined the room.".format(contents["player"]))
+        self.players[contents.player] = 0
+        self.updateScoreboard()
+
+    def handlePlayerLeftSignal(self, contents):
+        self.display_chat_message("{} left the room.".format(contents["player"]))
+        del self.players[contents.player]
+        self.updateScoreboard()
+        # TODO: Handle all them edge cases.
+        # TODO: What if the artist leaves, what if the owner leaves, what if the owner is left alone.
+
+    def handleArtistChangeSignal(self, contents):
+        # TODO: This drawings.append should be somewhere else, like in "guessing_over_signal", since now it won't fire on game over
+        self.drawings.append(self.strokes.copy())
+        self.display_chat_message("{} is now the artist.".format(contents["artist"]))
+        self.artist = contents["artist"]
+        self.gameState = GameState.PROMPT_SELECTION
+        pass
+
     def handleSelectPromptSignal(self, contents):
-        # TODO: Switches state from PREGAME/DRAWING -> PROMPT_SELECTION
-        # TODO: Only ran by the artist. Display a popup with 3 prompts to select from, message selection to server
+        # TODO: Display a popup with 3 prompts given by the server to select from, message selection to server
         self.gameState = GameState.PROMPT_SELECTION
         pass
 
     def handlePromptSelectedSignal(self, contents):
-        # TODO
-        self.gameState = GameState.DRAWING
+        self.hint = len(contents["prompt"]) * "_"
+        self.hints.setText(self.hint)
         self.clear()
+        self.gameState = GameState.DRAWING
         pass
 
     def handleStrokeSignal(self, stroke):
@@ -237,44 +268,51 @@ class GameWindow(QtWidgets.QWidget):
         self.update()
 
     def handleUndoSignal(self):
-        # TODO
+        self.undo()
         pass
 
     def handleClearSignal(self):
-        # TODO
+        self.clear()
         pass
 
     def handleGuessCorrectSignal(self, contents):
-        # TODO
-        pass
-
-    def handleArtistChangeSignal(self, contents):
-        # TODO
-        self.gameState = GameState.PROMPT_SELECTION
+        self.display_chat_message("{} guessed right!".format(contents["player"]))
+        self.players[contents["player"]] += contents["score_awarded"]
+        self.players[self.artist] += contents["artist_score_awarded"]
+        self.updateScoreboard()
         pass
 
     def handleGameOverSignal(self, contents):
-        # TODO
+        # TODO: Display window with all images drawn this round, allow user to save to disk?
         self.gameState = GameState.POSTGAME
-        pass
+        self.players = contents["final_scores"]
+        self.updateScoreboard()
+        tie = False
+        topScore = 0
+        winner = ""
+        for player in self.players:
+            if self.players[player] > topScore:
+                topScore = self.players[player]
+                winner = player
+                tie = False
+            elif self.players[player] == topScore:
+                tie = True
+        if tie:
+            self.display_chat_message("It's a tie!")
+        else:
+            self.display_chat_message("{} has won!".format(winner))
 
     def undoClicked(self):
-        logging.debug("Undo")
-        self.stroke = []
-        if len(self.strokes) > 0:
-            self.strokes.pop()
-        self.redraw()
+        self.undo()
         # TODO: Send undo message to server
 
     def clearClicked(self):
-        logging.debug("Clear")
         self.stroke = []
         self.strokes = []
         self.clear()
         # TODO: Send clear message to server
 
     def redraw(self):
-        logging.debug("Redraw")
         self.clear()
         painter = QtGui.QPainter(self.canvasContainer.pixmap())
         self.configurePen(painter)
@@ -285,6 +323,12 @@ class GameWindow(QtWidgets.QWidget):
                                  [1], stroke[i + 1][0], stroke[i + 1][1])
         painter.end()
         self.update()
+
+    def undo(self):
+        self.stroke = []
+        if len(self.strokes) > 0:
+            self.strokes.pop()
+        self.redraw()
 
     def clear(self):
         painter = QtGui.QPainter(self.canvasContainer.pixmap())
@@ -299,15 +343,11 @@ class GameWindow(QtWidgets.QWidget):
         pen.setColor(QtGui.QColor("black"))
         painter.setPen(pen)
 
-    def userJoined(self, username):
-        self.playerList.append([username, 0])
-        self.updateScoreboard()
-
     def updateScoreboard(self):
-        self.scoreboard.setRowCount(len(self.playerList))
-        for i in range(len(self.playerList)):
-            name = QtWidgets.QTableWidgetItem(self.playerList[i][0])
-            score = QtWidgets.QTableWidgetItem(self.playerList[i][1])
+        self.scoreboard.setRowCount(len(self.players))
+        for i in range(len(self.players)):
+            name = QtWidgets.QTableWidgetItem(self.players[i][0])
+            score = QtWidgets.QTableWidgetItem(self.players[i][1])
             self.scoreboard.setItem(i, 0, name)
             self.scoreboard.setItem(i, 1, score)
 
