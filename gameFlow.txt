@@ -1,7 +1,7 @@
 Po stworzeniu pokoju, poza dołączaniem, bo to już jest:
 
 server = Serwer, przechowuje "źródło prawdy" o stanie gry
-player = Gracz, kazdy przechowuje własną kopię stanu gry
+player = Gracz, każdy przechowuje własną kopię stanu gry
 owner = Założyciel pokoju
 artist = Obecnie malujący gracz
 
@@ -35,7 +35,7 @@ player: chat_message: {...} -> server -> sprawdź czy to wybrane słowo
 
 Jeśli wszyscy już zgadli to zmiana artysty:
 server: artist_change_message: {"artist": ...} -> broadcast
-Przejście z GAME do PROMPT_SELECTION
+Przejście z DRAWING do PROMPT_SELECTION
 Wybór słowa
 
 Jedna "runda" to gdy wszyscy rysowali po raz, powiedzmy ze rund jest 3, playerzy nie muszą wiedzieć chyba że runda się skończyła i rozpoczęła się kolejna
