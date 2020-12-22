@@ -37,7 +37,10 @@ class DrawingHistoryWindow(QtWidgets.QWidget):
             self.nextButton.setDisabled(True)
         self.controlsHBox.addWidget(self.nextButton)
 
+        self.setLayout(self.rootVBox)
+
         self.draw()
+        self.show()
 
     # TODO: in stead of a label as canvasContainer make a Canvas(QtWidgets.Label) class that handles all drawing?
     def draw(self):
@@ -74,5 +77,6 @@ class DrawingHistoryWindow(QtWidgets.QWidget):
 
     def saveClicked(self):
         # TODO: Test this (and everything else, but especially this)
-        name = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Drawing')
-        self.canvas.save(name[0], "png")
+        dialogResult = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Drawing', '.', 'PNG', 'PNG')
+        filename = dialogResult[0] + ".png"
+        self.canvasContainer.pixmap().save(filename, "png")
