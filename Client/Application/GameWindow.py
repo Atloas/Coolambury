@@ -3,6 +3,8 @@ from enum import Enum
 
 from PyQt5 import QtCore, QtWidgets, QtGui
 
+from .DrawingHistoryWindow import DrawingHistoryWindow
+
 
 class GameState(Enum):
     PREGAME = 0
@@ -292,6 +294,8 @@ class GameWindow(QtWidgets.QWidget):
             self.display_chat_message("It's a tie!")
         else:
             self.display_chat_message("{} has won!".format(winner))
+        DrawingHistoryWindow(self.drawings)
+        self.drawings = []
 
     def undoClicked(self):
         self.undo()
