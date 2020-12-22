@@ -5,6 +5,7 @@ class DrawingHistoryWindow(QtWidgets.QWidget):
     def __init__(self, drawings):
         QtWidgets.QWidget.__init__(self)
 
+        # Assumes drawings isn't empty
         # copy()?
         self.drawings = drawings
         self.index = 0
@@ -72,6 +73,6 @@ class DrawingHistoryWindow(QtWidgets.QWidget):
         self.draw()
 
     def saveClicked(self):
-        # TODO: Test this
+        # TODO: Test this (and everything else, but especially this)
         name = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Drawing')
         self.canvas.save(name[0], "png")

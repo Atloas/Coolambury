@@ -303,7 +303,8 @@ class GameWindow(QtWidgets.QWidget):
             self.display_chat_message("It's a tie!")
         else:
             self.display_chat_message("{} has won!".format(winner))
-        DrawingHistoryWindow(self.drawings)
+        if self.drawings:
+            DrawingHistoryWindow(self.drawings)
         self.drawings = []
 
     def undoClicked(self):
