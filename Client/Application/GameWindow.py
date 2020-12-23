@@ -52,7 +52,6 @@ class GameWindow(QtWidgets.QWidget):
         self.player = self.clientContext['username']
         self.owner = None  # TODO
         self.players = {}
-        # The currently painting person
         self.artist = None
         # The hint text, modifiable on server request.
         # For the painter, should display the full word. Placeholder for now.
@@ -64,7 +63,6 @@ class GameWindow(QtWidgets.QWidget):
         # Drawing
         self.previousX = None
         self.previousY = None
-        # TODO: Stores a history of pictures from past rounds. Add a copy of strokes here after a round is over.
         self.drawings = []
         self.strokes = []
         self.stroke = []
@@ -101,10 +99,12 @@ class GameWindow(QtWidgets.QWidget):
         self.gameAndControlsVBox.addWidget(self.canvasContainer)
 
         self.undoButton = QtWidgets.QPushButton("Undo")
+        self.undoButton.setDisabled(True)
         self.undoButton.clicked.connect(self.undoClicked)
         self.controlsHBox.addWidget(self.undoButton)
 
         self.clearButton = QtWidgets.QPushButton("Clear")
+        self.clearButton.setDisabled(True)
         self.clearButton.clicked.connect(self.clearClicked)
         self.controlsHBox.addWidget(self.clearButton)
 
@@ -115,7 +115,6 @@ class GameWindow(QtWidgets.QWidget):
             self.clientContext['roomCode']))
         self.chat.setReadOnly(True)
 
-        print(self.clientContext['roomCode'])
         self.chatEntryLine = QtWidgets.QLineEdit()
         self.chatEntryLine.setPlaceholderText("Have a guess!")
         self.chatEntryLine.returnPressed.connect(self.newChatMessage)
@@ -136,6 +135,22 @@ class GameWindow(QtWidgets.QWidget):
         self.rootVBox.addLayout(self.bottomHBox)
 
         self.setLayout(self.rootVBox)
+
+        self.connectSignals()
+
+    def connectSignals(self):
+        # TODO: Test?
+        self.player_joined_signal.connect(self.handlePlayerJoinedSignal)
+        self.player_left_signal.connect(self.handlePlayerLeftSignal)
+        self.start_signal.connect(self.handleStartSignal)
+        self.select_prompt_signal.connect(self.handleSelectPromptSignal)
+        self.prompt_selected_signal.connect(self.handlePromptSelectedSignal)
+        self.stroke_signal.connect(self.handleStrokeSignal)
+        self.undo_signal.connect(self.handleUndoSignal)
+        self.clear_signal.connect(self.handleClearSignal)
+        self.guess_correct_signal.connect(self.handleGuessCorrectSignal)
+        self.artist_change_signal.connect(self.handleArtistChangeSignal)
+        self.game_over_signal.connect(self.handleGameOverSignal)
 
     def initialize_new_room(self):
         # Set room state to a fresh one with just the owner
@@ -186,9 +201,8 @@ class GameWindow(QtWidgets.QWidget):
         self.chat.insertPlainText("{}{}".format(message, "\n"))
 
     def mouseMoveEvent(self, event):
-        # TODO: Enable this
-        # if self.artist != self.player:
-        #     return
+        if self.artist != self.player:
+            return
 
         x = event.x() - self.canvasContainer.x()
         y = event.y() - self.canvasContainer.y()
@@ -211,9 +225,8 @@ class GameWindow(QtWidgets.QWidget):
         self.stroke.append((x, y))
 
     def mouseReleaseEvent(self, event):
-        # TODO: Enable this
-        # if self.artist != self.player:
-        #     return
+        if self.artist != self.player:
+            return
 
         self.strokes.append(self.stroke.copy())
         self.previousX = None
@@ -225,9 +238,9 @@ class GameWindow(QtWidgets.QWidget):
         self.stroke = []
 
     def handleStartSignal(self, contents):
-        self.gameState = GameState.PROMPT_SELECTION
         self.artist = contents["artist"]
         self.display_chat_message("Game started!")
+        self.gameState = GameState.PROMPT_SELECTION
 
     def handlePlayerJoinedSignal(self, contents):
         self.display_chat_message("{} joined the room.".format(contents["player"]))
@@ -246,6 +259,12 @@ class GameWindow(QtWidgets.QWidget):
         self.drawings.append(self.strokes.copy())
         self.display_chat_message("{} is now the artist.".format(contents["artist"]))
         self.artist = contents["artist"]
+        if self.player == self.artist:
+            self.undoButton.setDisabled(False)
+            self.clearButton.setDisabled(False)
+        else:
+            self.undoButton.setDisabled(True)
+            self.clearButton.setDisabled(True)
         self.clear()
         self.gameState = GameState.PROMPT_SELECTION
         pass
@@ -256,7 +275,10 @@ class GameWindow(QtWidgets.QWidget):
         pass
 
     def handlePromptSelectedSignal(self, contents):
-        self.hint = len(contents["prompt"]) * "_"
+        if self.player == self.artist:
+            self.hint = contents["prompt"]
+        else:
+            self.hint = len(contents["prompt"]) * "_"
         self.hints.setText(self.hint)
         self.gameState = GameState.DRAWING
         pass
