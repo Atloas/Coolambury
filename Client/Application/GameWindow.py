@@ -22,6 +22,7 @@ class GameWindow(QtWidgets.QWidget):
     player_left_signal = QtCore.pyqtSignal(dict)
     start_signal = QtCore.pyqtSignal(dict)
     select_prompt_signal = QtCore.pyqtSignal(dict)
+    prompt_selected_signal = QtCore.pyqtSignal(dict)
     stroke_signal = QtCore.pyqtSignal(dict)
     undo_signal = QtCore.pyqtSignal()
     clear_signal = QtCore.pyqtSignal()
@@ -223,6 +224,11 @@ class GameWindow(QtWidgets.QWidget):
 
         self.stroke = []
 
+    def handleStartSignal(self, contents):
+        self.gameState = GameState.PROMPT_SELECTION
+        self.artist = contents["artist"]
+        self.display_chat_message("Game started!")
+
     def handlePlayerJoinedSignal(self, contents):
         self.display_chat_message("{} joined the room.".format(contents["player"]))
         self.players[contents.player] = 0
@@ -240,6 +246,7 @@ class GameWindow(QtWidgets.QWidget):
         self.drawings.append(self.strokes.copy())
         self.display_chat_message("{} is now the artist.".format(contents["artist"]))
         self.artist = contents["artist"]
+        self.clear()
         self.gameState = GameState.PROMPT_SELECTION
         pass
 
@@ -251,7 +258,6 @@ class GameWindow(QtWidgets.QWidget):
     def handlePromptSelectedSignal(self, contents):
         self.hint = len(contents["prompt"]) * "_"
         self.hints.setText(self.hint)
-        self.clear()
         self.gameState = GameState.DRAWING
         pass
 
@@ -285,7 +291,6 @@ class GameWindow(QtWidgets.QWidget):
         pass
 
     def handleGameOverSignal(self, contents):
-        # TODO: Display window with all images drawn this round, allow user to save to disk?
         self.gameState = GameState.POSTGAME
         self.players = contents["final_scores"]
         self.updateScoreboard()
