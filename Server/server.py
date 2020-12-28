@@ -7,42 +7,31 @@ import networking as nw
 
 class Server:
     def __init__(self):
+        self._resources = {}
+        self._resources['rooms'] = {}
+        self._resources['clients'] = []
         self._load_config_file()
-        self._server_socket = nw.create_and_bind_socket(self._config)
-        self._connected_clients = []
-        self._rooms = {}
-        self._message_dispatcher = mh.MessageDispatcher()
-        self._register_dispatcher_handlers()
+        self._server_socket = nw.create_and_bind_socket(self._resources['config'])
+
+        self._map_message_handlers()
         logging.debug('[INITIALIZING SERVER]')
 
     def _load_config_file(self):
         try:
             config_path = sys.argv[1]
             with open(config_path, 'r') as config_file:
-                self._config = json.load(config_file)
+                self._resources['config'] = json.load(config_file)
         except:
             logging.error('Error ocured when loading configuration file!')
             exit()
 
-    def _register_dispatcher_handlers(self):
-        self._message_dispatcher.register_handler('CreateRoomReq',
-                                                 mh.CreateRoomReqHandler(
-                                                     self._rooms,
-                                                     self._connected_clients,
-                                                     self._config))
+    def _map_message_handlers(self):
+        self._msg_mapping = {
+                                'CreateRoomReq': mh.handleCreateRoomReq,
+                                'JoinRoomReq': mh.handleJoinRoomReq,
+                                'WriteChatReq': mh.handleChatMessageReq
+                             }
 
-
-        self._message_dispatcher.register_handler('JoinRoomReq',
-                                                  mh.JoinRoomReqHandler(
-                                                     self._rooms,
-                                                     self._connected_clients,
-                                                     self._config))
-
-        self._message_dispatcher.register_handler('WriteChatReq',
-                                                  mh.ChatMessageReqHandler(
-                                                     self._rooms,
-                                                     self._connected_clients,
-                                                     self._config))
 
     def start(self):
         logging.debug('[STARTING] server is starting...')
@@ -51,8 +40,8 @@ class Server:
         while True:
             conn, addr = self._server_socket.accept()
 
-            new_client = nw.ClientConnection(conn, addr, self._config, self._message_dispatcher)
-            self._connected_clients.append(new_client)
+            new_client = nw.ClientConnection(conn, addr, self._resources, self._msg_mapping)
+            self._resources['clients'].append(new_client)
             thread = threading.Thread(target=new_client.handle_client_messages)
             thread.start()
 

@@ -162,4 +162,3 @@ class ConnectionHandler(QtCore.QObject):
 
 if __name__ == '__main__':
     pass
-``

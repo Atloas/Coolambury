@@ -34,20 +34,25 @@ def create_and_bind_socket(config):
 
 
 class ClientConnection:
-    def __init__(self, conn, addr, server_config, msg_dispatcher):
-        self._server_config = server_config
+    def __init__(self, conn, addr, resources, msg_mapping):
+        self._resources = resources
         self._conn = conn
         self._addr = addr
-        self._dispatcher = msg_dispatcher
+        self._msg_mapping = msg_mapping
         self._connected = True
         # TODO: Add time of logging
         logging.debug('[NEW CONNECTION] {} connected'.format(addr))
 
     def handle_client_messages(self):
         while self._connected:
-            msg_name, msg_body = receive(self._conn, self._server_config)
+            msg_name, msg_body = receive(self._conn, self._resources['config'])
             if msg_body:
-                self._dispatcher.dispatch(self._conn, msg_name, msg_body)
+                logging.debug('[MSG_HANDLING] dispatching message {}'.format(msg_name))
+                try:
+                    handling_func = self._msg_mapping[msg_name]
+                    handling_func(self._resources, self._conn, msg_body)
+                except:
+                    logging.error('An error ocured when handling {} = {}'.format(msg_name, msg_body))
 
     def close_connection(self):
         self._connected = False
