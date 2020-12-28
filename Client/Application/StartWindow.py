@@ -39,6 +39,7 @@ class StartWindow(QtWidgets.QWidget):
         self.vBox.addWidget(self.joinButton)
         self.vBox.addWidget(self.createRoombutton)
 
+    # TODO: Add validation for special characters!
     def validate_nickname(self):
         isNickNameValid = not self.nicknameField.text() == ''
 
