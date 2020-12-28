@@ -1,9 +1,8 @@
-import msg_handling
+import networking as nw
 
 class Room:
-    def __init__(self, server_config, room_name, owner_name, owner_connection): 
+    def __init__(self, server_config, owner_name, owner_connection): 
         self._server_config = server_config
-        self._room_name = room_name
         self._owner = (owner_name, owner_connection)
         self._joined_clients = {owner_name : owner_connection}
 
@@ -12,4 +11,4 @@ class Room:
 
     def broadcast_chat_message(self, msg):
         for client in self._joined_clients.items():
-            msg_handling.send(client[1], msg, self._server_config)
+            nw.send(client[1], msg, self._server_config)

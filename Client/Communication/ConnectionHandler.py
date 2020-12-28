@@ -1,8 +1,6 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
 
 from . import SocketMsgHandler
-import Common.config as config
-import Common.messages as messages
 from Utils import PopUpWindow
 
 import socket
@@ -70,53 +68,94 @@ class ConnectionHandler(QtCore.QObject):
             except:
                 logging.debug(
                     "[SOCKET RECEIVER] Shutting down and closing socket connection")
-            if received_msg:
-                logging.debug(
-                    "[SOCKET RECEIVER] Received Message: {}".format(received_msg))
-                if received_msg_name == 'CreateRoomResp':
-                    if received_msg.status == 'OK':
-                        self.switch_window.emit(received_msg.room_code)
-                    else:
-                        PopUpWindow('Room could not be created!', 'ERROR')
-                if received_msg_name == 'JoinRoomResp':
-                    if received_msg.status == 'OK':
-                        self.switch_window.emit('Joining')
+            
+            logging.debug(
+                "[SOCKET RECEIVER] Received Message: {}".format(received_msg))
+            self.dispatch_received_message(received_msg)
 
-                    
-                elif received_msg_name == 'NewChatMessage':
-                    self.chat_message_signal.emit("{}: {}".format(
-                        received_msg.author, received_msg.message))
-                elif received_msg_name == 'ExitClientReq':
-                    kill_receiver()
-                    self.chat_message_signal.emit("{} has left the game".format(
-                        received_msg.user_name))
+    def dispatch_received_message(self, received_msg):
+        logging.debug(
+            "[SOCKET RECEIVER] Received Message: {}".format(received_msg))
+        message_dispatcher = {
+            'CreateRoomResp': self.handle_CreateRoomResp,
+            'JoinRoomResp': self.handle_JoinRoomResp,
+            'NewChatMessage': self.handle_NewChatMessage
+            # TODO: Implement on the server side:
+            # 'ExitClientReq': self.handle_ExitClientReq(message)
+        }
+        return message_dispatcher.get(received_msg['msg_name'], self.handle_UnrecognizedMessage)(received_msg)
+
+    def handle_CreateRoomResp(self, received_msg):
+        if received_msg['status'] == 'OK':
+            self.switch_window.emit(received_msg['room_code'])
+        else:
+            PopUpWindow('Room could not be created!', 'ERROR')
+            logging.debug(
+                "[MESSAGE DISPATCHER] handling CreateRoomResp failed, STATUS NOK")
+        logging.debug(
+            "[MESSAGE DISPATCHER] handling CreateRoomResp Successful, STATUS OK")
+
+    def handle_JoinRoomResp(self, received_msg):
+        if received_msg['status'] == 'OK':
+            self.switch_window.emit('Joining')
+        else:
+            PopUpWindow('Could not join to room!', 'ERROR')
+            logging.debug(
+                "[MESSAGE DISPATCHER] handling JoinRoomResp failed, STATUS NOK")
+        logging.debug(
+            "[MESSAGE DISPATCHER] handling JoinRoomResp Successful, STATUS OK")
+
+    def handle_NewChatMessage(self, received_msg):
+        logging.debug(
+            "[MESSAGE DISPATCHER] handling NewChatMessage: {}".format(received_msg))
+        self.chat_message_signal.emit("{}: {}".format(
+            received_msg['author'], received_msg['message']))
+
+    def handle_ExitClientReq(self, received_msg):
+        # TODO: Implement on the server side:
+        self.kill_receiver()
+        self.chat_message_signal.emit("{} has left the game".format(
+            received_msg['user_name']))
+        logging.debug(
+            "[MESSAGE DISPATCHER] handling ExitClientReq Successful, STATUS OK")
+
+    def handle_UnrecognizedMessage(self, received_msg):
+        logging.debug(
+            "[MESSAGE DISPATCHER] No defined handler for message: {}".format(received_msg))
 
     def send_create_room_req(self, user_name):
-        send_create_room_req_msg = messages.CreateRoomReq()
-        send_create_room_req_msg.user_name = user_name
-        send_create_room_req_msg.room_name = ''
+        send_create_room_req_msg = {
+            'msg_name': 'CreateRoomReq',
+            'user_name': user_name
+        }
         SocketMsgHandler.send(self.conn, send_create_room_req_msg,
                               self.server_config)
 
     def send_join_room_req(self, user_name, room_code):
-        send_join_room_req_msg = messages.JoinRoomReq()
-        send_join_room_req_msg.user_name = user_name
-        send_join_room_req_msg.room_code = room_code
+        send_join_room_req_msg = {
+            'msg_name': 'JoinRoomReq',
+            'user_name': user_name,
+            'room_code': room_code
+        }
+
         SocketMsgHandler.send(self.conn, send_join_room_req_msg,
                               self.server_config)
 
     def send_chat_msg_req(self, user_name, room_code, message):
-        send_char_msg = messages.WriteChatReq()
-        send_char_msg.user_name = user_name
-        send_char_msg.room_code = room_code
-
-        send_char_msg.message = message
+        send_char_msg = {
+            'msg_name': 'WriteChatReq',
+            'user_name': user_name,
+            'room_code': room_code,
+            'message': message
+        }
         SocketMsgHandler.send(self.conn, send_char_msg,
                               self.server_config)
 
     def send_exit_client_req(self, user_name):
-        notify_server_about_leaving = messages.ExitClientReq()
-        notify_server_about_leaving.user_name = user_name
+        notify_server_about_leaving = {
+            'msg_name': 'ExitClientReq',
+            'user_name': user_name
+        }
         SocketMsgHandler.send(
             self.conn, notify_server_about_leaving, self.server_config)
 

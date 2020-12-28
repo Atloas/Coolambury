@@ -4,7 +4,7 @@ from enum import Enum
 from PyQt5 import QtCore, QtWidgets, QtGui
 
 from .DrawingHistoryWindow import DrawingHistoryWindow
-
+from Utils.PopUpWindow import PopUpWindow
 
 class GameState(Enum):
     PREGAME = 0
@@ -73,8 +73,13 @@ class GameWindow(QtWidgets.QWidget):
         self.chatBottomHBox = QtWidgets.QHBoxLayout()
 
         self.disconnectButton = QtWidgets.QPushButton("Disconnect")
+        self.disconnectButton.setMaximumSize(100, 50)
         self.disconnectButton.clicked.connect(self.disconnect_clicked)
+        self.startButton = QtWidgets.QPushButton("Start")
+        self.startButton.setMaximumSize(100, 50)
+        self.startButton.clicked.connect(self.start_clicked)
         self.topHBox.addWidget(self.disconnectButton)
+        self.topHBox.addWidget(self.startButton)
 
         self.hints = QtWidgets.QLabel("*HINTS*")  # TODO: Hints
         self.topHBox.addWidget(self.hints)
@@ -102,8 +107,8 @@ class GameWindow(QtWidgets.QWidget):
         self.gameAndControlsVBox.addLayout(self.controlsHBox)
 
         self.chat = QtWidgets.QTextEdit()
-        self.chat.append('GAME ROOM ID: {}\n'.format(
-            self.clientContext['roomCode']))
+        self.chat.insertPlainText("GAME ROOM ID: {}{}".format(
+            self.clientContext['roomCode'], "\n"))
         self.chat.setReadOnly(True)
 
         self.chatEntryLine = QtWidgets.QLineEdit()
@@ -388,6 +393,10 @@ class GameWindow(QtWidgets.QWidget):
     def disconnect_clicked(self):
         # TODO: disconnect socket
         self.switch_window.emit()
+
+    def start_clicked(self):
+        PopUpWindow(
+            "Not Implemented Yet!", 'WARNING')
 
 
 if __name__ == '__main__':
