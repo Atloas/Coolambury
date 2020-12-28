@@ -26,3 +26,19 @@ NewChatMessage:
     msg_name (str)
     author (str)
     message (str)
+
+TBA:
+ExitClientReq
+ExitClientResp
+
+DRAFT:
+StartGameReq:
+    author (str)
+    room_code (str) ?
+
+StartGameResp:
+    artist/drawer (str)
+    keyword (str)
+--ON MESSAGE: Przejscie gry ze stanu PREGAME lub POSTGAME do PROMPT_SELECTION
+
+
