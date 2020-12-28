@@ -11,6 +11,10 @@ PROMPT_SELECTION
 DRAWING
 POSTGAME
 
+REMARK (mloska):
+Co kiedy host wyjdzie? wyjscie z gry/pokoju -> POSTGAME czy od razu wychodzimy z maszyny stanow?
+
+
 Na początku gra w stanie PREGAME, można pisać na czacie, owner rozpoczyna komendą/przyciskiem/czymśtam
 
 Start gry:
