@@ -7,7 +7,7 @@ artist = Obecnie malujący gracz
 
 Stany gry:
 PREGAME
-PROMPT_SELECTION
+WORD_SELECTION
 DRAWING
 POSTGAME
 
@@ -20,12 +20,12 @@ Na początku gra w stanie PREGAME, można pisać na czacie, owner rozpoczyna kom
 Start gry:
 owner: start_message: {} -> server
 server: start_message: {"artist": ...} -> broadcast
-Przejście gry ze stanu PREGAME lub POSTGAME do PROMPT_SELECTION
+Przejście gry ze stanu PREGAME lub POSTGAME do WORD_SELECTION
 
 Wybór słowa:
 server: select_prompt_message: {"prompts": [...]} -> artist
 artist: selected_prompt_message: {"prompt": ...} -> server -> broadcast
-Przejście gry ze stanu PROMPT_SELECTION do stanu DRAWING
+Przejście gry ze stanu WORD_SELECTION do stanu DRAWING
 
 Rysowanie:
 artist: stroke_message: {"stroke": [...]} -> server -> broadcast
@@ -39,7 +39,7 @@ player: chat_message: {...} -> server -> sprawdź czy to wybrane słowo
 
 Jeśli wszyscy już zgadli to zmiana artysty:
 server: artist_change_message: {"artist": ...} -> broadcast
-Przejście z DRAWING do PROMPT_SELECTION
+Przejście z DRAWING do WORD_SELECTION
 Wybór słowa
 
 Jedna "runda" to gdy wszyscy rysowali po raz, powiedzmy ze rund jest 3, playerzy nie muszą wiedzieć chyba że runda się skończyła i rozpoczęła się kolejna
