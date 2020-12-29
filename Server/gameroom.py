@@ -62,9 +62,9 @@ class Room:
         if self.num_of_members() < 2:
             raise NotEnaughPlayersException()
 
-        logging.info('[ROOM ({})] Attempting to start a game!')
+        logging.info('[ROOM ({})] Attempting to start a game!'.format(self._room_code))
         self._state = RoomState.STARTING_GAME
 
-        self._drawing_queue = self._joined_clients.keys()
+        self._drawing_queue = list(self._joined_clients.keys())
         random.shuffle(self._drawing_queue)
         
