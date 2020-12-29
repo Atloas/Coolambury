@@ -30,7 +30,8 @@ class Server:
                                 'CreateRoomReq': mh.handle_CreateRoomReq,
                                 'JoinRoomReq': mh.handle_JoinRoomReq,
                                 'WriteChatReq': mh.handle_ChatMessageReq,
-                                'ExitClientReq': mh.handle_ExitClientReq
+                                'ExitClientReq': mh.handle_ExitClientReq,
+                                'StartGameReq': mh.handle_StartGameReq
                              }
 
 

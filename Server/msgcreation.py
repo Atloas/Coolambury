@@ -67,3 +67,24 @@ def build_leave_notification(user_name):
     
     return join_notification
     
+def build_start_game_resp_ok(info=None):
+    resp = {
+        'msg_name': 'StartGameResp',
+        'status': 'OK',
+    }
+    
+    if info is not None:
+        resp['info'] = info
+
+    return resp
+
+def build_start_game_resp_not_ok(info=None):
+    resp = {
+        'msg_name': 'StartGameResp',
+        'status': 'NOT_OK',
+    }
+    
+    if info is not None:
+        resp['info'] = info
+
+    return resp
