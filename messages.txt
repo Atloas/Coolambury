@@ -32,3 +32,16 @@ ExitClientReq:
     msg_name (str)
     user_name (str)
     room_code (str)
+
+StartGameReq:
+    msg_name (str)
+    user_name (str)
+    room_code (str)
+
+StartGameResp:
+    msg_name (str)
+    info (str)[optional]
+
+StartGameBc:
+    msg_name (str)
+    

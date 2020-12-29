@@ -1,5 +1,5 @@
 import logging
-from room import Room
+import gameroom as gr
 import networking as nw
 import msgcreation as mc
 
@@ -10,7 +10,6 @@ class RoomNotExistsException(Exception):
 class UsernameTakenException(Exception):
     pass
 
-
 def handle_ChatMessageReq(resources, sender_conn, msg):
     try:
         rooms = resources['rooms']
@@ -20,7 +19,7 @@ def handle_ChatMessageReq(resources, sender_conn, msg):
         room = rooms[msg['room_code']]
         room.add_client(msg['user_name'], sender_conn)
         chat_msg = mc.build_chat_msg_bc(msg['user_name'], msg['message'])
-        room.broadcast_chat_message(chat_msg)
+        room.broadcast_message(chat_msg)
 
     except:
         logging.error(
@@ -31,7 +30,7 @@ def handle_CreateRoomReq(resources, sender_conn, msg):
     try:
         rooms = resources['rooms']
         room_code = mc.generate_unique_code(8, rooms)
-        room = Room(resources['config'], msg['user_name'], sender_conn)
+        room = gr.Room(resources['config'], msg['user_name'], sender_conn, room_code)
 
         resp = mc.build_ok_create_room_resp(room_code)
         rooms[room_code] = room
@@ -67,10 +66,14 @@ def handle_JoinRoomReq(resources, sender_conn, msg):
         resp = mc.build_ok_join_room_resp()
         nw.send(sender_conn, resp, resources['config'])
         join_notification = mc.build_join_notification(msg['user_name'])
-        room.broadcast_chat_message(join_notification)
+        room.broadcast_message(join_notification)
 
         logging.debug('[handle_JoinRoomReq] User {} joined to room {}'.format(
             msg['user_name'], msg['room_code']))
+
+    except gr.GameAlreadyStartedException:
+        info = 'Game already started!'
+        send_NOT_OK_JoinRoomResp_with_info(sender_conn, resources['config'], info)
 
     except RoomNotExistsException:
         info = 'Room with code {} not found'.format(msg['room_code'])
@@ -81,7 +84,7 @@ def handle_JoinRoomReq(resources, sender_conn, msg):
         send_NOT_OK_JoinRoomResp_with_info(sender_conn, resources['config'], info)
 
     except:
-        logging.error('[handle_JoinRoomReq] Error ocured when handling message{}'.format(msg))
+        logging.error('[handle_JoinRoomReq] Error occurred when handling message{}'.format(msg))
         resp = mc.build_not_ok_join_room_resp()
         nw.send(sender_conn, resp, resources['config'])
 
@@ -97,9 +100,8 @@ def handle_ExitClientReq(resources, sender_conn, msg):
 
         if removed:
             leave_notification = mc.build_leave_notification(user_name)
-            room.broadcast_chat_message(leave_notification)
+            room.broadcast_message(leave_notification)
             logging.info('[handle_ExitClientReq] Removed {} from room with code {}'.format(user_name, code))
-            
         else:
             logging.info('[handle_ExitClientReq] User {} not found in room with code {}'.format(user_name, code))
         
@@ -107,4 +109,30 @@ def handle_ExitClientReq(resources, sender_conn, msg):
             del rooms[code]
             logging.info('[handle_ExitClientReq] Room with code {} deleted (0 players)'.format(code))
     except:
-        logging.error('[handle_ExitClientReq] Error ocured when handling message{}'.format(msg))
+        logging.error('[handle_ExitClientReq] Error ocured when handling message {}'.format(msg))
+
+
+def handle_StartGameReq(resources, sender_conn, msg):
+    try:
+        user_name = msg['user_name']
+        room_code = msg['room_code']
+
+        rooms = resources['rooms']
+        room = rooms[room_code]
+        room.start_game(user_name)
+
+        resp = mc.build_start_game_resp_ok()
+        nw.send(sender_conn, resp, resources['config'])
+        # TODO: Start PROMPT_SELECTION
+    except gr.StartedNotByOwnerException:
+        resp = mc.build_start_game_resp_not_ok('Only room owner can start game!')
+        nw.send(sender_conn, resp, resources['config'])
+    
+    except gr.NotEnaughPlayersException:
+        resp = mc.build_start_game_resp_not_ok('There must be at least 2 players to start the game!')
+        nw.send(sender_conn, resp, resources['config'])
+    
+    except:
+        logging.error('[handle_StartGameReq] Error ocured when handling message {}'.format(msg))
+        resp = mc.build_start_game_resp_not_ok()
+        nw.send(sender_conn, resp, resources['config'])
