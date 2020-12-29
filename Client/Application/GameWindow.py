@@ -391,7 +391,7 @@ class GameWindow(QtWidgets.QWidget):
             self.clientContext['username'], self.clientContext['roomCode'], message)
 
     def disconnect_clicked(self):
-        # TODO: disconnect socket
+        self.connHandler.send_exit_client_req(self.clientContext['username'], self.clientContext['roomCode'])
         self.switch_window.emit()
 
     def start_clicked(self):

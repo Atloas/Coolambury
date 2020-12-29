@@ -151,10 +151,11 @@ class ConnectionHandler(QtCore.QObject):
         SocketMsgHandler.send(self.conn, send_char_msg,
                               self.server_config)
 
-    def send_exit_client_req(self, user_name):
+    def send_exit_client_req(self, user_name, room_code):
         notify_server_about_leaving = {
             'msg_name': 'ExitClientReq',
-            'user_name': user_name
+            'user_name': user_name,
+            'room_code': room_code
         }
         SocketMsgHandler.send(
             self.conn, notify_server_about_leaving, self.server_config)

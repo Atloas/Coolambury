@@ -15,6 +15,7 @@ JoinRoomReq:
 JoinRoomResp:
     msg_name (str)
     status (str)
+    info (str)[optional]
 
 WriteChatReq:
     msg_name (str)
@@ -26,3 +27,8 @@ NewChatMessage:
     msg_name (str)
     author (str)
     message (str)
+
+ExitClientReq:
+    msg_name (str)
+    user_name (str)
+    room_code (str)

@@ -3,7 +3,6 @@ from room import Room
 import networking as nw
 import msgcreation as mc
 
-
 class RoomNotExistsException(Exception):
     pass
 
@@ -12,7 +11,7 @@ class UsernameTakenException(Exception):
     pass
 
 
-def handleChatMessageReq(resources, sender_conn, msg):
+def handle_ChatMessageReq(resources, sender_conn, msg):
     try:
         rooms = resources['rooms']
         if msg['room_code'] not in rooms:
@@ -28,7 +27,7 @@ def handleChatMessageReq(resources, sender_conn, msg):
             '[WRITE_CHAT_REQ_HANDLER] Room of code {} not registered on the server'.format(msg.room_code))
 
 
-def handleCreateRoomReq(resources, sender_conn, msg):
+def handle_CreateRoomReq(resources, sender_conn, msg):
     try:
         rooms = resources['rooms']
         room_code = mc.generate_unique_code(8, rooms)
@@ -49,7 +48,7 @@ def handleCreateRoomReq(resources, sender_conn, msg):
         nw.send(sender_conn, resp, resources['config'])
 
 
-def handleJoinRoomReq(resources, sender_conn, msg):
+def handle_JoinRoomReq(resources, sender_conn, msg):
     try:
         rooms = resources['rooms']
         if msg['room_code'] not in rooms:
@@ -69,9 +68,45 @@ def handleJoinRoomReq(resources, sender_conn, msg):
         logging.debug('[JOIN_ROOM_REQ_HANDLER] User {} joined to room {}'.format(
             msg['user_name'], msg['room_code']))
 
+    except RoomNotExistsException:
+        info = 'Room with code {} not found'.format(msg['room_code'])
+        logging.debug('[JOIN_ROOM_REQ_HANDLER] {}'.format(info))
+        resp = mc.build_not_ok_join_room_resp(info=info)
+        nw.send(sender_conn, resp, resources['config'])
+
+    except UsernameTakenException:
+        info = 'Username {} already taken in room with code {}'.format(msg['user_name'], msg['room_code'])
+        logging.debug('[JOIN_ROOM_REQ_HANDLER] {}'.format(info))
+        resp = mc.build_not_ok_join_room_resp(info=info)
+        nw.send(sender_conn, resp, resources['config'])
+
     except:
         logging.error(
             '[JOIN_ROOM_REQ_HANDLER] Error ocured when handling message{}'.format(msg))
 
         resp = mc.build_not_ok_join_room_resp()
         nw.send(sender_conn, resp, resources['config'])
+
+
+def handle_ExitClientReq(resources, sender_conn, msg):
+    try:
+        user_name = msg['user_name']
+        code = msg['room_code']
+
+        rooms = resources['rooms']
+        room = rooms[code]
+        removed = room.remove_client_by_name_if_exists(user_name)
+
+        if removed:
+            leave_notification = mc.build_leave_notification(user_name)
+            room.broadcast_chat_message(leave_notification)
+            logging.info('[handle_ExitClientReq] Removed {} from room with code {}'.format(user_name, code))
+            
+        else:
+            logging.info('[handle_ExitClientReq] User {} not found in room with code {}'.format(user_name, code))
+        
+        if room.num_of_members() == 0:
+            del rooms[code]
+            logging.info('[handle_ExitClientReq] Room with code {} deleted (0 players)'.format(code))
+    except:
+        logging.error('[handle_ExitClientReq] Error ocured when handling message{}'.format(msg))
