@@ -2,6 +2,7 @@ import logging
 import gameroom as gr
 import networking as nw
 import msgcreation as mc
+import traceback
 
 class RoomNotExistsException(Exception):
     pass
@@ -15,9 +16,8 @@ def handle_ChatMessageReq(resources, sender_conn, msg):
         rooms = resources['rooms']
         if msg['room_code'] not in rooms:
             raise RoomNotExistsException()
-        
+
         room = rooms[msg['room_code']]
-        room.add_client(msg['user_name'], sender_conn)
         chat_msg = mc.build_chat_msg_bc(msg['user_name'], msg['message'])
         room.broadcast_message(chat_msg)
 
@@ -56,7 +56,7 @@ def handle_JoinRoomReq(resources, sender_conn, msg):
         rooms = resources['rooms']
         if msg['room_code'] not in rooms:
             raise RoomNotExistsException()
-        
+
         room = rooms[msg['room_code']]
 
         if msg['user_name'] in room._joined_clients:
@@ -73,6 +73,7 @@ def handle_JoinRoomReq(resources, sender_conn, msg):
 
     except gr.GameAlreadyStartedException:
         info = 'Game already started!'
+
         send_NOT_OK_JoinRoomResp_with_info(sender_conn, resources['config'], info)
 
     except RoomNotExistsException:
@@ -101,6 +102,7 @@ def handle_ExitClientReq(resources, sender_conn, msg):
         if removed:
             leave_notification = mc.build_leave_notification(user_name)
             room.broadcast_message(leave_notification)
+
             logging.info('[handle_ExitClientReq] Removed {} from room with code {}'.format(user_name, code))
         else:
             logging.info('[handle_ExitClientReq] User {} not found in room with code {}'.format(user_name, code))
@@ -125,6 +127,7 @@ def handle_StartGameReq(resources, sender_conn, msg):
         nw.send(sender_conn, resp, resources['config'])
         start_game_bc = {'msg_name': 'StartGameBc'}
         room.broadcast_message(start_game_bc)
+
         # TODO: Start PROMPT_SELECTION
     except gr.StartedNotByOwnerException:
         resp = mc.build_start_game_resp_not_ok('Only room owner can start game!')

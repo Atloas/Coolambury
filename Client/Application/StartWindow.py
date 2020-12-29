@@ -67,6 +67,7 @@ class StartWindow(QtWidgets.QWidget):
         logging.debug(
             "[EXITING ATTEMPT] Client is requesting for application exit")
         if self.connHandler.is_connection_receiver_connected() == True:
+            self.connHandler.send_socket_disconnect_req()
             self.connHandler.kill_receiver()
 
     def delegate_room_creation_to_handler(self):

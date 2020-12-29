@@ -4,7 +4,6 @@ from Communication.ConnectionHandler import ConnectionHandler
 import logging
 from Utils.PopUpWindow import PopUpWindow
 
-
 # ApplicationResourcesManager
 class AppResourceManager:
 
@@ -24,7 +23,7 @@ class AppResourceManager:
             if self.gameWindow is not None and self.gameWindow.isVisible():
                 self.gameWindow.hide()
             self.startWindow.setVisible(True)
-    
+
     def show_game(self, roomCode):
         if roomCode != 'Joining':
             self.clientContext['roomCode'] = roomCode
@@ -33,7 +32,7 @@ class AppResourceManager:
         self.gameWindow.switch_window.connect(self.show_start)
         self.startWindow.hide()
         self.gameWindow.show()
-        
+
 
 if __name__ == '__main__':
     pass

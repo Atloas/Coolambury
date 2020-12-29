@@ -37,7 +37,7 @@ class Room:
         if self._state not in [RoomState.PREGAME, RoomState.POSTGAME]:
             raise GameAlreadyStartedException()
         self._joined_clients[user_name] = user_conn
-    
+        
     def remove_client_by_name_if_exists(self, user_name):
         try:
             del self._joined_clients[user_name]

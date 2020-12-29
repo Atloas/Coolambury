@@ -11,7 +11,7 @@ import sys
 
 
 class ConnectionHandler(QtCore.QObject):
-    chat_message_signal = QtCore.pyqtSignal(str)
+    chat_message_signal = QtCore.pyqtSignal(dict)
     scoreboard_update_signal = QtCore.pyqtSignal(str)
     switch_window = QtCore.pyqtSignal(str)
 
@@ -68,18 +68,18 @@ class ConnectionHandler(QtCore.QObject):
             except:
                 logging.debug(
                     "[SOCKET RECEIVER] Shutting down and closing socket connection")
-            
+
             logging.debug(
                 "[SOCKET RECEIVER] Received Message: {}".format(received_msg))
             self.dispatch_received_message(received_msg)
 
     def dispatch_received_message(self, received_msg):
-        logging.debug(
-            "[SOCKET RECEIVER] Received Message: {}".format(received_msg))
         message_dispatcher = {
             'CreateRoomResp': self.handle_CreateRoomResp,
             'JoinRoomResp': self.handle_JoinRoomResp,
-            'NewChatMessage': self.handle_NewChatMessage
+            'ChatMessageBc': self.handle_ChatMessageBc,
+            'StartGameResp': self.handle_StartGameResp,
+            'StartGameBc': self.handle_StartGameBc,
             # TODO: Implement on the server side:
             # 'ExitClientReq': self.handle_ExitClientReq(message)
         }
@@ -99,17 +99,19 @@ class ConnectionHandler(QtCore.QObject):
         if received_msg['status'] == 'OK':
             self.switch_window.emit('Joining')
         else:
-            PopUpWindow('Could not join to room!', 'ERROR')
+            PopUpWindow('Could not join to room!\n{}'.format(
+                received_msg['info']), 'ERROR')
             logging.debug(
                 "[MESSAGE DISPATCHER] handling JoinRoomResp failed, STATUS NOK")
         logging.debug(
             "[MESSAGE DISPATCHER] handling JoinRoomResp Successful, STATUS OK")
 
-    def handle_NewChatMessage(self, received_msg):
+    def handle_ChatMessageBc(self, received_msg):
         logging.debug(
-            "[MESSAGE DISPATCHER] handling NewChatMessage: {}".format(received_msg))
-        self.chat_message_signal.emit("{}: {}".format(
-            received_msg['author'], received_msg['message']))
+            "[MESSAGE DISPATCHER] handling ChatMessageBc: {}".format(received_msg))
+        self.chat_message_signal.emit(received_msg)
+        # self.chat_message_signal.emit("{}: {}".format(
+        #             received_msg['author'], received_msg['message']))
 
     def handle_ExitClientReq(self, received_msg):
         # TODO: Implement on the server side:
@@ -118,6 +120,18 @@ class ConnectionHandler(QtCore.QObject):
             received_msg['user_name']))
         logging.debug(
             "[MESSAGE DISPATCHER] handling ExitClientReq Successful, STATUS OK")
+
+    def handle_StartGameResp(self, received_msg):
+        logging.debug(
+            "[MESSAGE DISPATCHER] handling StartGameResp, STATUS {}".format(received_msg['status']))
+        if received_msg['status'] == 'NOT_OK':
+            PopUpWindow(received_msg['info'], 'ERROR')
+
+    def handle_StartGameBc(self, received_msg):
+        logging.debug(
+            "[MESSAGE DISPATCHER] handling StartGameBc, STATUS {}".format(received_msg['status']))
+        if received_msg['status'] == 'NOT_OK':
+            PopUpWindow(received_msg['info'], 'ERROR')
 
     def handle_UnrecognizedMessage(self, received_msg):
         logging.debug(
@@ -143,7 +157,7 @@ class ConnectionHandler(QtCore.QObject):
 
     def send_chat_msg_req(self, user_name, room_code, message):
         send_char_msg = {
-            'msg_name': 'WriteChatReq',
+            'msg_name': 'ChatMessageReq',
             'user_name': user_name,
             'room_code': room_code,
             'message': message
@@ -159,6 +173,22 @@ class ConnectionHandler(QtCore.QObject):
         }
         SocketMsgHandler.send(
             self.conn, notify_server_about_leaving, self.server_config)
+
+    def send_socket_disconnect_req(self):
+        socket_disconnect_req = {
+            'msg_name': 'DisconnectSocketReq'
+        }
+        SocketMsgHandler.send(
+            self.conn, socket_disconnect_req, self.server_config)
+
+    def send_start_game_req(self, user_name, room_code):
+        start_game_req = {
+            'msg_name': 'StartGameReq',
+            'user_name': user_name,
+            'room_code': room_code
+        }
+        SocketMsgHandler.send(
+            self.conn, start_game_req, self.server_config)
 
 
 if __name__ == '__main__':

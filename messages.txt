@@ -17,13 +17,13 @@ JoinRoomResp:
     status (str)
     info (str)[optional]
 
-WriteChatReq:
+ChatMessageReq:
     msg_name (str)
     user_name (str)
     room_code (str)
     message (str)
 
-NewChatMessage:
+ChatMessageBc:
     msg_name (str)
     author (str)
     message (str)
@@ -41,7 +41,29 @@ StartGameReq:
 StartGameResp:
     msg_name (str)
     info (str)[optional]
+    status (NOK/OK)
 
 StartGameBc:
     msg_name (str)
-    
+    artist (str)
+
+ArtistPickBc:
+    msg_name (str)
+    artist (str)
+
+WordSelectionReq:
+    msg_name (str)
+    user_name (str)
+    room_code (str)
+    word_list ([str])
+
+WordSelectionResp:
+    msg_name (str)
+    user_name (str)
+    room_code (str)
+    selected_word (str)
+
+DisconnectSocketReq():
+    msg_name (str)
+
+

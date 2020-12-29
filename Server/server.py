@@ -5,6 +5,7 @@ import json
 import msghandling as mh
 import networking as nw
 
+
 class Server:
     def __init__(self):
         self._resources = {}
@@ -27,13 +28,12 @@ class Server:
 
     def _map_message_handlers(self):
         self._msg_mapping = {
-                                'CreateRoomReq': mh.handle_CreateRoomReq,
-                                'JoinRoomReq': mh.handle_JoinRoomReq,
-                                'WriteChatReq': mh.handle_ChatMessageReq,
-                                'ExitClientReq': mh.handle_ExitClientReq,
-                                'StartGameReq': mh.handle_StartGameReq
-                             }
-
+            'CreateRoomReq': mh.handle_CreateRoomReq,
+            'JoinRoomReq': mh.handle_JoinRoomReq,
+            'ChatMessageReq': mh.handle_ChatMessageReq,
+            'ExitClientReq': mh.handle_ExitClientReq,
+            'StartGameReq': mh.handle_StartGameReq
+        }
 
     def start(self):
         logging.debug('[SERVER] server is starting...')
@@ -49,10 +49,9 @@ class Server:
 
             logging.debug('[SERVER] Active connections: {}'.format(threading.activeCount() - 1))
 
-                                                     
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
     coolambury_server = Server()
     coolambury_server.start()
-    

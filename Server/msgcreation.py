@@ -1,6 +1,7 @@
 import random
 import string
 
+
 def generate_unique_code(length, rooms):
     letters = string.ascii_lowercase
     result_str = ''.join(random.choice(letters) for i in range(length))
@@ -10,14 +11,16 @@ def generate_unique_code(length, rooms):
 
     return result_str
 
+
 def build_chat_msg_bc(user_name, message):
     chat_msg = {
-        'msg_name': 'NewChatMessage',
+        'msg_name': 'ChatMessageBc',
         'author': user_name,
         'message': message
     }
 
     return chat_msg
+
 
 def build_ok_create_room_resp(room_code):
     resp = {
@@ -28,12 +31,14 @@ def build_ok_create_room_resp(room_code):
 
     return resp
 
+
 def build_not_ok_create_room_resp():
     resp = {
         'status': 'NOT_OK'
     }
 
     return resp
+
 
 def build_ok_join_room_resp():
     resp = {
@@ -42,6 +47,7 @@ def build_ok_join_room_resp():
     }
 
     return resp
+
 
 def build_not_ok_join_room_resp(info=None):
     resp = {
@@ -52,7 +58,11 @@ def build_not_ok_join_room_resp(info=None):
     if info is not None:
         resp['info'] = info
 
+    if info is not None:
+        resp['info'] = info
+
     return resp
+
 
 def build_join_notification(joined_user):
     join_notification = build_chat_msg_bc(
@@ -72,7 +82,6 @@ def build_start_game_resp_ok(info=None):
         'msg_name': 'StartGameResp',
         'status': 'OK',
     }
-    
     if info is not None:
         resp['info'] = info
 
