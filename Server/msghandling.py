@@ -24,7 +24,7 @@ def handle_ChatMessageReq(resources, sender_conn, msg):
 
     except:
         logging.error(
-            '[WRITE_CHAT_REQ_HANDLER] Room of code {} not registered on the server'.format(msg.room_code))
+            '[handle_ChatMessageReq] Room with code {} not found'.format(msg.room_code))
 
 
 def handle_CreateRoomReq(resources, sender_conn, msg):
@@ -38,15 +38,19 @@ def handle_CreateRoomReq(resources, sender_conn, msg):
         nw.send(sender_conn, resp, resources['config'])
 
         logging.debug(
-            '[CREATE_ROOM_REQ_HANDLER] Created new room with room code {}'.format(room_code))
+            '[handle_CreateRoomReq] Created new room with room code {}'.format(room_code))
 
     except:
         logging.error(
-            '[CREATE_ROOM_REQ_HANDLER] Error ocured when handling message {}'.format(msg))
+            '[handle_CreateRoomReq] Error ocured when handling message {}'.format(msg))
 
         resp = mc.build_not_ok_create_room_resp()
         nw.send(sender_conn, resp, resources['config'])
 
+def send_NOT_OK_JoinRoomResp_with_info(conn, config, info):
+    logging.debug('[handle_JoinRoomReq] {}'.format(info))
+    resp = mc.build_not_ok_join_room_resp(info=info)
+    nw.send(conn, resp, config)
 
 def handle_JoinRoomReq(resources, sender_conn, msg):
     try:
@@ -65,25 +69,19 @@ def handle_JoinRoomReq(resources, sender_conn, msg):
         join_notification = mc.build_join_notification(msg['user_name'])
         room.broadcast_chat_message(join_notification)
 
-        logging.debug('[JOIN_ROOM_REQ_HANDLER] User {} joined to room {}'.format(
+        logging.debug('[handle_JoinRoomReq] User {} joined to room {}'.format(
             msg['user_name'], msg['room_code']))
 
     except RoomNotExistsException:
         info = 'Room with code {} not found'.format(msg['room_code'])
-        logging.debug('[JOIN_ROOM_REQ_HANDLER] {}'.format(info))
-        resp = mc.build_not_ok_join_room_resp(info=info)
-        nw.send(sender_conn, resp, resources['config'])
+        send_NOT_OK_JoinRoomResp_with_info(sender_conn, resources['config'], info)
 
     except UsernameTakenException:
         info = 'Username {} already taken in room with code {}'.format(msg['user_name'], msg['room_code'])
-        logging.debug('[JOIN_ROOM_REQ_HANDLER] {}'.format(info))
-        resp = mc.build_not_ok_join_room_resp(info=info)
-        nw.send(sender_conn, resp, resources['config'])
+        send_NOT_OK_JoinRoomResp_with_info(sender_conn, resources['config'], info)
 
     except:
-        logging.error(
-            '[JOIN_ROOM_REQ_HANDLER] Error ocured when handling message{}'.format(msg))
-
+        logging.error('[handle_JoinRoomReq] Error ocured when handling message{}'.format(msg))
         resp = mc.build_not_ok_join_room_resp()
         nw.send(sender_conn, resp, resources['config'])
 
