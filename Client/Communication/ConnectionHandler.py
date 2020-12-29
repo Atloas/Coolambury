@@ -1,7 +1,7 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
 
 from . import SocketMsgHandler
-from Utils import PopUpWindow
+from Utils.PopUpWindow import PopUpWindow
 
 import socket
 import threading
