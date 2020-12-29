@@ -54,6 +54,9 @@ def build_not_ok_join_room_resp(info=None):
         'msg_name': 'JoinRoomResp',
         'status': 'NOT_OK',
     }
+    
+    if info is not None:
+        resp['info'] = info
 
     if info is not None:
         resp['info'] = info
@@ -63,37 +66,33 @@ def build_not_ok_join_room_resp(info=None):
 
 def build_join_notification(joined_user):
     join_notification = build_chat_msg_bc(
-        'SERVER',
-        '{} has joined the game'.format(joined_user))
+                            'SERVER',
+                            '{} has joined the game'.format(joined_user))
     return join_notification
-
-
+    
 def build_leave_notification(user_name):
     join_notification = build_chat_msg_bc(
-        'SERVER',
-        '{} has left the game'.format(user_name))
-
+                            'SERVER',
+                            '{} has left the game'.format(user_name))
+    
     return join_notification
-
-
+    
 def build_start_game_resp_ok(info=None):
     resp = {
         'msg_name': 'StartGameResp',
         'status': 'OK',
     }
-
     if info is not None:
         resp['info'] = info
 
     return resp
-
 
 def build_start_game_resp_not_ok(info=None):
     resp = {
         'msg_name': 'StartGameResp',
         'status': 'NOT_OK',
     }
-
+    
     if info is not None:
         resp['info'] = info
 

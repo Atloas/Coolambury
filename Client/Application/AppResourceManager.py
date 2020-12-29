@@ -3,7 +3,6 @@ from .StartWindow import StartWindow
 from Communication.ConnectionHandler import ConnectionHandler
 import logging
 from Utils.PopUpWindow import PopUpWindow
-from copy import deepcopy
 
 # ApplicationResourcesManager
 class AppResourceManager:
@@ -27,7 +26,7 @@ class AppResourceManager:
 
     def show_game(self, roomCode):
         if roomCode != 'Joining':
-            self.clientContext['roomCode'] = deepcopy(roomCode)
+            self.clientContext['roomCode'] = roomCode
         self.gameWindow = GameWindow(self.clientContext, self.connHandler)
         # TODO: Move to GameWindow.__init__()?
         self.gameWindow.switch_window.connect(self.show_start)

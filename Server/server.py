@@ -12,8 +12,7 @@ class Server:
         self._resources['rooms'] = {}
         self._resources['clients'] = []
         self._load_config_file()
-        self._server_socket = nw.create_and_bind_socket(
-            self._resources['config'])
+        self._server_socket = nw.create_and_bind_socket(self._resources['config'])
 
         self._map_message_handlers()
         logging.debug('[SERVER] Initializing server...')
@@ -24,8 +23,7 @@ class Server:
             with open(config_path, 'r') as config_file:
                 self._resources['config'] = json.load(config_file)
         except:
-            logging.error(
-                '[SERVER] Error occurred when loading configuration file!')
+            logging.error('[SERVER] Error occurred when loading configuration file!')
             exit()
 
     def _map_message_handlers(self):
@@ -44,14 +42,12 @@ class Server:
         while True:
             conn, addr = self._server_socket.accept()
 
-            new_client = nw.ClientConnection(
-                conn, addr, self._resources, self._msg_mapping)
+            new_client = nw.ClientConnection(conn, addr, self._resources, self._msg_mapping)
             self._resources['clients'].append(new_client)
             thread = threading.Thread(target=new_client.handle_client_messages)
             thread.start()
 
-            logging.debug('[SERVER] Active connections: {}'.format(
-                threading.activeCount() - 1))
+            logging.debug('[SERVER] Active connections: {}'.format(threading.activeCount() - 1))
 
 
 if __name__ == '__main__':

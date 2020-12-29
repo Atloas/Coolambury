@@ -66,4 +66,4 @@ WordSelectionResp:
 DisconnectSocketReq():
     msg_name (str)
 
-    
+

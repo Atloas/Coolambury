@@ -1,4 +1,9 @@
 import logging
+from enum import Enum
+
+from PyQt5 import QtCore, QtWidgets, QtGui
+
+from .DrawingHistoryWindow import DrawingHistoryWindow
 from Utils.PopUpWindow import PopUpWindow
 from enum import Enum
 from copy import deepcopy
@@ -9,6 +14,12 @@ from .DrawingHistoryWindow import DrawingHistoryWindow
 class GameState(Enum):
     PREGAME = 0
     WORD_SELECTION = 1
+    DRAWING = 2
+    POSTGAME = 3
+
+class GameState(Enum):
+    PREGAME = 0
+    PROMPT_SELECTION = 1
     DRAWING = 2
     POSTGAME = 3
 
@@ -168,6 +179,7 @@ class GameWindow(QtWidgets.QWidget):
         self.updateScoreboard()
 
         if self.player == self.owner:
+
             self.display_system_message(
                 "Type !start to start the game once there's at least two players in the room!")
 
@@ -235,6 +247,7 @@ class GameWindow(QtWidgets.QWidget):
     def handleStartSignal(self, contents):
         self.artist = contents["artist"]
         self.display_system_message("Game started!")
+
         self.gameState = GameState.WORD_SELECTION
 
     def handlePlayerJoinedSignal(self, contents):
@@ -288,7 +301,7 @@ class GameWindow(QtWidgets.QWidget):
         painter.begin(self.canvas)
         for i in range(len(stroke) - 1):
             painter.drawLine(stroke[i][0], stroke[i][1],
-                             stroke[i+1][0], stroke[i+1][1])
+                             stroke[i + 1][0], stroke[i + 1][1])
         logging.debug("Received and drew stroke.")
         painter.end()
         self.update()
