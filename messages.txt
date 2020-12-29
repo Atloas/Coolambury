@@ -17,15 +17,13 @@ JoinRoomResp:
     status (str)
     info (str)[optional]
 
-{% comment %} ChatMessageReq {% endcomment %}
-WriteChatReq:
+ChatMessageReq:
     msg_name (str)
     user_name (str)
     room_code (str)
     message (str)
 
-{% comment %} ChatMessageBc {% endcomment %}
-NewChatMessage:
+ChatMessageBc:
     msg_name (str)
     author (str)
     message (str)

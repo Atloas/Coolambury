@@ -1,11 +1,9 @@
 import logging
 from Utils.PopUpWindow import PopUpWindow
 from enum import Enum
-
+from copy import deepcopy
 from PyQt5 import QtCore, QtWidgets, QtGui
-
 from .DrawingHistoryWindow import DrawingHistoryWindow
-
 
 
 class GameState(Enum):
@@ -58,9 +56,6 @@ class GameWindow(QtWidgets.QWidget):
         # For the painter, should display the full word. Placeholder for now.
         self.hint = "____"
 
-        # Window
-        self.chat.insertPlainText("GAME ROOM ID: {}{}".format(
-            self.clientContext['roomCode'], "\n"))
         # Drawing
         self.previousX = None
         self.previousY = None
@@ -112,9 +107,9 @@ class GameWindow(QtWidgets.QWidget):
         self.gameAndControlsVBox.addLayout(self.controlsHBox)
 
         self.chat = QtWidgets.QTextEdit()
-        self.chat.append('GAME ROOM ID: {}\n'.format(
-            self.clientContext['roomCode']))
         self.chat.setReadOnly(True)
+        self.chat.append("GAME ROOM ID: {}".format(
+            self.clientContext['roomCode']))
 
         self.chatEntryLine = QtWidgets.QLineEdit()
         self.chatEntryLine.setPlaceholderText("Have a guess!")
@@ -187,14 +182,14 @@ class GameWindow(QtWidgets.QWidget):
 
     def display_system_message(self, message):
         self.chat.setFontItalic(True)
-        self.chat.insertPlainText("{}{}".format(message, "\n"))
+        self.chat.append("{}".format(message))
         self.chat.setFontItalic(False)
 
     def display_user_message(self, contents):
         self.chatEntryLine.clear()
         self.chatEntryLine.setText('')
-        self.chat.insertPlainText("{}: {}{}".format(
-            contents['author'], contents['message'], "\n"))
+        self.chat.append("{}: {}".format(
+            contents['author'], contents['message']))
 
     def display_message(self, contents):
         # TODO: Remove message operations from ConnectionHandler, have it pass a dict to the signal.

@@ -74,12 +74,10 @@ class ConnectionHandler(QtCore.QObject):
             self.dispatch_received_message(received_msg)
 
     def dispatch_received_message(self, received_msg):
-        logging.debug(
-            "[SOCKET RECEIVER] Received Message: {}".format(received_msg))
         message_dispatcher = {
             'CreateRoomResp': self.handle_CreateRoomResp,
             'JoinRoomResp': self.handle_JoinRoomResp,
-            'NewChatMessage': self.handle_NewChatMessage,
+            'ChatMessageBc': self.handle_ChatMessageBc,
             'StartGameResp': self.handle_StartGameResp,
             'StartGameBc': self.handle_StartGameBc,
             # TODO: Implement on the server side:
@@ -101,15 +99,16 @@ class ConnectionHandler(QtCore.QObject):
         if received_msg['status'] == 'OK':
             self.switch_window.emit('Joining')
         else:
-            PopUpWindow('Could not join to room!', 'ERROR')
+            PopUpWindow('Could not join to room!\n{}'.format(
+                received_msg['info']), 'ERROR')
             logging.debug(
                 "[MESSAGE DISPATCHER] handling JoinRoomResp failed, STATUS NOK")
         logging.debug(
             "[MESSAGE DISPATCHER] handling JoinRoomResp Successful, STATUS OK")
 
-    def handle_NewChatMessage(self, received_msg):
+    def handle_ChatMessageBc(self, received_msg):
         logging.debug(
-            "[MESSAGE DISPATCHER] handling NewChatMessage: {}".format(received_msg))
+            "[MESSAGE DISPATCHER] handling ChatMessageBc: {}".format(received_msg))
         self.chat_message_signal.emit(received_msg)
         # self.chat_message_signal.emit("{}: {}".format(
         #             received_msg['author'], received_msg['message']))
@@ -158,7 +157,7 @@ class ConnectionHandler(QtCore.QObject):
 
     def send_chat_msg_req(self, user_name, room_code, message):
         send_char_msg = {
-            'msg_name': 'WriteChatReq',
+            'msg_name': 'ChatMessageReq',
             'user_name': user_name,
             'room_code': room_code,
             'message': message
