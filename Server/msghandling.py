@@ -123,6 +123,8 @@ def handle_StartGameReq(resources, sender_conn, msg):
 
         resp = mc.build_start_game_resp_ok()
         nw.send(sender_conn, resp, resources['config'])
+        start_game_bc = {'msg_name': 'StartGameBc'}
+        room.broadcast_message(start_game_bc)
         # TODO: Start PROMPT_SELECTION
     except gr.StartedNotByOwnerException:
         resp = mc.build_start_game_resp_not_ok('Only room owner can start game!')
