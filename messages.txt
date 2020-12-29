@@ -15,6 +15,7 @@ JoinRoomReq:
 JoinRoomResp:
     msg_name (str)
     status (str)
+    info (str)[optional]
 
 WriteChatReq:
     msg_name (str)
@@ -27,18 +28,7 @@ NewChatMessage:
     author (str)
     message (str)
 
-TBA:
-ExitClientReq
-ExitClientResp
-
-DRAFT:
-StartGameReq:
-    author (str)
-    room_code (str) ?
-
-StartGameResp:
-    artist/drawer (str)
-    keyword (str)
---ON MESSAGE: Przejscie gry ze stanu PREGAME lub POSTGAME do PROMPT_SELECTION
-
-
+ExitClientReq:
+    msg_name (str)
+    user_name (str)
+    room_code (str)
