@@ -41,19 +41,28 @@ class ClientConnection:
         self._msg_mapping = msg_mapping
         self._connected = True
         # TODO: Add time of logging
-        logging.debug('[NEW CONNECTION] {} connected'.format(addr))
+        logging.debug('[NETWORKING] {} connected'.format(addr))
 
     def handle_client_messages(self):
         while self._connected:
             msg_name, msg_body = receive(self._conn, self._resources['config'])
             if msg_body:
-                logging.debug('[MSG_HANDLING] dispatching message {}'.format(msg_name))
+                logging.debug('[NETWORKING] dispatching message {}'.format(msg_body))
                 try:
                     handling_func = self._msg_mapping[msg_name]
                     handling_func(self._resources, self._conn, msg_body)
+                except KeyError:
+                    logging.error('[NETWORKING] Handlind function not found for {}'.format(msg_name))
                 except:
-                    logging.error('An error ocured when handling {} = {}'.format(msg_name, msg_body))
+                    logging.error('[NETWORKING] Unknown error occurred when handling msg {} = {}'.format(msg_name, msg_body))
+
 
     def close_connection(self):
-        self._connected = False
-        self._conn.close()
+        try:
+            self._connected = False
+            self._conn.shutdown(socket.SHUT_RDWR)
+            self._conn.close()
+        except:
+            logging.error('[CLIENT CONNECTION] Unsuccessful socket shutdown!')
+
+        logging.debug('[CLIENT CONNECTION] Closing connection')

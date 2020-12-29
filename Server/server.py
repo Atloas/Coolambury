@@ -14,7 +14,7 @@ class Server:
         self._server_socket = nw.create_and_bind_socket(self._resources['config'])
 
         self._map_message_handlers()
-        logging.debug('[INITIALIZING SERVER]')
+        logging.debug('[SERVER] Initializing server...')
 
     def _load_config_file(self):
         try:
@@ -22,19 +22,20 @@ class Server:
             with open(config_path, 'r') as config_file:
                 self._resources['config'] = json.load(config_file)
         except:
-            logging.error('Error ocured when loading configuration file!')
+            logging.error('[SERVER] Error occurred when loading configuration file!')
             exit()
 
     def _map_message_handlers(self):
         self._msg_mapping = {
-                                'CreateRoomReq': mh.handleCreateRoomReq,
-                                'JoinRoomReq': mh.handleJoinRoomReq,
-                                'WriteChatReq': mh.handleChatMessageReq
+                                'CreateRoomReq': mh.handle_CreateRoomReq,
+                                'JoinRoomReq': mh.handle_JoinRoomReq,
+                                'WriteChatReq': mh.handle_ChatMessageReq,
+                                'ExitClientReq': mh.handle_ExitClientReq
                              }
 
 
     def start(self):
-        logging.debug('[STARTING] server is starting...')
+        logging.debug('[SERVER] server is starting...')
         self._server_socket.listen()
 
         while True:
@@ -45,7 +46,7 @@ class Server:
             thread = threading.Thread(target=new_client.handle_client_messages)
             thread.start()
 
-            logging.debug('[ACTIVE CONNECTIONS] {}'.format(threading.activeCount() - 1))
+            logging.debug('[SERVER] Active connections: {}'.format(threading.activeCount() - 1))
 
                                                      
 if __name__ == '__main__':
