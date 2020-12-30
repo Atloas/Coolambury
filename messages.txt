@@ -51,12 +51,14 @@ ArtistPickBc:
     msg_name (str)
     artist (str)
 
+{% comment %} Server -> Client {% endcomment %}
 WordSelectionReq:
     msg_name (str)
     user_name (str)
     room_code (str)
     word_list ([str])
 
+{% comment %} Client -> Server {% endcomment %}
 WordSelectionResp:
     msg_name (str)
     user_name (str)

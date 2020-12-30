@@ -14,6 +14,8 @@ class ConnectionHandler(QtCore.QObject):
     chat_message_signal = QtCore.pyqtSignal(dict)
     scoreboard_update_signal = QtCore.pyqtSignal(str)
     switch_window = QtCore.pyqtSignal(str)
+    start_game_signal = QtCore.pyqtSignal(dict)
+    word_selection_signal = QtCore.pyqtSignal(dict)
 
     def __init__(self):
         super().__init__()
@@ -80,6 +82,8 @@ class ConnectionHandler(QtCore.QObject):
             'ChatMessageBc': self.handle_ChatMessageBc,
             'StartGameResp': self.handle_StartGameResp,
             'StartGameBc': self.handle_StartGameBc,
+            'ArtistPickBc': self.handle_ArtistPickBc,
+            'WordSelectionReq': self.handle_WordSelectionReq,
             # TODO: Implement on the server side:
             # 'ExitClientReq': self.handle_ExitClientReq(message)
         }
@@ -129,9 +133,18 @@ class ConnectionHandler(QtCore.QObject):
 
     def handle_StartGameBc(self, received_msg):
         logging.debug(
-            "[MESSAGE DISPATCHER] handling StartGameBc, STATUS {}".format(received_msg['status']))
-        if received_msg['status'] == 'NOT_OK':
-            PopUpWindow(received_msg['info'], 'ERROR')
+            "[MESSAGE DISPATCHER] handling StartGameBc, Artist: {}".format(received_msg['artist']))
+        self.start_game_signal.emit(received_msg)
+
+    def handle_ArtistPickBc(self, received_msg):
+        logging.debug(
+            "[MESSAGE DISPATCHER] handling ArtistPickBc, Artist: {}".format(received_msg['artist']))
+        self.start_game_signal.emit(received_msg)
+
+    def handle_WordSelectionReq(self, received_msg):
+        logging.debug(
+            "[MESSAGE DISPATCHER] handling WordSelectionReq, Word List: {}".format(received_msg['word_list']))
+        self.word_selection_signal.emit(received_msg)
 
     def handle_UnrecognizedMessage(self, received_msg):
         logging.debug(
@@ -186,6 +199,16 @@ class ConnectionHandler(QtCore.QObject):
             'msg_name': 'StartGameReq',
             'user_name': user_name,
             'room_code': room_code
+        }
+        SocketMsgHandler.send(
+            self.conn, start_game_req, self.server_config)
+
+    def send_word_selection_resp(self, user_name, room_code, selected_word):
+        start_game_req = {
+            'msg_name': 'WordSelectionResp',
+            'user_name': user_name,
+            'room_code': room_code,
+            'selected_word': selected_word
         }
         SocketMsgHandler.send(
             self.conn, start_game_req, self.server_config)
