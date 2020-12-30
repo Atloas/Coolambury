@@ -17,6 +17,7 @@ class GameState(Enum):
     DRAWING = 2
     POSTGAME = 3
 
+
 class GameState(Enum):
     PREGAME = 0
     PROMPT_SELECTION = 1
@@ -30,8 +31,6 @@ class GameWindow(QtWidgets.QWidget):
     key_pressed_signal = QtCore.pyqtSignal(QtCore.QEvent)
     player_joined_signal = QtCore.pyqtSignal(dict)
     player_left_signal = QtCore.pyqtSignal(dict)
-    start_signal = QtCore.pyqtSignal(dict)
-    select_prompt_signal = QtCore.pyqtSignal(dict)
     prompt_selected_signal = QtCore.pyqtSignal(dict)
     stroke_signal = QtCore.pyqtSignal(dict)
     undo_signal = QtCore.pyqtSignal()
@@ -147,10 +146,12 @@ class GameWindow(QtWidgets.QWidget):
 
     def connectSignals(self):
         # TODO: Test?
+        self.connHandler.start_game_signal.connect(self.handleStartGameSignal)
+        self.connHandler.word_selection_signal.connect(
+            self.handleWordSelectionSignal)
+
         self.player_joined_signal.connect(self.handlePlayerJoinedSignal)
         self.player_left_signal.connect(self.handlePlayerLeftSignal)
-        self.start_signal.connect(self.handleStartSignal)
-        self.select_prompt_signal.connect(self.handleSelectPromptSignal)
         self.prompt_selected_signal.connect(self.handlePromptSelectedSignal)
         self.stroke_signal.connect(self.handleStrokeSignal)
         self.undo_signal.connect(self.handleUndoSignal)
@@ -244,11 +245,12 @@ class GameWindow(QtWidgets.QWidget):
         self.stroke = []
         # TODO: send stroke data to server
 
-    def handleStartSignal(self, contents):
+    def handleStartGameSignal(self, contents):
         self.artist = contents["artist"]
         self.display_system_message("Game started!")
-
         self.gameState = GameState.WORD_SELECTION
+        logging.debug('[GAME STARTING] Artist chosen: {}, switching to state: {}'.format(
+            self.artist, 'WORD_SELECTION'))
 
     def handlePlayerJoinedSignal(self, contents):
         self.display_system_message(
@@ -279,11 +281,13 @@ class GameWindow(QtWidgets.QWidget):
         self.clear()
         self.gameState = GameState.WORD_SELECTION
 
-    def handleSelectPromptSignal(self, contents):
+    def handleWordSelectionSignal(self, contents):
         # TODO: Display a popup with 3 prompts given by the server to select from, message selection to server
         self.gameState = GameState.WORD_SELECTION
         # TODO: For now select the first available prompt from contents['prompts']
-        # TODO: Send a message to server
+        selected_word = 'selected_word'
+        self.connHandler.send_word_selection_resp(
+            self.clientContext['username'], self.clientContext['roomCode'], selected_word)
 
     def handlePromptSelectedSignal(self, contents):
         if self.player == self.artist:

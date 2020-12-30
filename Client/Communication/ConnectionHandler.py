@@ -14,6 +14,8 @@ class ConnectionHandler(QtCore.QObject):
     chat_message_signal = QtCore.pyqtSignal(dict)
     scoreboard_update_signal = QtCore.pyqtSignal(str)
     switch_window = QtCore.pyqtSignal(str)
+    start_game_signal = QtCore.pyqtSignal(dict)
+    word_selection_signal = QtCore.pyqtSignal(dict)
 
     def __init__(self):
         super().__init__()
@@ -80,8 +82,14 @@ class ConnectionHandler(QtCore.QObject):
             'ChatMessageBc': self.handle_ChatMessageBc,
             'StartGameResp': self.handle_StartGameResp,
             'StartGameBc': self.handle_StartGameBc,
-            # TODO: Implement on the server side:
-            # 'ExitClientReq': self.handle_ExitClientReq(message)
+            'ArtistPickBc': self.handle_ArtistPickBc,
+            'WordSelectionReq': self.handle_WordSelectionReq,
+            'DrawStrokeBc': self.handle_DrawStrokeBc,
+            'UndoLastStrokeBc': self.handle_UndoLastStrokeBc,
+            'ClearCanvasBc': self.handle_ClearCanvasBc,
+            'GuessWordMessageResp': self.handle_GuessWordMessageResp,
+            'FinishGameResp': self.handle_FinishGameResp,
+            'GameFinishedBc': self.handle_GameFinishedBc,
         }
         return message_dispatcher.get(received_msg['msg_name'], self.handle_UnrecognizedMessage)(received_msg)
 
@@ -129,9 +137,48 @@ class ConnectionHandler(QtCore.QObject):
 
     def handle_StartGameBc(self, received_msg):
         logging.debug(
-            "[MESSAGE DISPATCHER] handling StartGameBc, STATUS {}".format(received_msg['status']))
-        if received_msg['status'] == 'NOT_OK':
-            PopUpWindow(received_msg['info'], 'ERROR')
+            "[MESSAGE DISPATCHER] handling StartGameBc, Artist: {}".format(received_msg['artist']))
+        self.start_game_signal.emit(received_msg)
+
+    def handle_ArtistPickBc(self, received_msg):
+        logging.debug(
+            "[MESSAGE DISPATCHER] handling ArtistPickBc, Artist: {}".format(received_msg['artist']))
+        self.start_game_signal.emit(received_msg)
+
+    def handle_WordSelectionReq(self, received_msg):
+        logging.debug(
+            "[MESSAGE DISPATCHER] handling WordSelectionReq, Word List: {}".format(received_msg['word_list']))
+        self.word_selection_signal.emit(received_msg)
+
+    def handle_DrawStrokeBc(self, received_msg):
+        logging.debug(
+            "[MESSAGE DISPATCHER] handling DrawStrokeBc")
+        # TODO: ADD SPECIFIC LOGIC!
+
+    def handle_UndoLastStrokeBc(self, received_msg):
+        logging.debug(
+            "[MESSAGE DISPATCHER] handling UndoStrokeDrawBc")
+        # TODO: ADD SPECIFIC LOGIC!
+
+    def handle_ClearCanvasBc(self, received_msg):
+        logging.debug(
+            "[MESSAGE DISPATCHER] handling ClearCanvasBc")
+        # TODO: ADD SPECIFIC LOGIC!
+
+    def handle_GuessWordMessageResp(self, received_msg):
+        logging.debug(
+            "[MESSAGE DISPATCHER] handling GuessWordMessageResp")
+        # TODO: ADD SPECIFIC LOGIC!
+
+    def handle_FinishGameResp(self, received_msg):
+        logging.debug(
+            "[MESSAGE DISPATCHER] handling FinishGameResp")
+        # TODO: ADD SPECIFIC LOGIC!
+
+    def handle_GameFinishedBc(self, received_msg):
+        logging.debug(
+            "[MESSAGE DISPATCHER] handling GameFinishedBc")
+        # TODO: ADD SPECIFIC LOGIC!
 
     def handle_UnrecognizedMessage(self, received_msg):
         logging.debug(
@@ -189,6 +236,54 @@ class ConnectionHandler(QtCore.QObject):
         }
         SocketMsgHandler.send(
             self.conn, start_game_req, self.server_config)
+
+    def send_word_selection_resp(self, user_name, room_code, selected_word):
+        word_selection_resp = {
+            'msg_name': 'WordSelectionResp',
+            'user_name': user_name,
+            'room_code': room_code,
+            'selected_word': selected_word
+        }
+        SocketMsgHandler.send(
+            self.conn, word_selection_resp, self.server_config)
+
+    def send_draw_stroke_req(self, stroke_coordinates):
+        draw_stroke_req = {
+            'msg_name': 'DrawStrokeReq',
+            'stroke_coordinates': stroke_coordinates
+        }
+        SocketMsgHandler.send(
+            self.conn, draw_stroke_req, self.server_config)
+
+    def send_undo_last_stroke_req(self):
+        undo_last_stroke_req = {
+            'msg_name': 'UndoLastStrokeReq'
+        }
+        SocketMsgHandler.send(
+            self.conn, undo_last_stroke_req, self.server_config)
+
+    def send_clear_canvas_req(self):
+        clear_canvas_req = {
+            'msg_name': 'ClearCanvasReq'
+        }
+        SocketMsgHandler.send(
+            self.conn, clear_canvas_req, self.server_config)
+
+    def send_guess_word_message_req(self, word_guess):
+        guess_word_message_req = {
+            'msg_name': 'GuessWordMessageReq',
+            'word_guess': word_guess
+        }
+        SocketMsgHandler.send(
+            self.conn, guess_word_message_req, self.server_config)
+
+    def send_finish_game_req(self, user_name):
+        finish_game_req = {
+            'msg_name': 'FinishGameReq',
+            'user_name': user_name
+        }
+        SocketMsgHandler.send(
+            self.conn, finish_game_req, self.server_config)
 
 
 if __name__ == '__main__':

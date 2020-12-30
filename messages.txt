@@ -43,6 +43,7 @@ StartGameResp:
     info (str)[optional]
     status (NOK/OK)
 
+# TODO: should be removed and simply replaced with ArtistPickBc ?
 StartGameBc:
     msg_name (str)
     artist (str)
@@ -51,12 +52,14 @@ ArtistPickBc:
     msg_name (str)
     artist (str)
 
+{% comment %} Server -> Client {% endcomment %}
 WordSelectionReq:
     msg_name (str)
     user_name (str)
     room_code (str)
     word_list ([str])
 
+{% comment %} Client -> Server {% endcomment %}
 WordSelectionResp:
     msg_name (str)
     user_name (str)
@@ -66,4 +69,49 @@ WordSelectionResp:
 DisconnectSocketReq():
     msg_name (str)
 
+DrawStrokeReq():
+    msg_name (str)
+    stroke_coordinates ([int]) ????????
 
+DrawStrokeBc():
+    msg_name (str)
+    stroke_coordinates ([(x,y),(x,y),...]) ????????
+
+UndoLastStrokeReq():
+    msg_name (str)
+
+UndoLastStrokeBc():
+    msg_name (str)
+
+ClearCanvasReq():
+    msg_name (str)
+
+ClearCanvasBc():
+    msg_name (str)
+
+GuessWordMessageReq():
+    msg_name (str)
+    word_guess (str)
+
+GuessWordMessageResp():
+    msg_name (str)
+    verdict (bool) 
+        legend: True  - guessed correctly :)
+                False - guessed incorrectly :(
+    user_name (str)
+    score_award (numeric (float/int?))
+
+{% comment %} Client -> Server {% endcomment %}
+FinishGameReq():
+    msg_name (str)
+
+{% comment %} Server -> Client {% endcomment %}
+FinishGameResp():
+    msg_name (str)
+    status (str)
+    info (str)
+
+{% comment %} Server -> Client {% endcomment %}
+GameFinishedBc():
+    msg_name (str)
+    info (str) (eg: game started after 3 rounds)
