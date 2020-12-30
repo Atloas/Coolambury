@@ -84,8 +84,12 @@ class ConnectionHandler(QtCore.QObject):
             'StartGameBc': self.handle_StartGameBc,
             'ArtistPickBc': self.handle_ArtistPickBc,
             'WordSelectionReq': self.handle_WordSelectionReq,
-            # TODO: Implement on the server side:
-            # 'ExitClientReq': self.handle_ExitClientReq(message)
+            'DrawStrokeBc': self.handle_DrawStrokeBc,
+            'UndoLastStrokeBc': self.handle_UndoLastStrokeBc,
+            'ClearCanvasBc': self.handle_ClearCanvasBc,
+            'GuessWordMessageResp': self.handle_GuessWordMessageResp,
+            'FinishGameResp': self.handle_FinishGameResp,
+            'GameFinishedBc': self.handle_GameFinishedBc,
         }
         return message_dispatcher.get(received_msg['msg_name'], self.handle_UnrecognizedMessage)(received_msg)
 
@@ -146,6 +150,36 @@ class ConnectionHandler(QtCore.QObject):
             "[MESSAGE DISPATCHER] handling WordSelectionReq, Word List: {}".format(received_msg['word_list']))
         self.word_selection_signal.emit(received_msg)
 
+    def handle_DrawStrokeBc(self, received_msg):
+        logging.debug(
+            "[MESSAGE DISPATCHER] handling DrawStrokeBc")
+        # TODO: ADD SPECIFIC LOGIC!
+
+    def handle_UndoLastStrokeBc(self, received_msg):
+        logging.debug(
+            "[MESSAGE DISPATCHER] handling UndoStrokeDrawBc")
+        # TODO: ADD SPECIFIC LOGIC!
+
+    def handle_ClearCanvasBc(self, received_msg):
+        logging.debug(
+            "[MESSAGE DISPATCHER] handling ClearCanvasBc")
+        # TODO: ADD SPECIFIC LOGIC!
+
+    def handle_GuessWordMessageResp(self, received_msg):
+        logging.debug(
+            "[MESSAGE DISPATCHER] handling GuessWordMessageResp")
+        # TODO: ADD SPECIFIC LOGIC!
+
+    def handle_FinishGameResp(self, received_msg):
+        logging.debug(
+            "[MESSAGE DISPATCHER] handling FinishGameResp")
+        # TODO: ADD SPECIFIC LOGIC!
+
+    def handle_GameFinishedBc(self, received_msg):
+        logging.debug(
+            "[MESSAGE DISPATCHER] handling GameFinishedBc")
+        # TODO: ADD SPECIFIC LOGIC!
+
     def handle_UnrecognizedMessage(self, received_msg):
         logging.debug(
             "[MESSAGE DISPATCHER] No defined handler for message: {}".format(received_msg))
@@ -204,14 +238,52 @@ class ConnectionHandler(QtCore.QObject):
             self.conn, start_game_req, self.server_config)
 
     def send_word_selection_resp(self, user_name, room_code, selected_word):
-        start_game_req = {
+        word_selection_resp = {
             'msg_name': 'WordSelectionResp',
             'user_name': user_name,
             'room_code': room_code,
             'selected_word': selected_word
         }
         SocketMsgHandler.send(
-            self.conn, start_game_req, self.server_config)
+            self.conn, word_selection_resp, self.server_config)
+
+    def send_draw_stroke_req(self, stroke_coordinates):
+        draw_stroke_req = {
+            'msg_name': 'DrawStrokeReq',
+            'stroke_coordinates': stroke_coordinates
+        }
+        SocketMsgHandler.send(
+            self.conn, draw_stroke_req, self.server_config)
+
+    def send_undo_last_stroke_req(self):
+        undo_last_stroke_req = {
+            'msg_name': 'UndoLastStrokeReq'
+        }
+        SocketMsgHandler.send(
+            self.conn, undo_last_stroke_req, self.server_config)
+
+    def send_clear_canvas_req(self):
+        clear_canvas_req = {
+            'msg_name': 'ClearCanvasReq'
+        }
+        SocketMsgHandler.send(
+            self.conn, clear_canvas_req, self.server_config)
+
+    def send_guess_word_message_req(self, word_guess):
+        guess_word_message_req = {
+            'msg_name': 'GuessWordMessageReq',
+            'word_guess': word_guess
+        }
+        SocketMsgHandler.send(
+            self.conn, guess_word_message_req, self.server_config)
+
+    def send_finish_game_req(self, user_name):
+        finish_game_req = {
+            'msg_name': 'FinishGameReq',
+            'user_name': user_name
+        }
+        SocketMsgHandler.send(
+            self.conn, finish_game_req, self.server_config)
 
 
 if __name__ == '__main__':
