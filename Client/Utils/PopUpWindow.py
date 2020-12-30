@@ -6,6 +6,7 @@ class PopUpWindow(QtWidgets.QDialog):
         super().__init__()
         self.setMinimumSize(200, 50)
         self.setWindowTitle(type)
+        self.setWindowModality(QtCore.Qt.ApplicationModal)
         self.vBox = QtWidgets.QVBoxLayout()
         self.warningLabel = QtWidgets.QLabel(message)
         self.setLayout(self.vBox)

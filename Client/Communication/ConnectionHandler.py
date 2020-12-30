@@ -297,7 +297,6 @@ class ConnectionHandler(QtCore.QObject):
             self.conn, word_selection_resp, self.server_config)
 
     def send_draw_stroke_req(self, user_name, room_code, stroke_coordinates):
-        draw_stroke_req = {
             'msg_name': 'DrawStrokeReq',
             'user_name': user_name,
             'room_code': room_code,
@@ -340,6 +339,3 @@ class ConnectionHandler(QtCore.QObject):
         SocketMsgHandler.send(
             self.conn, game_room_list_req, self.server_config)
 
-
-if __name__ == '__main__':
-    pass
