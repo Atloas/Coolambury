@@ -151,7 +151,6 @@ class GameWindow(QtWidgets.QWidget):
         self.connHandler.start_game_signal.connect(self.handleStartGameSignal)
         self.connHandler.word_selection_signal.connect(
             self.handleWordSelectionSignal)
-
         self.player_joined_signal.connect(self.handlePlayerJoinedSignal)
         self.player_left_signal.connect(self.handlePlayerLeftSignal)
         self.prompt_selected_signal.connect(self.handlePromptSelectedSignal)
@@ -314,11 +313,9 @@ class GameWindow(QtWidgets.QWidget):
 
     def handleUndoSignal(self):
         self.undo()
-        pass
 
     def handleClearSignal(self):
         self.clear()
-        pass
 
     def handleGuessCorrectSignal(self, contents):
         self.display_system_message(
@@ -326,7 +323,6 @@ class GameWindow(QtWidgets.QWidget):
         self.players[contents["player"]] += contents["score_awarded"]
         self.players[self.artist] += contents["artist_score_awarded"]
         self.updateScoreboard()
-        pass
 
     def handleGameOverSignal(self, contents):
         self.gameState = GameState.POSTGAME
