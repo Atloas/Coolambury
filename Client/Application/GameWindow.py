@@ -3,6 +3,7 @@ from enum import Enum
 
 from PyQt5 import QtCore, QtWidgets, QtGui
 
+from .PromptSelectionWindow import PromptSelectionWindow
 from .DrawingHistoryWindow import DrawingHistoryWindow
 from Utils.PopUpWindow import PopUpWindow
 from enum import Enum
@@ -31,6 +32,7 @@ class GameWindow(QtWidgets.QWidget):
     key_pressed_signal = QtCore.pyqtSignal(QtCore.QEvent)
     player_joined_signal = QtCore.pyqtSignal(dict)
     player_left_signal = QtCore.pyqtSignal(dict)
+    prompt_locally_selected_signal = QtCore.pyqtSignal(dict)
     prompt_selected_signal = QtCore.pyqtSignal(dict)
     stroke_signal = QtCore.pyqtSignal(dict)
     undo_signal = QtCore.pyqtSignal()
@@ -282,12 +284,12 @@ class GameWindow(QtWidgets.QWidget):
         self.gameState = GameState.WORD_SELECTION
 
     def handleWordSelectionSignal(self, contents):
-        # TODO: Display a popup with 3 prompts given by the server to select from, message selection to server
+        PromptSelectionWindow(contents["prompts"])
         self.gameState = GameState.WORD_SELECTION
-        # TODO: For now select the first available prompt from contents['prompts']
-        selected_word = 'selected_word'
+
+    def handlePromptLocallySelectedSignal(self, contents):
         self.connHandler.send_word_selection_resp(
-            self.clientContext['username'], self.clientContext['roomCode'], selected_word)
+            self.clientContext['username'], self.clientContext['roomCode'], contents["prompt"])
 
     def handlePromptSelectedSignal(self, contents):
         if self.player == self.artist:
@@ -367,7 +369,7 @@ class GameWindow(QtWidgets.QWidget):
         for stroke in self.strokes:
             for i in range(len(stroke) - 1):
                 painter.drawLine(stroke[i][0], stroke[i]
-                                 [1], stroke[i + 1][0], stroke[i + 1][1])
+                [1], stroke[i + 1][0], stroke[i + 1][1])
         painter.end()
         self.update()
 
