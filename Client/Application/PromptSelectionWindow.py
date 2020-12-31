@@ -24,6 +24,8 @@ class PromptSelectionWindow(QtWidgets.QWidget):
         self.promptButton2.clicked.connect(self.promptButton2Clicked)
         self.rootHBox.addWidget(self.promptButton2)
 
+        self.setLayout(self.rootHBox)
+
         self.show()
 
     def promptButton0Clicked(self):
