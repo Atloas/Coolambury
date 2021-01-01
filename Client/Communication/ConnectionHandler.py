@@ -16,6 +16,15 @@ class ConnectionHandler(QtCore.QObject):
     switch_window = QtCore.pyqtSignal(str)
     start_game_signal = QtCore.pyqtSignal(dict)
     word_selection_signal = QtCore.pyqtSignal(dict)
+    word_selected_signal = QtCore.pyqtSignal(dict)
+    player_left_signal = QtCore.pyqtSignal(dict)
+    player_joined_signal = QtCore.pyqtSignal(dict)
+    draw_stroke_signal = QtCore.pyqtSignal(dict)
+    undo_last_stroke_signal = QtCore.pyqtSignal()
+    clear_canvas_signal = QtCore.pyqtSignal()
+    guess_correct_signal = QtCore.pyqtSignal(dict)
+    artist_change_signal = QtCore.pyqtSignal(dict)
+    game_over_signal = QtCore.pyqtSignal(dict)
 
     def __init__(self):
         super().__init__()
@@ -138,12 +147,13 @@ class ConnectionHandler(QtCore.QObject):
     def handle_StartGameBc(self, received_msg):
         logging.debug(
             "[MESSAGE DISPATCHER] handling StartGameBc, Artist: {}".format(received_msg['artist']))
+        self.artist_change_signal.emit(received_msg)
         self.start_game_signal.emit(received_msg)
 
     def handle_ArtistPickBc(self, received_msg):
         logging.debug(
             "[MESSAGE DISPATCHER] handling ArtistPickBc, Artist: {}".format(received_msg['artist']))
-        self.start_game_signal.emit(received_msg)
+        self.artist_change_signal.emit(received_msg)
 
     def handle_WordSelectionReq(self, received_msg):
         logging.debug(
@@ -153,32 +163,35 @@ class ConnectionHandler(QtCore.QObject):
     def handle_DrawStrokeBc(self, received_msg):
         logging.debug(
             "[MESSAGE DISPATCHER] handling DrawStrokeBc")
-        # TODO: ADD SPECIFIC LOGIC!
+        self.draw_stroke_signal.emit(received_msg)
 
     def handle_UndoLastStrokeBc(self, received_msg):
         logging.debug(
             "[MESSAGE DISPATCHER] handling UndoStrokeDrawBc")
-        # TODO: ADD SPECIFIC LOGIC!
+        self.undo_last_stroke_signal.emit()
 
     def handle_ClearCanvasBc(self, received_msg):
         logging.debug(
             "[MESSAGE DISPATCHER] handling ClearCanvasBc")
-        # TODO: ADD SPECIFIC LOGIC!
+        self.clear_canvas_signal.emit()
 
     def handle_GuessWordMessageResp(self, received_msg):
         logging.debug(
             "[MESSAGE DISPATCHER] handling GuessWordMessageResp")
-        # TODO: ADD SPECIFIC LOGIC!
+        if received_msg['verdict']:
+            self.guess_correct_signal.emit(received_msg)
+            logging.debug(
+                "[GUESS CORRECT] {} has guessed the word and gained {} points".format(received_msg['user_name'], received_msg['score_awarded']))
 
     def handle_FinishGameResp(self, received_msg):
         logging.debug(
             "[MESSAGE DISPATCHER] handling FinishGameResp")
-        # TODO: ADD SPECIFIC LOGIC!
+        self.game_over_signal.emit(received_msg)
 
     def handle_GameFinishedBc(self, received_msg):
         logging.debug(
             "[MESSAGE DISPATCHER] handling GameFinishedBc")
-        # TODO: ADD SPECIFIC LOGIC!
+        self.game_over_signal.emit(received_msg)
 
     def handle_UnrecognizedMessage(self, received_msg):
         logging.debug(

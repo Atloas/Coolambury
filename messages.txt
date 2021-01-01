@@ -15,7 +15,7 @@ JoinRoomReq:
 JoinRoomResp:
     msg_name (str)
     status (str)
-    info (str)[optional]
+    info (str)[exists if status == NOT_OK]
 
 ChatMessageReq:
     msg_name (str)
@@ -99,7 +99,7 @@ GuessWordMessageResp():
         legend: True  - guessed correctly :)
                 False - guessed incorrectly :(
     user_name (str)
-    score_award (numeric (float/int?))
+    score_awarded (numeric (float/int?))
 
 {% comment %} Client -> Server {% endcomment %}
 FinishGameReq():

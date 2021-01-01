@@ -7,9 +7,9 @@ class SignalWindow(QtWidgets.QWidget):
     player_joined_signal = QtCore.pyqtSignal(dict)
     player_left_signal = QtCore.pyqtSignal(dict)
     word_selected_signal = QtCore.pyqtSignal(dict)
-    stroke_signal = QtCore.pyqtSignal(dict)
-    undo_signal = QtCore.pyqtSignal()
-    clear_signal = QtCore.pyqtSignal()
+    draw_stroke_signal = QtCore.pyqtSignal(dict)
+    undo_last_stroke_signal = QtCore.pyqtSignal()
+    clear_canvas_signal = QtCore.pyqtSignal()
     guess_correct_signal = QtCore.pyqtSignal(dict)
     chat_message_signal = QtCore.pyqtSignal(str)
     artist_change_signal = QtCore.pyqtSignal(dict)
@@ -72,16 +72,17 @@ class SignalWindow(QtWidgets.QWidget):
         self.word_selected_signal.emit({"words": ["Apple", "Boat", "Dog"]})
 
     def strokeClicked(self):
-        self.stroke_signal.emit({"stroke": [(10, 10), (100, 100)]})
+        self.draw_stroke_signal.emit({"stroke": [(10, 10), (100, 100)]})
 
     def undoClicked(self):
-        self.undo_signal.emit()
+        self.undo_last_stroke_signal.emit()
 
     def clearClicked(self):
-        self.clear_signal.emit()
+        self.clear_canvas_signal.emit()
 
     def guessCorrectClicked(self):
-        self.guess_correct_signal.emit({"player": "User2", "scoreAwarded": 100})
+        self.guess_correct_signal.emit(
+            {"player": "User2", "scoreAwarded": 100})
 
     def chatMessageClicked(self):
         self.chat_message_signal.emit({"author": "User2", "message": "Hello!"})
@@ -90,7 +91,8 @@ class SignalWindow(QtWidgets.QWidget):
         self.artist_change_signal.emit({"artist": "User2"})
 
     def gameOverClicked(self):
-        self.game_over_signal.emit({"final_scores": {"User1": 0, "User2": 10000}})
+        self.game_over_signal.emit(
+            {"final_scores": {"User1": 0, "User2": 10000}})
 
 
 if __name__ == "__main__":

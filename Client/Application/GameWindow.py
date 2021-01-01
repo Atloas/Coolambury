@@ -22,19 +22,7 @@ class GameState(Enum):
 class GameWindow(QtWidgets.QWidget):
     switch_window = QtCore.pyqtSignal()
     key_pressed_signal = QtCore.pyqtSignal(QtCore.QEvent)
-    start_game_signal = QtCore.pyqtSignal(dict)
-    player_joined_signal = QtCore.pyqtSignal(dict)
-    player_left_signal = QtCore.pyqtSignal(dict)
-    word_selection_signal = QtCore.pyqtSignal(dict)
     word_locally_selected_signal = QtCore.pyqtSignal(dict)
-    word_selected_signal = QtCore.pyqtSignal(dict)
-    stroke_signal = QtCore.pyqtSignal(dict)
-    undo_signal = QtCore.pyqtSignal()
-    clear_signal = QtCore.pyqtSignal()
-    guess_correct_signal = QtCore.pyqtSignal(dict)
-    chat_message_signal = QtCore.pyqtSignal(str)
-    artist_change_signal = QtCore.pyqtSignal(dict)
-    game_over_signal = QtCore.pyqtSignal(dict)
 
     def __init__(self, clientContext, connHandler):
         # TODO: Reset window's state on switch
@@ -137,17 +125,23 @@ class GameWindow(QtWidgets.QWidget):
         self.connectSignals()
 
     def connectSignals(self):
-        self.chat_message_signal.connect(self.display_user_message)
+        self.connHandler.chat_message_signal.connect(self.display_user_message)
         self.connHandler.start_game_signal.connect(self.handleStartGameSignal)
-        self.connHandler.word_selection_signal.connect(self.handleWordSelectionSignal)
-        self.connHandler.player_joined_signal.connect(self.handlePlayerJoinedSignal)
-        self.connHandler.player_left_signal.connect(self.handlePlayerLeftSignal)
-        self.connHandler.word_selected_signal.connect(self.handleWordSelectedSignal)
-        self.connHandler.stroke_signal.connect(self.handleStrokeSignal)
-        self.connHandler.undo_signal.connect(self.handleUndoSignal)
-        self.connHandler.clear_signal.connect(self.handleClearSignal)
-        self.connHandler.guess_correct_signal.connect(self.handleGuessCorrectSignal)
-        self.connHandler.artist_change_signal.connect(self.handleArtistChangeSignal)
+        self.connHandler.word_selection_signal.connect(
+            self.handleWordSelectionSignal)
+        self.connHandler.player_joined_signal.connect(
+            self.handlePlayerJoinedSignal)
+        self.connHandler.player_left_signal.connect(
+            self.handlePlayerLeftSignal)
+        self.connHandler.word_selected_signal.connect(
+            self.handleWordSelectedSignal)
+        self.connHandler.draw_stroke_signal.connect(self.handleStrokeSignal)
+        self.connHandler.undo_last_stroke_signal.connect(self.handleUndoSignal)
+        self.connHandler.clear_canvas_signal.connect(self.handleClearSignal)
+        self.connHandler.guess_correct_signal.connect(
+            self.handleGuessCorrectSignal)
+        self.connHandler.artist_change_signal.connect(
+            self.handleArtistChangeSignal)
         self.connHandler.game_over_signal.connect(self.handleGameOverSignal)
 
     def initialize_room(self, contents):
@@ -255,7 +249,8 @@ class GameWindow(QtWidgets.QWidget):
         logging.debug("Handling artist_changed_signal")
         # TODO: This drawings.append should be somewhere else, like in "guessing_over_signal", since now it won't fire on game over
         self.drawings.append(self.strokes.copy())
-        self.display_system_message("{} is now the artist.".format(contents["artist"]))
+        self.display_system_message(
+            "{} is now the artist.".format(contents["artist"]))
         self.artist = contents["artist"]
         if self.player == self.artist:
             self.undoButton.setDisabled(False)
@@ -268,8 +263,9 @@ class GameWindow(QtWidgets.QWidget):
 
     def handleWordSelectionSignal(self, contents):
         logging.debug("Handling word_selection_signal")
-        wordSelectionWindow = WordSelectionWindow(contents["words"])
-        wordSelectionWindow.prompt_locally_selected_signal.connect(self.handleWordLocallySelectedSignal)
+        wordSelectionWindow = WordSelectionWindow(contents["word_list"])
+        wordSelectionWindow.prompt_locally_selected_signal.connect(
+            self.handleWordLocallySelectedSignal)
         self.gameState = GameState.WORD_SELECTION
 
     def handleWordLocallySelectedSignal(self, contents):
@@ -288,7 +284,7 @@ class GameWindow(QtWidgets.QWidget):
         self.gameState = GameState.DRAWING
 
     def handleStrokeSignal(self, contents):
-        logging.debug("Handling stroke_signal")
+        logging.debug("Handling draw_stroke_signal")
         stroke = contents["stroke"]
         self.strokes.append(stroke.copy())
 
@@ -303,11 +299,11 @@ class GameWindow(QtWidgets.QWidget):
         self.update()
 
     def handleUndoSignal(self):
-        logging.debug("Handling undo_signal")
+        logging.debug("Handling undo_last_stroke_signal")
         self.undo()
 
     def handleClearSignal(self):
-        logging.debug("Handling clear_signal")
+        logging.debug("Handling clear_canvas_signal")
         self.clear()
 
     def handleGuessCorrectSignal(self, contents):
@@ -358,7 +354,7 @@ class GameWindow(QtWidgets.QWidget):
         for stroke in self.strokes:
             for i in range(len(stroke) - 1):
                 painter.drawLine(stroke[i][0], stroke[i]
-                [1], stroke[i + 1][0], stroke[i + 1][1])
+                                 [1], stroke[i + 1][0], stroke[i + 1][1])
         painter.end()
         self.update()
 
