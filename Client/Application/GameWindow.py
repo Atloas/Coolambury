@@ -4,10 +4,6 @@ import threading
 import bleach
 from enum import Enum
 from PyQt5 import QtCore, QtWidgets, QtGui
-<<<<<<< HEAD
-=======
-
->>>>>>> prompt -> word
 from .WordSelectionWindow import WordSelectionWindow
 from .DrawingHistoryWindow import DrawingHistoryWindow
 from Utils.PopUpWindow import PopUpWindow
