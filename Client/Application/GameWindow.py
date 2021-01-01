@@ -249,8 +249,7 @@ class GameWindow(QtWidgets.QWidget):
         logging.debug("Handling artist_changed_signal")
         # TODO: This drawings.append should be somewhere else, like in "guessing_over_signal", since now it won't fire on game over
         self.drawings.append(self.strokes.copy())
-        self.display_system_message(
-            "{} is now the artist.".format(contents["artist"]))
+        self.display_system_message("{} is now the artist.".format(contents["artist"]))
         self.artist = contents["artist"]
         if self.player == self.artist:
             self.undoButton.setDisabled(False)
@@ -354,7 +353,7 @@ class GameWindow(QtWidgets.QWidget):
         for stroke in self.strokes:
             for i in range(len(stroke) - 1):
                 painter.drawLine(stroke[i][0], stroke[i]
-                                 [1], stroke[i + 1][0], stroke[i + 1][1])
+                [1], stroke[i + 1][0], stroke[i + 1][1])
         painter.end()
         self.update()
 

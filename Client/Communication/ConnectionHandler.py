@@ -26,6 +26,7 @@ class ConnectionHandler(QtCore.QObject):
     artist_change_signal = QtCore.pyqtSignal(dict)
     game_over_signal = QtCore.pyqtSignal(dict)
 
+
     def __init__(self):
         super().__init__()
         self.connectedReceiverStatus = True
