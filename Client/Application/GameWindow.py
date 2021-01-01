@@ -21,9 +21,9 @@ class GameState(Enum):
 
 class GameWindow(QtWidgets.QWidget):
     switch_window = QtCore.pyqtSignal()
-    scoreboard_update_signal = QtCore.pyqtSignal(str)
     key_pressed_signal = QtCore.pyqtSignal(QtCore.QEvent)
     player_joined_signal = QtCore.pyqtSignal(dict)
+    scoreboard_update_signal = QtCore.pyqtSignal(dict)
     player_left_signal = QtCore.pyqtSignal(dict)
     word_locally_selected_signal = QtCore.pyqtSignal(dict)
     word_selected_signal = QtCore.pyqtSignal(dict)
@@ -291,7 +291,8 @@ class GameWindow(QtWidgets.QWidget):
         self.hints.setText(self.hint)
         self.gameState = GameState.DRAWING
 
-    def handleStrokeSignal(self, stroke):
+    def handleStrokeSignal(self, contents):
+        stroke = contents["stroke"]
         self.strokes.append(stroke.copy())
 
         painter = QtGui.QPainter(self.canvasContainer.pixmap())
