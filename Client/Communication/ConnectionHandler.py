@@ -160,6 +160,7 @@ class ConnectionHandler(QtCore.QObject):
     def handle_StartGameBc(self, received_msg):
         logging.debug(
             "[MESSAGE DISPATCHER] handling StartGameBc, Artist: {}".format(received_msg['artist']))
+        self.artist_change_signal.emit(received_msg)
         self.start_game_signal.emit(received_msg)
         self.artist_change_signal.emit(received_msg)
 
