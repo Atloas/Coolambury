@@ -93,6 +93,10 @@ class SignalWindow(QtWidgets.QWidget):
     def gameOverClicked(self):
         self.game_over_signal.emit(
             {"final_scores": {"User1": 0, "User2": 10000}})
+<<<<<<< HEAD
+=======
+
+>>>>>>> [Client] Fixed signals and connected msg handlers to signal handlers
 
 if __name__ == "__main__":
     GameWindow({"username": "User1", "roomCode": "test"}, None)
