@@ -1,4 +1,4 @@
-from PyQt5 import QtWidgets, QtGui, QtCore
+from PyQt5 import QtWidgets, QtGui
 
 
 class DrawingHistoryWindow(QtWidgets.QWidget):
@@ -47,7 +47,6 @@ class DrawingHistoryWindow(QtWidgets.QWidget):
         strokes = self.drawings[self.index]
         painter = QtGui.QPainter(self.canvasContainer.pixmap())
         self.configurePen(painter)
-        painter.begin(self.canvas)
         painter.eraseRect(0, 0, self.canvas.width(), self.canvas.height())
         for stroke in strokes:
             for i in range(len(stroke) - 1):
