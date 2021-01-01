@@ -36,10 +36,8 @@ class GameWindow(QtWidgets.QWidget):
     artist_change_signal = QtCore.pyqtSignal(dict)
     game_over_signal = QtCore.pyqtSignal(dict)
 
-    def __init__(self, clientContext, connHandler, signalWindow):
+    def __init__(self, clientContext, connHandler):
         # TODO: Reset window's state on switch
-        self.signalWindow = signalWindow
-
         QtWidgets.QWidget.__init__(self)
 
         self.clientContext = clientContext
