@@ -252,14 +252,6 @@ class GameWindow(QtWidgets.QWidget):
 
     def handle_player_joined_signal(self, message):
         logging.debug("[GameWindow] Handling player_joined_signal")
-    def handleStartGameSignal(self, contents):
-        self.artist = contents["artist"]
-        self.display_system_message("Game started!")
-        self.gameState = GameState.WORD_SELECTION
-        logging.debug('[GAME STARTING] Artist chosen: {}, switching to state: {}'.format(
-            self.artist, 'WORD_SELECTION'))
-
-    def handlePlayerJoinedSignal(self, contents):
         self.display_system_message(
             "{} joined the room.".format(message["player"]))
         self.players[message["player"]] = 0
@@ -351,6 +343,8 @@ class GameWindow(QtWidgets.QWidget):
         self.clear_canvas()
 
     def handle_guess_correct_signal(self, message):
+        logging.debug("[GameWindow] Handling guess_correct_signal")
+        self.display_system_message(
             "{} guessed the word: {}!".format(message["user_name"], message["word"]))
         self.drawings.append(self.strokes.copy())
         self.players = message['score_awarded']
@@ -374,15 +368,19 @@ class GameWindow(QtWidgets.QWidget):
             elif self.players[player] == top_score:
                 tie = True
         if tie:
+            self.display_system_message("It's a tie!")
         else:
+            self.display_system_message("{} has won!".format(winner))
         if self.drawings:
             self.drawing_history_window = DrawingHistoryWindow(self.drawings)
         self.drawings = []
 
     def handle_owner_changed_signal(self, message):
         logging.debug("[GameWindow] Handling owner_changed_signal")
+        self.owner = message["owner"]
         self.display_system_message("{} is the new room owner!".format(self.owner))
         if (self.game_state == GameState.PREGAME or self.game_state == GameState.POSTGAME) and self.player == self.owner:
+            self.start_button.setDisabled(False)
 
     def undo_clicked(self):
         self.undo()
@@ -417,6 +415,7 @@ class GameWindow(QtWidgets.QWidget):
             self.strokes.pop()
         self.redraw()
 
+    def clear_canvas(self):
         painter = QtGui.QPainter(self.canvas_container.pixmap())
         painter.eraseRect(0, 0, self.canvas.width(), self.canvas.height())
         painter.end()
@@ -442,6 +441,22 @@ class GameWindow(QtWidgets.QWidget):
             player_name = player[0]
             score = player[1]
             name_item = QtWidgets.QTableWidgetItem(player_name)
+            score_item = QtWidgets.QTableWidgetItem(str(score))
+            self.scoreboard.setItem(player_number, 0, name_item)
+            self.scoreboard.setItem(player_number, 1, score_item)
+            player_number += 1
+
+    def new_chat_message(self):
+        message = self.chat_entry_line.text()
+        # TODO: Why clear() and setText('')? Shouldn't one suffice?
+        self.chat_entry_line.clear()
+        self.chat_entry_line.setText('')
+        self.connection_handler.send_chat_msg_req(
+            self.client_context['username'], self.client_context['roomCode'], message)
+
+    def disconnect_clicked(self):
+        self.connection_handler.send_exit_client_req(
+            self.client_context['username'], self.client_context['roomCode'])
         self.switch_window.emit()
 
     def start_clicked(self):
