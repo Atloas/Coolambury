@@ -3,7 +3,7 @@ from enum import Enum
 
 from PyQt5 import QtCore, QtWidgets, QtGui
 
-from .PromptSelectionWindow import PromptSelectionWindow
+from .WordSelectionWindow import WordSelectionWindow
 from .DrawingHistoryWindow import DrawingHistoryWindow
 from Utils.PopUpWindow import PopUpWindow
 from enum import Enum
@@ -19,21 +19,14 @@ class GameState(Enum):
     POSTGAME = 3
 
 
-class GameState(Enum):
-    PREGAME = 0
-    PROMPT_SELECTION = 1
-    DRAWING = 2
-    POSTGAME = 3
-
-
 class GameWindow(QtWidgets.QWidget):
     switch_window = QtCore.pyqtSignal()
     scoreboard_update_signal = QtCore.pyqtSignal(str)
     key_pressed_signal = QtCore.pyqtSignal(QtCore.QEvent)
     player_joined_signal = QtCore.pyqtSignal(dict)
     player_left_signal = QtCore.pyqtSignal(dict)
-    prompt_locally_selected_signal = QtCore.pyqtSignal(dict)
-    prompt_selected_signal = QtCore.pyqtSignal(dict)
+    word_locally_selected_signal = QtCore.pyqtSignal(dict)
+    word_selected_signal = QtCore.pyqtSignal(dict)
     stroke_signal = QtCore.pyqtSignal(dict)
     undo_signal = QtCore.pyqtSignal()
     clear_signal = QtCore.pyqtSignal()
@@ -153,7 +146,7 @@ class GameWindow(QtWidgets.QWidget):
             self.handleWordSelectionSignal)
         self.player_joined_signal.connect(self.handlePlayerJoinedSignal)
         self.player_left_signal.connect(self.handlePlayerLeftSignal)
-        self.prompt_selected_signal.connect(self.handlePromptSelectedSignal)
+        self.word_selected_signal.connect(self.handleWordSelectedSignal)
         self.stroke_signal.connect(self.handleStrokeSignal)
         self.undo_signal.connect(self.handleUndoSignal)
         self.clear_signal.connect(self.handleClearSignal)
@@ -283,18 +276,18 @@ class GameWindow(QtWidgets.QWidget):
         self.gameState = GameState.WORD_SELECTION
 
     def handleWordSelectionSignal(self, contents):
-        PromptSelectionWindow(contents["prompts"])
+        WordSelectionWindow(contents["words"])
         self.gameState = GameState.WORD_SELECTION
 
-    def handlePromptLocallySelectedSignal(self, contents):
+    def handleWordLocallySelectedSignal(self, contents):
         self.connHandler.send_word_selection_resp(
-            self.clientContext['username'], self.clientContext['roomCode'], contents["prompt"])
+            self.clientContext['username'], self.clientContext['roomCode'], contents["word"])
 
-    def handlePromptSelectedSignal(self, contents):
+    def handleWordSelectedSignal(self, contents):
         if self.player == self.artist:
-            self.hint = contents["prompt"]
+            self.hint = contents["word"]
         else:
-            self.hint = len(contents["prompt"]) * "_"
+            self.hint = len(contents["word"]) * "_"
         self.hints.setText(self.hint)
         self.gameState = GameState.DRAWING
 
