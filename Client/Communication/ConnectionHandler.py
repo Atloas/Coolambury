@@ -154,9 +154,12 @@ class ConnectionHandler(QtCore.QObject):
         logging.debug(
             "[MESSAGE DISPATCHER] handling ArtistPickBc, Artist: {}".format(received_msg['artist']))
         self.artist_change_signal.emit(received_msg)
+<<<<<<< HEAD
 
     def handle_WordSelectionReq(self, received_msg):
         logging.debug(
+=======
+>>>>>>> Connected msg handlers with QT signal handlers and bugfixes (#30)
             "[MESSAGE DISPATCHER] handling WordSelectionReq, Word List: {}".format(received_msg['word_list']))
         self.word_selection_signal.emit(received_msg)
 
