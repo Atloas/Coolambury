@@ -4,6 +4,10 @@ import threading
 import bleach
 from enum import Enum
 from PyQt5 import QtCore, QtWidgets, QtGui
+<<<<<<< HEAD
+=======
+
+>>>>>>> prompt -> word
 from .WordSelectionWindow import WordSelectionWindow
 from .DrawingHistoryWindow import DrawingHistoryWindow
 from Utils.PopUpWindow import PopUpWindow
@@ -16,13 +20,6 @@ from .DrawingHistoryWindow import DrawingHistoryWindow
 class GameState(Enum):
     PREGAME = 0
     WORD_SELECTION = 1
-    DRAWING = 2
-    POSTGAME = 3
-
-
-class GameState(Enum):
-    PREGAME = 0
-    PROMPT_SELECTION = 1
     DRAWING = 2
     POSTGAME = 3
 
