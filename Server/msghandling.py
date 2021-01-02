@@ -132,7 +132,7 @@ def handle_StartGameReq(resources, sender_conn, msg):
         room.broadcast_message(start_game_bc)
 
     except gr.StartedNotByOwnerException:
-        resp = mc.build_start_game_resp_not_ok('Only room owner can start game!')
+        resp = mc.build_start_game_resp_not_ok('Only room owner can start the game!')
         nw.send(sender_conn, resp, resources['config'])
     
     except gr.NotEnaughPlayersException:

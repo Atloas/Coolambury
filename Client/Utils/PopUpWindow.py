@@ -1,4 +1,5 @@
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
+
 
 class PopUpWindow(QtWidgets.QDialog):
     def __init__(self, message: str, type="WARNING"):
