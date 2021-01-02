@@ -133,5 +133,6 @@ dmypy.json
 # IDE files
 .idea
 QuickDraw/.quickdrawcache/
+.quickdrawcache/
 
 .vscode
