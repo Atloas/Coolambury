@@ -95,7 +95,7 @@ class ConnectionHandler(QtCore.QObject):
             'DrawStrokeBc': self.handle_DrawStrokeBc,
             'UndoLastStrokeBc': self.handle_UndoLastStrokeBc,
             'ClearCanvasBc': self.handle_ClearCanvasBc,
-            'GuessWordMessageResp': self.handle_GuessWordMessageResp,
+            'WordGuessedBc': self.handle_GuessWordMessageResp,
             'FinishGameResp': self.handle_FinishGameResp,
             'GameFinishedBc': self.handle_GameFinishedBc,
         }
@@ -176,7 +176,7 @@ class ConnectionHandler(QtCore.QObject):
 
     def handle_GuessWordMessageResp(self, received_msg):
         logging.debug(
-            "[MESSAGE DISPATCHER] handling GuessWordMessageResp")
+            "[MESSAGE DISPATCHER] handling WordGuessedBc")
         if received_msg['verdict']:
             self.guess_correct_signal.emit(received_msg)
             logging.debug(
