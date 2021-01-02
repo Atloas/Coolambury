@@ -71,7 +71,7 @@ DisconnectSocketReq():
 
 DrawStrokeReq():
     msg_name (str)
-    stroke_coordinates ([int]) ????????
+    stroke_coordinates ([(x,y),(x,y),...]) ????????
 
 DrawStrokeBc():
     msg_name (str)
@@ -89,17 +89,14 @@ ClearCanvasReq():
 ClearCanvasBc():
     msg_name (str)
 
-GuessWordMessageReq():
+{% comment %} SERVER WILL SCAN CHAT MESSAGES (ChatMessageReq) {% endcomment %}
+{% comment %} GuessWordMessageReq():
     msg_name (str)
-    word_guess (str)
+    word_guess (str) {% endcomment %}
 
-GuessWordMessageResp():
+WordGuessedBc():
     msg_name (str)
-    verdict (bool) 
-        legend: True  - guessed correctly :)
-                False - guessed incorrectly :(
-    user_name (str)
-    score_awarded (numeric (float/int?))
+    score_awarded ({"user_name": score, ...})
 
 {% comment %} Client -> Server {% endcomment %}
 FinishGameReq():
