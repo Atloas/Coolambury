@@ -15,7 +15,7 @@ class NotEnaughPlayersException(Exception):
 class RoomState(Enum):
     PREGAME = 0
     STARTING_GAME = 1
-    PROMPT_SELECTION = 2
+    WORD_SELECTION = 2
     DRAWING = 3
     POSTGAME = 4
 
@@ -54,6 +54,7 @@ class Room:
     def broadcast_message(self, msg):
         for client in self._joined_clients.items():
             nw.send(client[1], msg, self._server_config)
+    
 
     def start_game(self, user_name):
         if user_name != self._owner:
@@ -67,4 +68,21 @@ class Room:
 
         self._drawing_queue = list(self._joined_clients.keys())
         random.shuffle(self._drawing_queue)
+    
+    def enter_word_selection_state(self):
+        logging.info('[ROOM ({})] Entering WORD_SELECTION state!'.format(self._room_code))
+        self._state = RoomState.WORD_SELECTION
+        words = ['cat', 'dog', 'apple', 'car', 'smartphone', 'python'] # TODO : this is temporary solution!
+
+        words_to_select = random.sample(words, 3)
+
+        self._current_word = None
+        self._artist = self._drawing_queue[0]
+        del self._drawing_queue[0]
+        self._drawing_queue.append(self._artist)
+        
+        logging.debug('[ROOM ({})] Word draw result for artist {} : {}!'.format(self._room_code, self._artist, words_to_select))
+
+        return (self._artist, words_to_select)
+
         
