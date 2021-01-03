@@ -17,6 +17,9 @@ class NotEnaughPlayersException(Exception):
 class UsernameTakenException(Exception):
     pass
 
+class StateErrorException(Exception):
+    pass
+
 class RoomState(Enum):
     PREGAME = 0
     STARTING_GAME = 1
@@ -66,6 +69,9 @@ class Room:
     def start_game(self, user_name):
         if user_name != self._owner:
             raise StartedNotByOwnerException()
+
+        if self._state != RoomState.PREGAME:
+            raise StateErrorException()
 
         if self.num_of_members() < 2:
             raise NotEnaughPlayersException()
@@ -147,13 +153,48 @@ class Room:
             start_game_bc = {'msg_name': 'StartGameBc', 'artist': self._artist}
             self.broadcast_message(start_game_bc)
             self.send_words_to_select_to_artist(words_to_select)
-            
-
 
         except StartedNotByOwnerException:
             resp = mc.build_start_game_resp_not_ok('Only room owner can start the game!')
+            sender_conn.send(resp)
+        
+        except StateErrorException:
+            resp = mc.build_start_game_resp_not_ok('Trying to start game not in PREGAME state')
             sender_conn.send(resp)
     
         except NotEnaughPlayersException:
             resp = mc.build_start_game_resp_not_ok('There must be at least 2 players to start the game!')
             sender_conn.send(resp)
+
+    def handle_WordSelectionResp(self, msg):
+        try:
+            if self._state != RoomState.WORD_SELECTION:
+                raise StateErrorException()
+
+            self._state = RoomState.DRAWING
+            self._current_word = msg['selected_word']
+
+            # TODO: remove after implementation finished
+            debuging_info = mc.build_chat_msg_bc('SERVER', '[DEBUGGING PURPOSE] artist: {} picked word: {}'.format(self._artist, self._current_word))
+            self.broadcast_message(debuging_info)
+
+        except StateErrorException:
+            logging.warn('[ROOM ({})] Received WordSelectionResp from {} not in state WORD_SELECTION'.format(self._room_code, msg['user_name']))
+        
+
+    def handle_DrawStrokeReq(self, msg):
+        try:
+            if self._state != RoomState.DRAWING:
+                raise StateErrorException()
+
+            draw_stroke_bc = {
+                'msg_name': 'DrawStrokeBc',
+                'stroke_coordinates': msg['stroke_coordinates']
+            }
+            self.broadcast_message(draw_stroke_bc)
+            
+        except StateErrorException:
+            logging.warn('[ROOM ({})] Received WordSelectionResp from {} not in state DRAWING'.format(self._room_code, msg['user_name']))
+        
+        except:
+            logging.error('[ROOM ({})] Unknown error occurred when handling message {}'.format(self._room_code, msg))

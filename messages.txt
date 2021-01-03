@@ -71,6 +71,8 @@ DisconnectSocketReq():
 
 DrawStrokeReq():
     msg_name (str)
+    user_name (str)
+    room_code (str)
     stroke_coordinates ([(x,y),(x,y),...]) ????????
 
 DrawStrokeBc():
@@ -79,12 +81,16 @@ DrawStrokeBc():
 
 UndoLastStrokeReq():
     msg_name (str)
+    user_name (str)
+    room_code (str)
 
 UndoLastStrokeBc():
     msg_name (str)
 
 ClearCanvasReq():
     msg_name (str)
+    user_name (str)
+    room_code (str)
 
 ClearCanvasBc():
     msg_name (str)
