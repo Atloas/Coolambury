@@ -1,7 +1,9 @@
 import networking as nw
+import msgcreation as mc
 from enum import Enum
 import random
 import logging
+import threading
 
 class GameAlreadyStartedException(Exception):
     pass
@@ -12,6 +14,9 @@ class StartedNotByOwnerException(Exception):
 class NotEnaughPlayersException(Exception):
     pass
 
+class UsernameTakenException(Exception):
+    pass
+
 class RoomState(Enum):
     PREGAME = 0
     STARTING_GAME = 1
@@ -20,12 +25,12 @@ class RoomState(Enum):
     POSTGAME = 4
 
 class Room:
-    def __init__(self, server_config, owner_name, owner_connection, room_code): 
-        self._server_config = server_config
+    def __init__(self, owner_name, owner_connection, room_code):
         self._owner = owner_name
         self._joined_clients = {owner_name : owner_connection}
         self._room_code = room_code
         self._state = RoomState.PREGAME
+        self.lock = threading.Lock()
 
     def get_current_state(self):
         return self._state
@@ -53,8 +58,10 @@ class Room:
 
     def broadcast_message(self, msg):
         for client in self._joined_clients.items():
-            nw.send(client[1], msg, self._server_config)
-    
+            try:
+                client[1].send(msg)
+            except:
+                logging.warn('[ROOM ({})] Unable to send message {} to {}!'.format(self._room_code, msg['msg_name'], client[0]))
 
     def start_game(self, user_name):
         if user_name != self._owner:
@@ -85,4 +92,39 @@ class Room:
 
         return (self._artist, words_to_select)
 
+    def handle_ChatMessageReq(self, msg, sender_conn):
+        chat_msg = mc.build_chat_msg_bc(msg['user_name'], msg['message'])
+        self.broadcast_message(chat_msg)
+
+    def handle_JoinRoomReq(self, msg, sender_conn):
+        try:
+            if msg['user_name'] in self._joined_clients:
+                raise UsernameTakenException()
+
+            self.add_client(msg['user_name'], sender_conn)
+            resp = mc.build_ok_join_room_resp()
+            sender_conn.send(resp)
+            join_notification = mc.build_join_notification(msg['user_name'])
+            self.broadcast_message(join_notification)
+
+            logging.debug('[ROOM ({})] User {} joined'.format(self._room_code, msg['user_name']))
+
+        except GameAlreadyStartedException:
+            info = 'Game already started!'
+            nw.send_NOT_OK_JoinRoomResp_with_info(sender_conn, info)
+
+        except UsernameTakenException:
+            info = 'Username {} already taken in room with code {}'.format(msg['user_name'], msg['room_code'])
+            nw.send_NOT_OK_JoinRoomResp_with_info(sender_conn, info)
         
+    def handle_ExitClientReq(self, msg, sender_conn):
+        user_name = msg['user_name']
+        removed = self.remove_client_by_name_if_exists(user_name)
+
+        if removed:
+            leave_notification = mc.build_leave_notification(user_name)
+            self.broadcast_message(leave_notification)
+
+            logging.info('[ROOM ({})] Removed user {}'.format(self._room_code, user_name))
+        else:
+            logging.info('[ROOM ({})] User {} not found'.format(self._room_code, user_name))
