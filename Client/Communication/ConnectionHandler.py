@@ -96,7 +96,7 @@ class ConnectionHandler(QtCore.QObject):
             'DrawStrokeBc': self.handle_DrawStrokeBc,
             'UndoLastStrokeBc': self.handle_UndoLastStrokeBc,
             'ClearCanvasBc': self.handle_ClearCanvasBc,
-            'WordGuessedBc': self.handle_GuessWordMessageResp,
+            'WordGuessedBc': self.handle_WordGuessedBc,
             'FinishGameResp': self.handle_FinishGameResp,
             'GameFinishedBc': self.handle_GameFinishedBc,
         }
@@ -175,13 +175,12 @@ class ConnectionHandler(QtCore.QObject):
             "[MESSAGE DISPATCHER] handling ClearCanvasBc")
         self.clear_canvas_signal.emit()
 
-    def handle_GuessWordMessageResp(self, received_msg):
+    def handle_WordGuessedBc(self, received_msg):
         logging.debug(
             "[MESSAGE DISPATCHER] handling WordGuessedBc")
-        if received_msg['verdict']:
-            self.guess_correct_signal.emit(received_msg)
-            logging.debug(
-                "[GUESS CORRECT] {} has guessed the word and gained {} points".format(received_msg['user_name'], received_msg['score_awarded']))
+        self.guess_correct_signal.emit(received_msg)
+        logging.debug(
+            "[GUESS CORRECT] {} has guessed the word and gained {} points".format(received_msg['user_name'], received_msg['score_awarded'][received_msg['user_name']]))
 
     def handle_FinishGameResp(self, received_msg):
         logging.debug(
@@ -262,40 +261,47 @@ class ConnectionHandler(QtCore.QObject):
         SocketMsgHandler.send(
             self.conn, word_selection_resp, self.server_config)
 
-    def send_draw_stroke_req(self, stroke_coordinates):
+    def send_draw_stroke_req(self, user_name, room_code, stroke_coordinates):
         draw_stroke_req = {
             'msg_name': 'DrawStrokeReq',
+            'user_name': user_name,
+            'room_code': room_code,
             'stroke_coordinates': stroke_coordinates
         }
         SocketMsgHandler.send(
             self.conn, draw_stroke_req, self.server_config)
 
-    def send_undo_last_stroke_req(self):
+    def send_undo_last_stroke_req(self, user_name, room_code):
         undo_last_stroke_req = {
-            'msg_name': 'UndoLastStrokeReq'
+            'msg_name': 'UndoLastStrokeReq',
+            'user_name': user_name,
+            'room_code': room_code
         }
         SocketMsgHandler.send(
             self.conn, undo_last_stroke_req, self.server_config)
 
-    def send_clear_canvas_req(self):
+    def send_clear_canvas_req(self, user_name, room_code):
         clear_canvas_req = {
-            'msg_name': 'ClearCanvasReq'
+            'msg_name': 'ClearCanvasReq',
+            'user_name': user_name,
+            'room_code': room_code
         }
         SocketMsgHandler.send(
             self.conn, clear_canvas_req, self.server_config)
 
-    def send_guess_word_message_req(self, word_guess):
-        guess_word_message_req = {
-            'msg_name': 'GuessWordMessageReq',
-            'word_guess': word_guess
-        }
-        SocketMsgHandler.send(
-            self.conn, guess_word_message_req, self.server_config)
+    # def send_guess_word_message_req(self, word_guess):
+    #     guess_word_message_req = {
+    #         'msg_name': 'GuessWordMessageReq',
+    #         'word_guess': word_guess
+    #     }
+    #     SocketMsgHandler.send(
+    #         self.conn, guess_word_message_req, self.server_config)
 
-    def send_finish_game_req(self, user_name):
+    def send_finish_game_req(self, user_name, room_code):
         finish_game_req = {
             'msg_name': 'FinishGameReq',
-            'user_name': user_name
+            'user_name': user_name,
+            'room_code': room_code
         }
         SocketMsgHandler.send(
             self.conn, finish_game_req, self.server_config)

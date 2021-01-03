@@ -222,6 +222,9 @@ class GameWindow(QtWidgets.QWidget):
         self.previousX = None
         self.previousY = None
 
+        self.connHandler.send_draw_stroke_req(self.clientContext['username'], 
+                                              self.clientContext['roomCode'],
+                                              self.stroke.copy())
         self.stroke = []
         # TODO: send stroke data to server
 
@@ -288,7 +291,7 @@ class GameWindow(QtWidgets.QWidget):
 
     def handleStrokeSignal(self, contents):
         logging.debug("Handling draw_stroke_signal")
-        stroke = contents["stroke"]
+        stroke = contents["stroke_coordinates"]
         self.strokes.append(stroke.copy())
 
         painter = QtGui.QPainter(self.canvasContainer.pixmap())
@@ -312,8 +315,8 @@ class GameWindow(QtWidgets.QWidget):
     def handleGuessCorrectSignal(self, contents):
         self.display_system_message(
             "{} guessed right!".format(contents["player"]))
-        self.players[contents["player"]] += contents["score_awarded"]
-        self.players[self.artist] += contents["artist_score_awarded"]
+
+        self.players = contents['score_awarded']
         self.updateScoreboard()
 
     def handleGameOverSignal(self, contents):
