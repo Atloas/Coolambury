@@ -263,15 +263,18 @@ class GameWindow(QtWidgets.QWidget):
 
     def handleWordSelectionSignal(self, contents):
         logging.debug("Handling word_selection_signal")
-        wordSelectionWindow = WordSelectionWindow(contents["word_list"])
-        wordSelectionWindow.prompt_locally_selected_signal.connect(
+        self.wordSelectionWindow = WordSelectionWindow(contents["word_list"])
+        self.wordSelectionWindow.prompt_locally_selected_signal.connect(
             self.handleWordLocallySelectedSignal)
         self.gameState = GameState.WORD_SELECTION
 
     def handleWordLocallySelectedSignal(self, contents):
         logging.debug("Handling word_locally_selected_signal")
+        logging.debug("[Word Selection] Selected word = {}".format(
+            contents['selected_word']))
+
         self.connHandler.send_word_selection_resp(
-            self.clientContext['username'], self.clientContext['roomCode'], contents["word"])
+            self.clientContext['username'], self.clientContext['roomCode'], contents['selected_word'])
 
     def handleWordSelectedSignal(self, contents):
         logging.debug("Handling word_selected_signal")

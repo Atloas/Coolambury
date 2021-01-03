@@ -251,6 +251,8 @@ class ConnectionHandler(QtCore.QObject):
             self.conn, start_game_req, self.server_config)
 
     def send_word_selection_resp(self, user_name, room_code, selected_word):
+        logging.debug(
+            "[SENDING MESSAGE] WordSelectionResp, selected word = {}".format(selected_word))
         word_selection_resp = {
             'msg_name': 'WordSelectionResp',
             'user_name': user_name,
