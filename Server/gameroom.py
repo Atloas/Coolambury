@@ -90,7 +90,7 @@ class Room:
         
         logging.debug('[ROOM ({})] Word draw result for artist {} : {}!'.format(self._room_code, self._artist, words_to_select))
 
-        return (self._artist, words_to_select)
+        return words_to_select
 
     def handle_ChatMessageReq(self, msg, sender_conn):
         chat_msg = mc.build_chat_msg_bc(msg['user_name'], msg['message'])
@@ -128,3 +128,32 @@ class Room:
             logging.info('[ROOM ({})] Removed user {}'.format(self._room_code, user_name))
         else:
             logging.info('[ROOM ({})] User {} not found'.format(self._room_code, user_name))
+
+    def send_words_to_select_to_artist(self, words_to_select):
+        self._state = RoomState.WORD_SELECTION
+        word_selection_req = mc.build_word_selection_req(self._artist, self._room_code, words_to_select)
+        artist_connection = self._joined_clients[self._artist]
+        artist_connection.send(word_selection_req)
+
+    def handle_StartGameReq(self, msg, sender_conn):
+        try:
+            user_name = msg['user_name']
+            self.start_game(user_name)
+            resp = mc.build_start_game_resp_ok()
+            sender_conn.send(resp)
+
+            words_to_select = self.enter_word_selection_state()
+
+            start_game_bc = {'msg_name': 'StartGameBc', 'artist': self._artist}
+            self.broadcast_message(start_game_bc)
+            self.send_words_to_select_to_artist(words_to_select)
+            
+
+
+        except StartedNotByOwnerException:
+            resp = mc.build_start_game_resp_not_ok('Only room owner can start the game!')
+            sender_conn.send(resp)
+    
+        except NotEnaughPlayersException:
+            resp = mc.build_start_game_resp_not_ok('There must be at least 2 players to start the game!')
+            sender_conn.send(resp)
