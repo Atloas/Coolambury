@@ -97,3 +97,13 @@ def build_start_game_resp_not_ok(info=None):
         resp['info'] = info
 
     return resp
+
+def build_word_selection_req(user_name, room_code, word_list):
+    req = {
+        'msg_name': 'WordSelectionReq',
+        'user_name': user_name,
+        'room_code': room_code,
+        'word_list': word_list
+    }
+
+    return req
