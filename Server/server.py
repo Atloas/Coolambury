@@ -32,7 +32,9 @@ class Server:
             'JoinRoomReq': mh.handle_JoinRoomReq,
             'ChatMessageReq': mh.handle_ChatMessageReq,
             'ExitClientReq': mh.handle_ExitClientReq,
-            'StartGameReq': mh.handle_StartGameReq
+            'StartGameReq': mh.handle_StartGameReq,
+            'WordSelectionResp': mh.handle_WordSelectionResp,
+            'DrawStrokeReq': mh.handle_DrawStrokeReq
         }
 
     def start(self):

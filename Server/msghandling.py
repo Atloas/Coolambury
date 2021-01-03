@@ -93,3 +93,28 @@ def handle_StartGameReq(resources, sender_conn, msg):
         logging.error('[handle_StartGameReq] Error ocured when handling message {}'.format(msg))
         resp = mc.build_start_game_resp_not_ok()
         sender_conn.send(resp)
+
+def handle_WordSelectionResp(resources, sender_conn, msg):
+    try:
+        room_code = msg['room_code']
+        rooms = resources['rooms']
+        room = rooms[room_code]
+
+        with room.lock:
+            room.handle_WordSelectionResp(msg)
+    
+    except:
+        logging.error('[handle_WordSelectionResp] Unknown error occurred when handling message {}'.format(msg))
+    
+def handle_DrawStrokeReq(resources, sender_conn, msg):
+    try:
+        room_code = msg['room_code']
+        rooms = resources['rooms']
+        room = rooms[room_code]
+
+        with room.lock:
+            room.handle_DrawStrokeReq(msg)
+
+    except:
+        logging.error('[handle_DrawStrokeReq] Unknown error occurred when handling message {}'.format(msg))
+        
