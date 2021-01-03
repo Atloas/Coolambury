@@ -46,6 +46,9 @@ class GameWindow(QtWidgets.QWidget):
         # For the painter, should display the full word. Placeholder for now.
         self.hint = "____"
 
+        self.wordSelectionWindow = None
+        self.drawingHistoryWindow = None
+
         # Drawing
         self.previousX = None
         self.previousY = None
@@ -340,7 +343,7 @@ class GameWindow(QtWidgets.QWidget):
         else:
             self.display_system_message("{} has won!".format(winner))
         if self.drawings:
-            DrawingHistoryWindow(self.drawings)
+            self.drawingHistoryWindow = DrawingHistoryWindow(self.drawings)
         self.drawings = []
 
     def undoClicked(self):
