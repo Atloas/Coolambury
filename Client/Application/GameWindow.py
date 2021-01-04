@@ -282,6 +282,7 @@ class GameWindow(QtWidgets.QWidget):
         logging.debug("Handling word_locally_selected_signal")
         logging.debug("[Word Selection] Selected word = {}".format(
             contents['selected_word']))
+        self.hints.setText(contents["selected_word"])
 
         self.connHandler.send_word_selection_resp(
             self.clientContext['username'], self.clientContext['roomCode'], contents['selected_word'])
@@ -289,11 +290,9 @@ class GameWindow(QtWidgets.QWidget):
     def handleWordSelectedSignal(self, contents):
         logging.debug("Handling word_selected_signal")
         if self.player == self.artist:
-            self.hint = contents["word"]
+            return
         else:
-            self.hint = (len(contents["word"]) - 1) * "_ "
-            self.hint += "_"
-        self.hints.setText(self.hint)
+            self.hints.setText(contents["word_hint"])
         self.gameState = GameState.DRAWING
 
     def handleStrokeSignal(self, contents):
