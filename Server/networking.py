@@ -28,11 +28,23 @@ class ClientConnection:
         # TODO: Add time of logging
         logging.debug('[NETWORKING] {} connected'.format(addr))
     
+    def _receive_bytes(self, bytes_no):
+        bytes_left = bytes_no
+        received_bytes = []
+
+        while bytes_left != 0:
+            received_part = self._conn.recv(bytes_left)
+            bytes_left = bytes_left - len(received_part)
+            received_bytes.append(received_part)
+
+        received_bytes_word = b''.join(received_bytes)
+        return received_bytes_word
+
     def _receive(self):
-        msg_header_bytes = self._conn.recv(self._config['HEADER_LEN'])
+        msg_header_bytes = self._receive_bytes(self._config['HEADER_LEN'])
         if msg_header_bytes != b'':
             msg_header = pickle.loads(msg_header_bytes)
-            msg_body_bytes = self._conn.recv(msg_header['length'])
+            msg_body_bytes = self._receive_bytes(msg_header['length'])
             msg_body = pickle.loads(msg_body_bytes)
 
             return (msg_header['name'], msg_body)
