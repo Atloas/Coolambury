@@ -183,7 +183,7 @@ class GameWindow(QtWidgets.QWidget):
     def display_system_message(self, message):
         self.chat.setFontItalic(True)
         self.chat.setFontWeight(10)
-        self.chat.append("{}".format(message))
+        self.chat.append("<b>{}</b>".format(message))
         self.chat.setFontItalic(False)
         self.chat.setFontWeight(1)
 
