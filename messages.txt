@@ -95,11 +95,6 @@ ClearCanvasReq():
 ClearCanvasBc():
     msg_name (str)
 
-{% comment %} SERVER WILL SCAN CHAT MESSAGES (ChatMessageReq) {% endcomment %}
-{% comment %} GuessWordMessageReq():
-    msg_name (str)
-    word_guess (str) {% endcomment %}
-
 WordGuessedBc():
     msg_name (str)
     word (str)

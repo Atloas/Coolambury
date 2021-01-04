@@ -6,7 +6,7 @@ from ..Application.GameWindow import GameWindow
 class SignalWindow(QtWidgets.QWidget):
     player_joined_signal = QtCore.pyqtSignal(dict)
     player_left_signal = QtCore.pyqtSignal(dict)
-    word_selected_signal = QtCore.pyqtSignal(dict)
+    word_hint_signal = QtCore.pyqtSignal(dict)
     draw_stroke_signal = QtCore.pyqtSignal(dict)
     undo_last_stroke_signal = QtCore.pyqtSignal()
     clear_canvas_signal = QtCore.pyqtSignal()
@@ -69,7 +69,7 @@ class SignalWindow(QtWidgets.QWidget):
         self.player_left_signal.emit({"player": "User2"})
 
     def wordSelectionClicked(self):
-        self.word_selected_signal.emit({"words": ["Apple", "Boat", "Dog"]})
+        self.word_hint_signal.emit({"words": ["Apple", "Boat", "Dog"]})
 
     def strokeClicked(self):
         self.draw_stroke_signal.emit({"stroke": [(10, 10), (100, 100)]})
@@ -93,10 +93,7 @@ class SignalWindow(QtWidgets.QWidget):
     def gameOverClicked(self):
         self.game_over_signal.emit(
             {"final_scores": {"User1": 0, "User2": 10000}})
-<<<<<<< HEAD
-=======
 
->>>>>>> [Client] Fixed signals and connected msg handlers to signal handlers
 
 if __name__ == "__main__":
     GameWindow({"username": "User1", "roomCode": "test"}, None)

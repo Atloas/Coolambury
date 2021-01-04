@@ -136,11 +136,12 @@ class GameWindow(QtWidgets.QWidget):
             self.handlePlayerJoinedSignal)
         self.connHandler.player_left_signal.connect(
             self.handlePlayerLeftSignal)
-        self.connHandler.word_selected_signal.connect(
+        self.connHandler.word_hint_signal.connect(
             self.handleWordSelectedSignal)
         self.connHandler.draw_stroke_signal.connect(self.handleStrokeSignal)
         self.connHandler.undo_last_stroke_signal.connect(self.handleUndoSignal)
-        self.connHandler.clear_canvas_signal.connect(self.handleClearCanvasSignal)
+        self.connHandler.clear_canvas_signal.connect(
+            self.handleClearCanvasSignal)
         self.connHandler.guess_correct_signal.connect(
             self.handleGuessCorrectSignal)
         self.connHandler.artist_change_signal.connect(
@@ -287,7 +288,7 @@ class GameWindow(QtWidgets.QWidget):
             self.clientContext['username'], self.clientContext['roomCode'], contents['selected_word'])
 
     def handleWordSelectedSignal(self, contents):
-        logging.debug("Handling word_selected_signal")
+        logging.debug("Handling word_hint_signal")
         if self.player == self.artist:
             return
         else:
