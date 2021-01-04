@@ -83,8 +83,12 @@ class ConnectionHandler(QtCore.QObject):
                 logging.debug(
                     "[SOCKET RECEIVER] Shutting down and closing socket connection")
 
-            logging.debug(
-                "[SOCKET RECEIVER] Received Message: {}".format(received_msg))
+            if received_msg_name == 'DrawStrokeBc':
+                logging.debug(
+                    "[SOCKET RECEIVER] Received Message: {}".format('DrawStrokeBc'))
+            else:
+                logging.debug(
+                    "[SOCKET RECEIVER] Received Message: {}".format(received_msg))
             self.dispatch_received_message(received_msg)
 
     def dispatch_received_message(self, received_msg):
