@@ -302,7 +302,6 @@ class GameWindow(QtWidgets.QWidget):
 
         painter = QtGui.QPainter(self.canvasContainer.pixmap())
         self.configurePen(painter)
-        painter.begin(self.canvas)
         if len(stroke) == 1:
             painter.drawLine(stroke[0][0], stroke[0][1],
                              stroke[0][0], stroke[0][1])
