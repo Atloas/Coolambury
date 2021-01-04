@@ -74,7 +74,7 @@ class GameWindow(QtWidgets.QWidget):
         self.topHBox.addWidget(self.disconnectButton)
         self.topHBox.addWidget(self.startButton)
 
-        self.hints = QtWidgets.QLabel("*HINTS*")
+        self.hints = QtWidgets.QLabel("")
         self.topHBox.addWidget(self.hints)
 
         self.scoreboard = QtWidgets.QTableWidget()
