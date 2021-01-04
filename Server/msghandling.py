@@ -59,8 +59,7 @@ def handle_JoinRoomReq(resources, sender_conn, msg):
 
     except:
         logging.error('[handle_JoinRoomReq] Error occurred when handling message{}'.format(msg))
-        resp = mc.build_not_ok_join_room_resp()
-        sender_conn.send(resp)
+        resp = nw.send_NOT_OK_JoinRoomResp_with_info(sender_conn, 'Unknown error occurred when joining room!')
 
 
 def handle_ExitClientReq(resources, sender_conn, msg):
@@ -118,3 +117,26 @@ def handle_DrawStrokeReq(resources, sender_conn, msg):
     except:
         logging.error('[handle_DrawStrokeReq] Unknown error occurred when handling message {}'.format(msg))
         
+def handle_UndoLastStrokeReq(resources, sender_conn, msg):
+    try:
+        room_code = msg['room_code']
+        rooms = resources['rooms']
+        room = rooms[room_code]
+
+        with room.lock:
+            room.handle_UndoLastStrokeReq(msg)
+
+    except:
+        logging.error('[handle_UndoLastStrokeReq] Unknown error occurred when handling message {}'.format(msg))
+
+def handle_ClearCanvasReq(resources, sender_conn, msg):
+    try:
+        room_code = msg['room_code']
+        rooms = resources['rooms']
+        room = rooms[room_code]
+
+        with room.lock:
+            room.handle_ClearCanvasReq(msg)
+
+    except:
+        logging.error('[handle_ClearCanvasReq] Unknown error occurred when handling message {}'.format(msg))
