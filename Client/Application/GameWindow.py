@@ -184,7 +184,6 @@ class GameWindow(QtWidgets.QWidget):
         self.chat.setFontItalic(False)
 
     def display_user_message(self, contents):
-        self.chatEntryLine.clear()
         self.chatEntryLine.setText('')
         self.chat.append("{}: {}".format(
             contents['author'], contents['message']))
