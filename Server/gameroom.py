@@ -202,6 +202,18 @@ class Room:
             self._state = RoomState.DRAWING
             self._current_word = msg['selected_word']
 
+            hint = '_' * len(self._current_word)
+
+            for idx, val in enumerate(self._current_word):
+                if val == ' ':
+                    hint[idx] = ' '
+
+            word_hint_bc = {
+                'msg_name': 'WordHintBc',
+                'word_hint': hint
+            }
+            self.broadcast_message(word_hint_bc)
+            
         except StateErrorException:
             logging.warn('[ROOM ({})] Received WordSelectionResp from {} not in state WORD_SELECTION'.format(self._room_code, msg['user_name']))
         
