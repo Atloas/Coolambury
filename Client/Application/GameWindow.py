@@ -92,10 +92,10 @@ class GameWindow(QtWidgets.QWidget):
         self.undoButton.clicked.connect(self.undoClicked)
         self.controlsHBox.addWidget(self.undoButton)
 
-        self.clearButton = QtWidgets.QPushButton("Clear")
-        self.clearButton.setDisabled(True)
-        self.clearButton.clicked.connect(self.clearClicked)
-        self.controlsHBox.addWidget(self.clearButton)
+        self.clearCanvasButton = QtWidgets.QPushButton("Clear")
+        self.clearCanvasButton.setDisabled(True)
+        self.clearCanvasButton.clicked.connect(self.clearCanvasClicked)
+        self.controlsHBox.addWidget(self.clearCanvasButton)
 
         self.gameAndControlsVBox.addLayout(self.controlsHBox)
 
@@ -140,12 +140,13 @@ class GameWindow(QtWidgets.QWidget):
             self.handleWordSelectedSignal)
         self.connHandler.draw_stroke_signal.connect(self.handleStrokeSignal)
         self.connHandler.undo_last_stroke_signal.connect(self.handleUndoSignal)
-        self.connHandler.clear_canvas_signal.connect(self.handleClearSignal)
+        self.connHandler.clear_canvas_signal.connect(self.handleClearCanvasSignal)
         self.connHandler.guess_correct_signal.connect(
             self.handleGuessCorrectSignal)
         self.connHandler.artist_change_signal.connect(
             self.handleArtistChangeSignal)
         self.connHandler.game_over_signal.connect(self.handleGameOverSignal)
+        self.connHandler.room_list_signal.connect(self.handleGameRoomListResp)
 
     def initialize_room(self, contents):
         # Set room state to a fresh one with just the owner
@@ -161,7 +162,7 @@ class GameWindow(QtWidgets.QWidget):
         self.strokes = []
         self.stroke = []
 
-        self.clear()
+        self.clearCanvas()
         self.updateScoreboard()
 
         if self.player == self.owner:
@@ -225,7 +226,7 @@ class GameWindow(QtWidgets.QWidget):
         self.previousX = None
         self.previousY = None
 
-        self.connHandler.send_draw_stroke_req(self.clientContext['username'], 
+        self.connHandler.send_draw_stroke_req(self.clientContext['username'],
                                               self.clientContext['roomCode'],
                                               self.stroke.copy())
         self.stroke = []
@@ -260,11 +261,13 @@ class GameWindow(QtWidgets.QWidget):
         self.artist = contents["artist"]
         if self.player == self.artist:
             self.undoButton.setDisabled(False)
-            self.clearButton.setDisabled(False)
+            self.clearCanvasButton.setDisabled(False)
         else:
             self.undoButton.setDisabled(True)
-            self.clearButton.setDisabled(True)
-        self.clear()
+            self.clearCanvasButton.setDisabled(True)
+        self.stroke = []
+        self.strokes = []
+        self.clearCanvas()
         self.gameState = GameState.WORD_SELECTION
 
     def handleWordSelectionSignal(self, contents):
@@ -314,13 +317,15 @@ class GameWindow(QtWidgets.QWidget):
         logging.debug("Handling undo_last_stroke_signal")
         self.undo()
 
-    def handleClearSignal(self):
+    def handleClearCanvasSignal(self):
         logging.debug("Handling clear_canvas_signal")
-        self.clear()
+        self.stroke = []
+        self.strokes = []
+        self.clearCanvas()
 
     def handleGuessCorrectSignal(self, contents):
         self.display_system_message(
-            "{} guessed right!".format(contents["player"]))
+            "{} guessed the word: {}!".format(contents["user_name"], contents["word"]))
 
         self.players = contents['score_awarded']
         self.updateScoreboard()
@@ -349,18 +354,24 @@ class GameWindow(QtWidgets.QWidget):
             self.drawingHistoryWindow = DrawingHistoryWindow(self.drawings)
         self.drawings = []
 
+    def handleGameRoomListResp(self, contents):
+        # TODO: Implement for room listing
+        pass
+
     def undoClicked(self):
         self.undo()
-        # TODO: Send undo message to server
+        self.connHandler.send_undo_last_stroke_req(
+            self.clientContext['username'], self.clientContext['roomCode'])
 
-    def clearClicked(self):
+    def clearCanvasClicked(self):
         self.stroke = []
         self.strokes = []
         self.clear()
-        # TODO: Send clear message to server
+        self.connHandler.send_clear_canvas_req(
+            self.clientContext['username'], self.clientContext['roomCode'])
 
     def redraw(self):
-        self.clear()
+        self.clearCanvas()
         painter = QtGui.QPainter(self.canvasContainer.pixmap())
         self.configurePen(painter)
         for stroke in self.strokes:
@@ -380,7 +391,7 @@ class GameWindow(QtWidgets.QWidget):
             self.strokes.pop()
         self.redraw()
 
-    def clear(self):
+    def clearCanvas(self):
         painter = QtGui.QPainter(self.canvasContainer.pixmap())
         painter.eraseRect(0, 0, self.canvas.width(), self.canvas.height())
         painter.end()

@@ -25,6 +25,7 @@ class ConnectionHandler(QtCore.QObject):
     guess_correct_signal = QtCore.pyqtSignal(dict)
     artist_change_signal = QtCore.pyqtSignal(dict)
     game_over_signal = QtCore.pyqtSignal(dict)
+    room_list_signal = QtCore.pyqtSignal(dict)
 
     def __init__(self):
         super().__init__()
@@ -101,6 +102,7 @@ class ConnectionHandler(QtCore.QObject):
             'WordGuessedBc': self.handle_WordGuessedBc,
             'FinishGameResp': self.handle_FinishGameResp,
             'GameFinishedBc': self.handle_GameFinishedBc,
+            'GameRoomListResp': self.handle_GameRoomListResp,
         }
         return message_dispatcher.get(received_msg['msg_name'], self.handle_UnrecognizedMessage)(received_msg)
 
@@ -129,11 +131,8 @@ class ConnectionHandler(QtCore.QObject):
         logging.debug(
             "[MESSAGE DISPATCHER] handling ChatMessageBc: {}".format(received_msg))
         self.chat_message_signal.emit(received_msg)
-        # self.chat_message_signal.emit("{}: {}".format(
-        #             received_msg['author'], received_msg['message']))
 
     def handle_ExitClientReq(self, received_msg):
-        # TODO: Implement on the server side:
         self.kill_receiver()
         self.chat_message_signal.emit("{} has left the game".format(
             received_msg['user_name']))
@@ -193,6 +192,11 @@ class ConnectionHandler(QtCore.QObject):
         logging.debug(
             "[MESSAGE DISPATCHER] handling GameFinishedBc")
         self.game_over_signal.emit(received_msg)
+    
+    def handle_GameRoomListResp(self, received_msg):
+        logging.debug(
+            "[MESSAGE DISPATCHER] handling GameRoomListResp")
+        self.room_list_signal.emit(received_msg)
 
     def handle_UnrecognizedMessage(self, received_msg):
         logging.debug(
@@ -291,14 +295,6 @@ class ConnectionHandler(QtCore.QObject):
         SocketMsgHandler.send(
             self.conn, clear_canvas_req, self.server_config)
 
-    # def send_guess_word_message_req(self, word_guess):
-    #     guess_word_message_req = {
-    #         'msg_name': 'GuessWordMessageReq',
-    #         'word_guess': word_guess
-    #     }
-    #     SocketMsgHandler.send(
-    #         self.conn, guess_word_message_req, self.server_config)
-
     def send_finish_game_req(self, user_name, room_code):
         finish_game_req = {
             'msg_name': 'FinishGameReq',
@@ -307,6 +303,13 @@ class ConnectionHandler(QtCore.QObject):
         }
         SocketMsgHandler.send(
             self.conn, finish_game_req, self.server_config)
+
+    def send_game_room_list_req(self):
+        game_room_list_req = {
+            'msg_name': 'GameRoomListReq',
+        }
+        SocketMsgHandler.send(
+            self.conn, game_room_list_req, self.server_config)
 
 
 if __name__ == '__main__':
