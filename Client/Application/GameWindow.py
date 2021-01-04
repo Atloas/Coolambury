@@ -68,10 +68,11 @@ class GameWindow(QtWidgets.QWidget):
         self.disconnectButton = QtWidgets.QPushButton("Disconnect")
         self.disconnectButton.setMaximumSize(100, 50)
         self.disconnectButton.clicked.connect(self.disconnect_clicked)
+        self.topHBox.addWidget(self.disconnectButton)
+
         self.startButton = QtWidgets.QPushButton("Start")
         self.startButton.setMaximumSize(100, 50)
         self.startButton.clicked.connect(self.start_clicked)
-        self.topHBox.addWidget(self.disconnectButton)
         self.topHBox.addWidget(self.startButton)
 
         self.hints = QtWidgets.QLabel("")
@@ -292,7 +293,11 @@ class GameWindow(QtWidgets.QWidget):
         if self.player == self.artist:
             return
         else:
-            self.hints.setText(contents["word_hint"])
+            self.hint = ""
+            for i in range(len(contents["word_hint"]) - 1):
+                self.hint += contents["word_hint"][i] + " "
+            self.hint += "_"
+            self.hints.setText(self.hint)
         self.gameState = GameState.DRAWING
 
     def handleStrokeSignal(self, contents):
