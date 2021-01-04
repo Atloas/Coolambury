@@ -129,7 +129,7 @@ class GameWindow(QtWidgets.QWidget):
         self.connectSignals()
 
     def connectSignals(self):
-        self.connHandler.chat_message_signal.connect(self.display_user_message)
+        self.connHandler.chat_message_signal.connect(self.display_message)
         self.connHandler.start_game_signal.connect(self.handleStartGameSignal)
         self.connHandler.word_selection_signal.connect(
             self.handleWordSelectionSignal)
