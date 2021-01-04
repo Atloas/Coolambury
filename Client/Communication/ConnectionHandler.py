@@ -76,6 +76,8 @@ class ConnectionHandler(QtCore.QObject):
             try:
                 received_msg_name, received_msg = SocketMsgHandler.receive(
                     conn, server_config)
+                if not received_msg:
+                    continue
             except:
                 logging.debug(
                     "[SOCKET RECEIVER] Shutting down and closing socket connection")
