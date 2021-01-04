@@ -300,10 +300,13 @@ class GameWindow(QtWidgets.QWidget):
         painter = QtGui.QPainter(self.canvasContainer.pixmap())
         self.configurePen(painter)
         painter.begin(self.canvas)
-        for i in range(len(stroke) - 1):
-            painter.drawLine(stroke[i][0], stroke[i][1],
-                             stroke[i + 1][0], stroke[i + 1][1])
-        logging.debug("Received and drew stroke.")
+        if len(stroke) == 1:
+            painter.drawLine(stroke[0][0], stroke[0][1],
+                             stroke[0][0], stroke[0][1])
+        else:
+            for i in range(len(stroke) - 1):
+                painter.drawLine(stroke[i][0], stroke[i][1],
+                                 stroke[i + 1][0], stroke[i + 1][1])
         painter.end()
         self.update()
 
@@ -361,9 +364,13 @@ class GameWindow(QtWidgets.QWidget):
         painter = QtGui.QPainter(self.canvasContainer.pixmap())
         self.configurePen(painter)
         for stroke in self.strokes:
-            for i in range(len(stroke) - 1):
-                painter.drawLine(stroke[i][0], stroke[i]
-                                 [1], stroke[i + 1][0], stroke[i + 1][1])
+            if len(stroke) == 1:
+                painter.drawLine(stroke[0][0], stroke[0][1],
+                                 stroke[0][0], stroke[0][1])
+            else:
+                for i in range(len(stroke) - 1):
+                    painter.drawLine(stroke[i][0], stroke[i][1],
+                                     stroke[i + 1][0], stroke[i + 1][1])
         painter.end()
         self.update()
 
