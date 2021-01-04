@@ -231,7 +231,6 @@ class GameWindow(QtWidgets.QWidget):
                                               self.clientContext['roomCode'],
                                               self.stroke.copy())
         self.stroke = []
-        # TODO: send stroke data to server
 
     def handleStartGameSignal(self, contents):
         logging.debug("Handling start_game_signal")

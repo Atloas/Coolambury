@@ -129,3 +129,10 @@ GameRoomListReq():
 GameRoomListResp():
     msg_name (str)
     room_list ([dict, dick,...])
+
+{% comment %} Server -> Client {% endcomment %}
+WordHintBc():
+    msg_name (str)
+    word_hint (str) (encoded word with "_") eg. cat -> ___
+    "hot air balloon"
+     ___ ___ _______
