@@ -146,6 +146,7 @@ class GameWindow(QtWidgets.QWidget):
         self.connHandler.artist_change_signal.connect(
             self.handleArtistChangeSignal)
         self.connHandler.game_over_signal.connect(self.handleGameOverSignal)
+        self.connHandler.room_list_signal.connect(self.handleGameRoomListResp)
 
     def initialize_room(self, contents):
         # Set room state to a fresh one with just the owner
@@ -225,7 +226,7 @@ class GameWindow(QtWidgets.QWidget):
         self.previousX = None
         self.previousY = None
 
-        self.connHandler.send_draw_stroke_req(self.clientContext['username'], 
+        self.connHandler.send_draw_stroke_req(self.clientContext['username'],
                                               self.clientContext['roomCode'],
                                               self.stroke.copy())
         self.stroke = []
@@ -324,7 +325,7 @@ class GameWindow(QtWidgets.QWidget):
 
     def handleGuessCorrectSignal(self, contents):
         self.display_system_message(
-            "{} guessed right!".format(contents["player"]))
+            "{} guessed the word: {}!".format(contents["user_name"], contents["word"]))
 
         self.players = contents['score_awarded']
         self.updateScoreboard()
@@ -353,15 +354,21 @@ class GameWindow(QtWidgets.QWidget):
             self.drawingHistoryWindow = DrawingHistoryWindow(self.drawings)
         self.drawings = []
 
+    def handleGameRoomListResp(self, contents):
+        # TODO: Implement for room listing
+        pass
+
     def undoClicked(self):
         self.undo()
-        # TODO: Send undo message to server
+        self.connHandler.send_undo_last_stroke_req(
+            self.clientContext['username'], self.clientContext['roomCode'])
 
     def clearCanvasClicked(self):
         self.stroke = []
         self.strokes = []
-        self.clearCanvas()
-        # TODO: Send clear message to server
+        self.clear()
+        self.connHandler.send_clear_canvas_req(
+            self.clientContext['username'], self.clientContext['roomCode'])
 
     def redraw(self):
         self.clearCanvas()
