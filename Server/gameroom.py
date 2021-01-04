@@ -123,6 +123,9 @@ class Room:
         if self._state == RoomState.DRAWING:
             if msg['message'] == self._current_word:
                 self._announce_word_guessed(msg)
+            else:
+                chat_msg = mc.build_chat_msg_bc(msg['user_name'], msg['message'])
+                self.broadcast_message(chat_msg)
         else:
             chat_msg = mc.build_chat_msg_bc(msg['user_name'], msg['message'])
             self.broadcast_message(chat_msg)
