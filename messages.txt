@@ -104,7 +104,6 @@ WordGuessedBc():
     msg_name (str)
     word (str)
     user_name (str) (person who's guessed the word)
-    word (str)
     score_awarded ({"user_name": score, ...}) (assuming the guessing player is first)
 
 {% comment %} Client -> Server {% endcomment %}
