@@ -181,11 +181,7 @@ class GameWindow(QtWidgets.QWidget):
             self.connHandler.kill_receiver()
 
     def display_system_message(self, message):
-        self.chat.setFontItalic(True)
-        self.chat.setFontWeight(10)
         self.chat.append("<b>{}</b>".format(message))
-        self.chat.setFontItalic(False)
-        self.chat.setFontWeight(1)
 
     def display_user_message(self, contents):
         self.chatEntryLine.setText('')
