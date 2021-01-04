@@ -174,10 +174,6 @@ class Room:
             self._state = RoomState.DRAWING
             self._current_word = msg['selected_word']
 
-            # TODO: remove after implementation finished
-            debuging_info = mc.build_chat_msg_bc('SERVER', '[DEBUGGING PURPOSE] artist: {} picked word: {}'.format(self._artist, self._current_word))
-            self.broadcast_message(debuging_info)
-
         except StateErrorException:
             logging.warn('[ROOM ({})] Received WordSelectionResp from {} not in state WORD_SELECTION'.format(self._room_code, msg['user_name']))
         
@@ -198,3 +194,32 @@ class Room:
         
         except:
             logging.error('[ROOM ({})] Unknown error occurred when handling message {}'.format(self._room_code, msg))
+
+    def handle_UndoLastStrokeReq(self, msg):
+        try:
+            if self._state != RoomState.DRAWING:
+                raise StateErrorException()
+
+            undo_last_stroke_bc = {'msg_name': 'UndoLastStrokeBc'}
+            self.broadcast_message(undo_last_stroke_bc)
+
+        except StateErrorException:
+            logging.warn('[ROOM ({})] Received UndoLastStrokeReq from {} not in state DRAWING'.format(self._room_code, msg['user_name']))
+        
+        except:
+            logging.error('[ROOM ({})] Unknown error occurred when handling message {}'.format(self._room_code, msg))
+    
+    def handle_ClearCanvasReq(self, msg):
+        try:
+            if self._state != RoomState.DRAWING:
+                raise StateErrorException()
+
+            clear_canvas_bc = {'msg_name': 'ClearCanvasBc'}
+            self.broadcast_message(clear_canvas_bc)
+
+        except StateErrorException:
+            logging.warn('[ROOM ({})] Received ClearCanvasReq from {} not in state DRAWING'.format(self._room_code, msg['user_name']))
+        
+        except:
+            logging.error('[ROOM ({})] Unknown error occurred when handling message {}'.format(self._room_code, msg))
+            

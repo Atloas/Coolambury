@@ -34,7 +34,9 @@ class Server:
             'ExitClientReq': mh.handle_ExitClientReq,
             'StartGameReq': mh.handle_StartGameReq,
             'WordSelectionResp': mh.handle_WordSelectionResp,
-            'DrawStrokeReq': mh.handle_DrawStrokeReq
+            'DrawStrokeReq': mh.handle_DrawStrokeReq,
+            'UndoLastStrokeReq': mh.handle_UndoLastStrokeReq,
+            'ClearCanvasReq': mh.handle_ClearCanvasReq
         }
 
     def start(self):
