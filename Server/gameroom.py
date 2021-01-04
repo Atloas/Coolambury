@@ -97,10 +97,35 @@ class Room:
         logging.debug('[ROOM ({})] Word draw result for artist {} : {}!'.format(self._room_code, self._artist, words_to_select))
 
         return words_to_select
+    
+    def _announce_word_guessed(self, msg):
+        word_guessed_bc = {
+            'msg_name': 'WordGuessedBc',
+            'user_name': msg['user_name'],
+            'word': self._current_word, 
+            'score_awarded': {player[0]: 0 for player in self._joined_clients.items()}
+        }
+        
+        self.broadcast_message(word_guessed_bc)
+
+        words_to_select = self.enter_word_selection_state()
+
+        artist_pick_bc = {
+            'msg_name': 'ArtistPickBc',
+            'artist': self._artist
+        }
+        self.broadcast_message(artist_pick_bc)
+        self.send_words_to_select_to_artist(words_to_select)
+
+
 
     def handle_ChatMessageReq(self, msg, sender_conn):
-        chat_msg = mc.build_chat_msg_bc(msg['user_name'], msg['message'])
-        self.broadcast_message(chat_msg)
+        if self._state == RoomState.DRAWING:
+            if msg['message'] == self._current_word:
+                self._announce_word_guessed(msg)
+        else:
+            chat_msg = mc.build_chat_msg_bc(msg['user_name'], msg['message'])
+            self.broadcast_message(chat_msg)
 
     def handle_JoinRoomReq(self, msg, sender_conn):
         try:
