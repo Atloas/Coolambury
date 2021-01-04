@@ -103,6 +103,7 @@ class ConnectionHandler(QtCore.QObject):
             'FinishGameResp': self.handle_FinishGameResp,
             'GameFinishedBc': self.handle_GameFinishedBc,
             'GameRoomListResp': self.handle_GameRoomListResp,
+            'WordHintBc': self.handle_WordHintBc,
         }
         return message_dispatcher.get(received_msg['msg_name'], self.handle_UnrecognizedMessage)(received_msg)
 
