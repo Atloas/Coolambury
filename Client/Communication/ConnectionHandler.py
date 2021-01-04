@@ -16,7 +16,7 @@ class ConnectionHandler(QtCore.QObject):
     switch_window = QtCore.pyqtSignal(str)
     start_game_signal = QtCore.pyqtSignal(dict)
     word_selection_signal = QtCore.pyqtSignal(dict)
-    word_selected_signal = QtCore.pyqtSignal(dict)
+    word_hint_signal = QtCore.pyqtSignal(dict)
     player_left_signal = QtCore.pyqtSignal(dict)
     player_joined_signal = QtCore.pyqtSignal(dict)
     draw_stroke_signal = QtCore.pyqtSignal(dict)
@@ -129,7 +129,7 @@ class ConnectionHandler(QtCore.QObject):
 
     def handle_ChatMessageBc(self, received_msg):
         logging.debug(
-            "[MESSAGE DISPATCHER] handling ChatMessageBc: {}".format(received_msg))
+            "[MESSAGE DISPATCHER] handling ChatMessageBc {}: {}".format(received_msg['author'], received_msg['message']))
         self.chat_message_signal.emit(received_msg)
 
     def handle_ExitClientReq(self, received_msg):
@@ -192,11 +192,16 @@ class ConnectionHandler(QtCore.QObject):
         logging.debug(
             "[MESSAGE DISPATCHER] handling GameFinishedBc")
         self.game_over_signal.emit(received_msg)
-    
+
     def handle_GameRoomListResp(self, received_msg):
         logging.debug(
             "[MESSAGE DISPATCHER] handling GameRoomListResp")
         self.room_list_signal.emit(received_msg)
+
+    def handle_WordHintBc(self, received_msg):
+        logging.debug(
+            "[MESSAGE DISPATCHER] handling WordHintBc")
+        self.word_hint_signal.emit(received_msg)
 
     def handle_UnrecognizedMessage(self, received_msg):
         logging.debug(
@@ -221,6 +226,8 @@ class ConnectionHandler(QtCore.QObject):
                               self.server_config)
 
     def send_chat_msg_req(self, user_name, room_code, message):
+        logging.debug(
+            '[CHAT MESSAGE] Sending message {}: {}'.format(user_name, message))
         send_char_msg = {
             'msg_name': 'ChatMessageReq',
             'user_name': user_name,

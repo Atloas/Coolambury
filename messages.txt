@@ -95,11 +95,6 @@ ClearCanvasReq():
 ClearCanvasBc():
     msg_name (str)
 
-{% comment %} SERVER WILL SCAN CHAT MESSAGES (ChatMessageReq) {% endcomment %}
-{% comment %} GuessWordMessageReq():
-    msg_name (str)
-    word_guess (str) {% endcomment %}
-
 WordGuessedBc():
     msg_name (str)
     word (str)
@@ -129,3 +124,10 @@ GameRoomListReq():
 GameRoomListResp():
     msg_name (str)
     room_list ([dict, dick,...])
+
+{% comment %} Server -> Client {% endcomment %}
+WordHintBc():
+    msg_name (str)
+    word_hint (str) (encoded word with "_") eg. cat -> ___
+    "hot air balloon"
+     ___ ___ _______
