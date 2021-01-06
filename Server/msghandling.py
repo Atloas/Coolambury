@@ -59,7 +59,7 @@ def handle_JoinRoomReq(resources, sender_conn, msg):
 
     except:
         logging.error('[handle_JoinRoomReq] Error occurred when handling message{}'.format(msg))
-        resp = nw.send_NOT_OK_JoinRoomResp_with_info(sender_conn, 'Unknown error occurred when joining room!')
+        nw.send_NOT_OK_JoinRoomResp_with_info(sender_conn, 'Unknown error occurred when joining room!')
 
 
 def handle_ExitClientReq(resources, sender_conn, msg):
