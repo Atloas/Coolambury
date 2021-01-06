@@ -56,7 +56,7 @@ class RoundTimeController:
             
             with self._room.lock:
                 self._room.broadcast_message(half_time_notification)
-                self._room.send_hint(1)
+                self._room.send_hint(2)
 
             self._timer = threading.Timer(self._round_time / 2, self._full_time_passed)
             self._timer.start()
@@ -79,13 +79,14 @@ def replace_at_index(s, newstring, index, nofail=False):
     return s[:index] + newstring + s[index + 1:]
 
 class Room:
-    def __init__(self, owner_name, owner_connection, room_code, round_time=60.0):
+    def __init__(self, owner_name, owner_connection, room_code, words, round_time=60.0):
         self._owner = owner_name
         self._joined_clients = {owner_name : owner_connection}
         self._room_code = room_code
         self._state = RoomState.PREGAME
         self.lock = threading.Lock()
         self._round_time = round_time
+        self._words = words
 
     def get_current_state(self):
         return self._state
@@ -148,9 +149,7 @@ class Room:
         logging.info('[ROOM ({})] Entering WORD_SELECTION state!'.format(self._room_code))
         self._state = RoomState.WORD_SELECTION
 
-        words = ['cat', 'dog', 'apple', 'car', 'smartphone', 'python'] # TODO : this is temporary solution!
-
-        words_to_select = random.sample(words, 3)
+        words_to_select = random.sample(self._words, 3)
 
         self._current_word = None
         self._artist = self._drawing_queue[0]
@@ -174,7 +173,7 @@ class Room:
         self.broadcast_message(artist_pick_bc)
         self.send_words_to_select_to_artist(words_to_select)
 
-    def _announce_word_guessed(self, msg, time_passed):
+    def _announce_word_guessed(self, msg):
         word_guessed_bc = {
             'msg_name': 'WordGuessedBc',
             'user_name': msg['user_name'],
@@ -184,6 +183,13 @@ class Room:
         
         self.broadcast_message(word_guessed_bc)
         self._select_artist_and_send_words()
+
+    def _recalculate_score(self, user_name, time_passed):
+        try:
+            self._score_awarded[user_name] += 50
+            self._score_awarded[self._artist] += round(self._round_time - time_passed)
+        except:
+            logging.error('[ROOM ({})] Unknown error occurred when recalculating scoreboard'.format(self._room_code))
 
     def handle_ChatMessageReq(self, msg, sender_conn):
         if self._state == RoomState.DRAWING:
@@ -195,7 +201,8 @@ class Room:
 
             elif msg['message'] == self._current_word:
                 time_passed = self._round_time_controller.finish_round()
-                self._announce_word_guessed(msg, time_passed)
+                self._recalculate_score(msg['user_name'], time_passed)
+                self._announce_word_guessed(msg)
 
             else:
                 chat_msg = mc.build_chat_msg_bc(msg['user_name'], msg['message'])
@@ -254,7 +261,7 @@ class Room:
 
             words_to_select = self._enter_word_selection_state()
 
-            start_game_bc = {'msg_name': 'StartGameBc', 'artist': self._artist}
+            start_game_bc = {'msg_name': 'StartGameBc', 'artist': self._artist, 'score_awarded' : self._score_awarded}
             self.broadcast_message(start_game_bc)
             self.send_words_to_select_to_artist(words_to_select)
 
