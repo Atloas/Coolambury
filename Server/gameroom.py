@@ -21,6 +21,9 @@ class UsernameTakenException(Exception):
 class StateErrorException(Exception):
     pass
 
+class WordSelectionRespNotFromArtistException(Exception):
+    pass
+
 class RoomState(Enum):
     PREGAME = 0
     STARTING_GAME = 1
@@ -53,6 +56,7 @@ class RoundTimeController:
             
             with self._room.lock:
                 self._room.broadcast_message(half_time_notification)
+                self._room.send_hint(1)
 
             self._timer = threading.Timer(self._round_time / 2, self._full_time_passed)
             self._timer.start()
@@ -63,6 +67,16 @@ class RoundTimeController:
             with self._room.lock:
                 self._room.finish_round_after_timeout()
         
+def replace_at_index(s, newstring, index, nofail=False):
+    if not nofail and index not in range(len(s)):
+        raise ValueError("index outside given string")
+
+    if index < 0:
+        return newstring + s
+    if index > len(s):
+        return s + newstring
+
+    return s[:index] + newstring + s[index + 1:]
 
 class Room:
     def __init__(self, owner_name, owner_connection, room_code, round_time=60.0):
@@ -161,7 +175,6 @@ class Room:
         self.send_words_to_select_to_artist(words_to_select)
 
     def _announce_word_guessed(self, msg, time_passed):
-        print(time_passed)
         word_guessed_bc = {
             'msg_name': 'WordGuessedBc',
             'user_name': msg['user_name'],
@@ -187,7 +200,7 @@ class Room:
             else:
                 chat_msg = mc.build_chat_msg_bc(msg['user_name'], msg['message'])
                 self.broadcast_message(chat_msg)
-                
+
         else:
             chat_msg = mc.build_chat_msg_bc(msg['user_name'], msg['message'])
             self.broadcast_message(chat_msg)
@@ -257,30 +270,46 @@ class Room:
             resp = mc.build_start_game_resp_not_ok('There must be at least 2 players to start the game!')
             sender_conn.send(resp)
 
-    def handle_WordSelectionResp(self, msg):
-        try:
-            if self._state != RoomState.WORD_SELECTION:
-                raise StateErrorException()
-
-            self._state = RoomState.DRAWING
-            self._current_word = msg['selected_word']
+    def send_hint(self, num_of_letters=0):
+            if self._state != RoomState.DRAWING:
+                return
 
             hint = '_' * len(self._current_word)
 
+            letters_left = num_of_letters
+
             for idx, val in enumerate(self._current_word):
                 if val == ' ':
-                    hint[idx] = ' '
+                    hint = replace_at_index(hint, ' ', idx)
+                elif letters_left > 0:
+                    hint = replace_at_index(hint, self._current_word[idx], idx)
+                    letters_left = letters_left - 1
 
             word_hint_bc = {
                 'msg_name': 'WordHintBc',
                 'word_hint': hint
             }
             self.broadcast_message(word_hint_bc)
-            
+
+    def handle_WordSelectionResp(self, msg):
+        try:
+            if self._state != RoomState.WORD_SELECTION:
+                raise StateErrorException()
+
+            if self._artist != msg['user_name']:
+                raise WordSelectionRespNotFromArtistException()
+
+            self._state = RoomState.DRAWING
+            self._current_word = msg['selected_word']
+            self.send_hint()
+
+        
+        except WordSelectionRespNotFromArtistException:
+            logging.warn('[ROOM ({})] Received WordSelectionResp from {} - not artist'.format(self._room_code, msg['user_name']))
+        
         except StateErrorException:
             logging.warn('[ROOM ({})] Received WordSelectionResp from {} not in state WORD_SELECTION'.format(self._room_code, msg['user_name']))
         
-
     def handle_DrawStrokeReq(self, msg):
         try:
             if self._state != RoomState.DRAWING:
