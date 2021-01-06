@@ -26,7 +26,7 @@ def handle_CreateRoomReq(resources, sender_conn, msg):
     try:
         rooms = resources['rooms']
         room_code = mc.generate_unique_code(8, rooms)
-        room = gr.Room(msg['user_name'], sender_conn, room_code)
+        room = gr.Room(msg['user_name'], sender_conn, room_code, resources['words'])
 
         resp = mc.build_ok_create_room_resp(room_code)
         rooms[room_code] = room

@@ -4,6 +4,7 @@ import sys
 import json
 import msghandling as mh
 import networking as nw
+import csv
 
 
 class Server:
@@ -12,8 +13,9 @@ class Server:
         self._resources['rooms'] = {}
         self._resources['clients'] = []
         self._load_config_file()
+        self._prepare_list_of_words()
         self._server_socket = nw.create_and_bind_socket(self._resources['config'])
-
+        
         self._map_message_handlers()
         logging.debug('[SERVER] Initializing server...')
 
@@ -26,6 +28,17 @@ class Server:
             logging.error('[SERVER] Error occurred when loading configuration file!')
             exit()
 
+    def _prepare_list_of_words(self):
+        self._resources['words'] = []
+        try:
+            with open('Server/resources/labels.csv') as f:
+                reader = csv.reader(f, delimiter=',')
+                for row in reader:
+                    self._resources['words'].append(row[1])
+        except:
+            logging.error('[SERVER] Error occurred when loading list of words!')
+            exit()
+                
     def _map_message_handlers(self):
         self._msg_mapping = {
             'CreateRoomReq': mh.handle_CreateRoomReq,
