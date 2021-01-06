@@ -184,12 +184,10 @@ class GameWindow(QtWidgets.QWidget):
         self.chat.append("<b>{}</b>".format(message))
 
     def display_user_message(self, contents):
-        self.chatEntryLine.setText('')
         self.chat.append("{}: {}".format(
             contents['author'], contents['message']))
 
     def display_message(self, contents):
-        # TODO: Remove message operations from ConnectionHandler, have it pass a dict to the signal.
         if contents['author'] == "SERVER":
             self.display_system_message(contents['message'])
         else:
@@ -416,6 +414,7 @@ class GameWindow(QtWidgets.QWidget):
 
     def newChatMessage(self):
         message = self.chatEntryLine.text()
+        # TODO: Why clear() and setText('')? Shouldn't one suffice?
         self.chatEntryLine.clear()
         self.chatEntryLine.setText('')
         self.connHandler.send_chat_msg_req(
