@@ -231,6 +231,8 @@ class GameWindow(QtWidgets.QWidget):
     def handleStartGameSignal(self, contents):
         logging.debug("Handling start_game_signal")
         self.display_system_message("Game started!")
+        self.players = contents['score_awarded']
+        self.updateScoreboard()
 
     def handlePlayerJoinedSignal(self, contents):
         logging.debug("Handling player_joined_signal")

@@ -40,10 +40,11 @@ def build_not_ok_create_room_resp():
     return resp
 
 
-def build_ok_join_room_resp():
+def build_ok_join_room_resp(users):
     resp = {
         'msg_name': 'JoinRoomResp',
-        'status': 'OK'
+        'status': 'OK',
+        'users': users
     }
 
     return resp

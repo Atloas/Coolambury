@@ -4,6 +4,7 @@ from enum import Enum
 import random
 import logging
 import threading
+import time
 
 class GameAlreadyStartedException(Exception):
     pass
@@ -20,6 +21,9 @@ class UsernameTakenException(Exception):
 class StateErrorException(Exception):
     pass
 
+class WordSelectionRespNotFromArtistException(Exception):
+    pass
+
 class RoomState(Enum):
     PREGAME = 0
     STARTING_GAME = 1
@@ -27,13 +31,62 @@ class RoomState(Enum):
     DRAWING = 3
     POSTGAME = 4
 
+class RoundTimeController:
+    def __init__(self, room, round_time):
+        self._round_finished = False
+        self._round_time = round_time
+        self._room = room
+
+    def finish_round(self):
+        end_time_stamp = time.time()
+        self._round_finished = True
+        return end_time_stamp - self._start_time_stamp
+
+    def start_round(self):
+        self._timer = threading.Timer(self._round_time / 2, self._half_time_passed)
+        self._timer.start()
+        self._start_time_stamp = time.time()
+
+    def _half_time_passed(self):
+        if not self._round_finished:
+            half_time_notification = mc.build_chat_msg_bc(
+                'SERVER',
+                'Half time - {} seconds left'.format(str(self._round_time / 2))
+            )
+            
+            with self._room.lock:
+                self._room.broadcast_message(half_time_notification)
+                self._room.send_hint(2)
+
+            self._timer = threading.Timer(self._round_time / 2, self._full_time_passed)
+            self._timer.start()
+
+
+    def _full_time_passed(self):
+        if not self._round_finished:
+            with self._room.lock:
+                self._room.finish_round_after_timeout()
+        
+def replace_at_index(s, newstring, index, nofail=False):
+    if not nofail and index not in range(len(s)):
+        raise ValueError("index outside given string")
+
+    if index < 0:
+        return newstring + s
+    if index > len(s):
+        return s + newstring
+
+    return s[:index] + newstring + s[index + 1:]
+
 class Room:
-    def __init__(self, owner_name, owner_connection, room_code):
+    def __init__(self, owner_name, owner_connection, room_code, words, round_time=60.0):
         self._owner = owner_name
         self._joined_clients = {owner_name : owner_connection}
         self._room_code = room_code
         self._state = RoomState.PREGAME
         self.lock = threading.Lock()
+        self._round_time = round_time
+        self._words = words
 
     def get_current_state(self):
         return self._state
@@ -79,15 +132,24 @@ class Room:
         logging.info('[ROOM ({})] Attempting to start a game!'.format(self._room_code))
         self._state = RoomState.STARTING_GAME
 
+        self._score_awarded = {player[0]: 0 for player in self._joined_clients.items()}
+
         self._drawing_queue = list(self._joined_clients.keys())
         random.shuffle(self._drawing_queue)
+
+    def finish_round_after_timeout(self):
+        round_finished_notification = mc.build_chat_msg_bc(
+                'SERVER',
+                'Time is over - word: {}'.format(self._current_word))
+
+        self.broadcast_message(round_finished_notification)
+        self._select_artist_and_send_words()
     
-    def enter_word_selection_state(self):
+    def _enter_word_selection_state(self):
         logging.info('[ROOM ({})] Entering WORD_SELECTION state!'.format(self._room_code))
         self._state = RoomState.WORD_SELECTION
-        words = ['cat', 'dog', 'apple', 'car', 'smartphone', 'python'] # TODO : this is temporary solution!
 
-        words_to_select = random.sample(words, 3)
+        words_to_select = random.sample(self._words, 3)
 
         self._current_word = None
         self._artist = self._drawing_queue[0]
@@ -96,19 +158,13 @@ class Room:
         
         logging.debug('[ROOM ({})] Word draw result for artist {} : {}!'.format(self._room_code, self._artist, words_to_select))
 
+        self._round_time_controller = RoundTimeController(self, self._round_time)
+        self._round_time_controller.start_round()
+
         return words_to_select
     
-    def _announce_word_guessed(self, msg):
-        word_guessed_bc = {
-            'msg_name': 'WordGuessedBc',
-            'user_name': msg['user_name'],
-            'word': self._current_word, 
-            'score_awarded': {player[0]: 0 for player in self._joined_clients.items()}
-        }
-        
-        self.broadcast_message(word_guessed_bc)
-
-        words_to_select = self.enter_word_selection_state()
+    def _select_artist_and_send_words(self):
+        words_to_select = self._enter_word_selection_state()
 
         artist_pick_bc = {
             'msg_name': 'ArtistPickBc',
@@ -117,15 +173,41 @@ class Room:
         self.broadcast_message(artist_pick_bc)
         self.send_words_to_select_to_artist(words_to_select)
 
+    def _announce_word_guessed(self, msg):
+        word_guessed_bc = {
+            'msg_name': 'WordGuessedBc',
+            'user_name': msg['user_name'],
+            'word': self._current_word, 
+            'score_awarded': self._score_awarded
+        }
+        
+        self.broadcast_message(word_guessed_bc)
+        self._select_artist_and_send_words()
 
+    def _recalculate_score(self, user_name, time_passed):
+        try:
+            self._score_awarded[user_name] += 50
+            self._score_awarded[self._artist] += round(self._round_time - time_passed)
+        except:
+            logging.error('[ROOM ({})] Unknown error occurred when recalculating scoreboard'.format(self._room_code))
 
     def handle_ChatMessageReq(self, msg, sender_conn):
         if self._state == RoomState.DRAWING:
-            if msg['message'] == self._current_word:
+            if msg['user_name'] == self._artist:
+                artist_info = mc.build_chat_msg_bc(
+                    'SERVER',
+                    'As an artist, you can\'t use chat!')
+                sender_conn.send(artist_info)
+
+            elif msg['message'] == self._current_word:
+                time_passed = self._round_time_controller.finish_round()
+                self._recalculate_score(msg['user_name'], time_passed)
                 self._announce_word_guessed(msg)
+
             else:
                 chat_msg = mc.build_chat_msg_bc(msg['user_name'], msg['message'])
                 self.broadcast_message(chat_msg)
+
         else:
             chat_msg = mc.build_chat_msg_bc(msg['user_name'], msg['message'])
             self.broadcast_message(chat_msg)
@@ -134,9 +216,10 @@ class Room:
         try:
             if msg['user_name'] in self._joined_clients:
                 raise UsernameTakenException()
-
+            
+            users = list(self._joined_clients.keys())
             self.add_client(msg['user_name'], sender_conn)
-            resp = mc.build_ok_join_room_resp()
+            resp = mc.build_ok_join_room_resp(users)
             sender_conn.send(resp)
             join_notification = mc.build_join_notification(msg['user_name'])
             self.broadcast_message(join_notification)
@@ -176,9 +259,9 @@ class Room:
             resp = mc.build_start_game_resp_ok()
             sender_conn.send(resp)
 
-            words_to_select = self.enter_word_selection_state()
+            words_to_select = self._enter_word_selection_state()
 
-            start_game_bc = {'msg_name': 'StartGameBc', 'artist': self._artist}
+            start_game_bc = {'msg_name': 'StartGameBc', 'artist': self._artist, 'score_awarded' : self._score_awarded}
             self.broadcast_message(start_game_bc)
             self.send_words_to_select_to_artist(words_to_select)
 
@@ -194,30 +277,46 @@ class Room:
             resp = mc.build_start_game_resp_not_ok('There must be at least 2 players to start the game!')
             sender_conn.send(resp)
 
-    def handle_WordSelectionResp(self, msg):
-        try:
-            if self._state != RoomState.WORD_SELECTION:
-                raise StateErrorException()
-
-            self._state = RoomState.DRAWING
-            self._current_word = msg['selected_word']
+    def send_hint(self, num_of_letters=0):
+            if self._state != RoomState.DRAWING:
+                return
 
             hint = '_' * len(self._current_word)
 
+            letters_left = num_of_letters
+
             for idx, val in enumerate(self._current_word):
                 if val == ' ':
-                    hint[idx] = ' '
+                    hint = replace_at_index(hint, ' ', idx)
+                elif letters_left > 0:
+                    hint = replace_at_index(hint, self._current_word[idx], idx)
+                    letters_left = letters_left - 1
 
             word_hint_bc = {
                 'msg_name': 'WordHintBc',
                 'word_hint': hint
             }
             self.broadcast_message(word_hint_bc)
-            
+
+    def handle_WordSelectionResp(self, msg):
+        try:
+            if self._state != RoomState.WORD_SELECTION:
+                raise StateErrorException()
+
+            if self._artist != msg['user_name']:
+                raise WordSelectionRespNotFromArtistException()
+
+            self._state = RoomState.DRAWING
+            self._current_word = msg['selected_word']
+            self.send_hint()
+
+        
+        except WordSelectionRespNotFromArtistException:
+            logging.warn('[ROOM ({})] Received WordSelectionResp from {} - not artist'.format(self._room_code, msg['user_name']))
+        
         except StateErrorException:
             logging.warn('[ROOM ({})] Received WordSelectionResp from {} not in state WORD_SELECTION'.format(self._room_code, msg['user_name']))
         
-
     def handle_DrawStrokeReq(self, msg):
         try:
             if self._state != RoomState.DRAWING:
