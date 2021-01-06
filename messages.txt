@@ -44,7 +44,6 @@ StartGameResp:
     info (str)[optional]
     status (NOK/OK)
 
-# TODO: should be removed and simply replaced with ArtistPickBc ?
 StartGameBc:
     msg_name (str)
     artist (str)
