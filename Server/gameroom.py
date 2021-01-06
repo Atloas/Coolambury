@@ -134,9 +134,10 @@ class Room:
         try:
             if msg['user_name'] in self._joined_clients:
                 raise UsernameTakenException()
-
+            
+            users = list(self._joined_clients.keys())
             self.add_client(msg['user_name'], sender_conn)
-            resp = mc.build_ok_join_room_resp()
+            resp = mc.build_ok_join_room_resp(users)
             sender_conn.send(resp)
             join_notification = mc.build_join_notification(msg['user_name'])
             self.broadcast_message(join_notification)
