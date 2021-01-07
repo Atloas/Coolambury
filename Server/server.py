@@ -49,7 +49,8 @@ class Server:
             'WordSelectionResp': mh.handle_WordSelectionResp,
             'DrawStrokeReq': mh.handle_DrawStrokeReq,
             'UndoLastStrokeReq': mh.handle_UndoLastStrokeReq,
-            'ClearCanvasReq': mh.handle_ClearCanvasReq
+            'ClearCanvasReq': mh.handle_ClearCanvasReq,
+            'GameRoomListReq': mh.handle_GameRoomListReq
         }
 
     def start(self):
