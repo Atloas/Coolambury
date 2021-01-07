@@ -252,7 +252,9 @@ class GameWindow(QtWidgets.QWidget):
 
     def handleArtistChangeSignal(self, contents):
         logging.debug("Handling artist_changed_signal")
-        self.wordSelectionWindow.close()
+        if self.wordSelectionWindow:
+            self.wordSelectionWindow.close()
+            
         # TODO: This drawings.append should be somewhere else, like in "guessing_over_signal", since now it won't fire on game over
         self.drawings.append(self.strokes.copy())
         self.display_system_message(
