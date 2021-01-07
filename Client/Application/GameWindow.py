@@ -175,6 +175,7 @@ class GameWindow(QtWidgets.QWidget):
         self.strokes = []
         self.stroke = []
 
+        self.chat.clear()
         self.clearCanvas()
         self.updateScoreboard()
 
