@@ -123,4 +123,13 @@ def build_game_room_list_resp(info_list):
     }
 
     return resp
-    
+
+def build_game_finished_bc(info=None):
+    msg = {
+        'msg_name': 'GameFinishedBc'
+    }
+
+    if info is not None:
+        msg['info'] = info
+
+    return msg
