@@ -99,21 +99,7 @@ WordGuessedBc():
     msg_name (str)
     word (str)
     user_name (str) (person who's guessed the word)
-    score_awarded ({"user_name": score, ...}) (assuming the guessing player is first)
-
-# TODO: consider removing below message
-{% comment %} Client -> Server {% endcomment %}
-FinishGameReq():
-    msg_name (str)
-    user_name (str)
-    room_code (str)
-
-# TODO: consider removing below message
-{% comment %} Server -> Client {% endcomment %}
-FinishGameResp():
-    msg_name (str)
-    status (str)
-    info (str)
+    score_awarded ({"user_name": score, ...})
 
 {% comment %} Server -> Client {% endcomment %}
 GameFinishedBc():
@@ -125,11 +111,19 @@ GameRoomListReq():
 
 GameRoomListResp():
     msg_name (str)
-    room_list ([dict, dick,...])
-
+    room_list ([dict, dict,...])
+        'owner_name'
+        'num_of_players'
+        'room_code'
+        
 {% comment %} Server -> Client {% endcomment %}
 WordHintBc():
     msg_name (str)
     word_hint (str) (encoded word with "_") eg. cat -> ___
     "hot air balloon"
      ___ ___ _______
+
+UpdateScoreboardBc():
+    msg_name (str)
+    users_in_room ({"user_name": score, ...})
+

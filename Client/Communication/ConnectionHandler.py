@@ -12,7 +12,7 @@ import sys
 
 class ConnectionHandler(QtCore.QObject):
     chat_message_signal = QtCore.pyqtSignal(dict)
-    scoreboard_update_signal = QtCore.pyqtSignal(str)
+    scoreboard_update_signal = QtCore.pyqtSignal(dict)
     switch_window = QtCore.pyqtSignal(str)
     start_game_signal = QtCore.pyqtSignal(dict)
     word_selection_signal = QtCore.pyqtSignal(dict)
@@ -108,6 +108,7 @@ class ConnectionHandler(QtCore.QObject):
             'GameFinishedBc': self.handle_GameFinishedBc,
             'GameRoomListResp': self.handle_GameRoomListResp,
             'WordHintBc': self.handle_WordHintBc,
+            'UpdateScoreboardBc': self.handle_UpdateScoreboardBc,
         }
         return message_dispatcher.get(received_msg['msg_name'], self.handle_UnrecognizedMessage)(received_msg)
 
@@ -123,6 +124,7 @@ class ConnectionHandler(QtCore.QObject):
 
     def handle_JoinRoomResp(self, received_msg):
         if received_msg['status'] == 'OK':
+            # TODO: enhance window switching
             self.switch_window.emit('Joining')
         else:
             PopUpWindow('Could not join to room!\n{}'.format(
@@ -153,8 +155,8 @@ class ConnectionHandler(QtCore.QObject):
     def handle_StartGameBc(self, received_msg):
         logging.debug(
             "[MESSAGE DISPATCHER] handling StartGameBc, Artist: {}".format(received_msg['artist']))
-        self.artist_change_signal.emit(received_msg)
         self.start_game_signal.emit(received_msg)
+        self.artist_change_signal.emit(received_msg)
 
     def handle_ArtistPickBc(self, received_msg):
         logging.debug(
@@ -207,6 +209,11 @@ class ConnectionHandler(QtCore.QObject):
         logging.debug(
             "[MESSAGE DISPATCHER] handling WordHintBc")
         self.word_hint_signal.emit(received_msg)
+
+    def handle_UpdateScoreboardBc(self, received_msg):
+        logging.debug(
+            "[MESSAGE DISPATCHER] handling handle_UpdateScoreboardBc")
+        self.scoreboard_update_signal.emit(received_msg)
 
     def handle_UnrecognizedMessage(self, received_msg):
         logging.debug(

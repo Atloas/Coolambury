@@ -11,9 +11,13 @@ class StartWindow(QtWidgets.QWidget):
     def __init__(self, connHandler, clientContext):
         super().__init__()
 
-        self.connHandler = connHandler
         self.clientContext = clientContext
+        self.connHandler = connHandler
+        self.connHandler.room_list_signal.connect(
+            self.handle_game_room_list_resp)
 
+        self.setMinimumSize(250, 100)
+        self.setMaximumSize(350, 300)
         self.setWindowTitle("Coolambury")
 
         self.rootVBox = QtWidgets.QVBoxLayout()
@@ -31,6 +35,17 @@ class StartWindow(QtWidgets.QWidget):
         self.roomCodeField = QtWidgets.QLineEdit()
         self.roomCodeField.maxLength = 8
         self.rootVBox.addWidget(self.roomCodeField)
+        self.roomList = QtWidgets.QListWidget()
+        self.roomList.setMinimumSize(200, 100)
+        self.roomList.addItem('no available rooms :(')
+        self.roomList.itemDoubleClicked.connect(self.room_list_element_clicked)
+        self.update_room_list()
+        self.refreshRoomListButton = QtWidgets.QPushButton(
+            "Refresh List")
+        self.refreshRoomListButton.clicked.connect(self.update_room_list)
+        
+        self.rootVBox.addWidget(self.roomList)
+        self.rootVBox.addWidget(self.refreshRoomListButton)
 
         self.joinButton = QtWidgets.QPushButton("Join room")
         self.joinButton.clicked.connect(self.delegate_room_join_to_handler)
@@ -89,6 +104,33 @@ class StartWindow(QtWidgets.QWidget):
             self.clientContext['roomCode'] = self.roomCodeField.text()
             self.connHandler.send_join_room_req(
                 self.clientContext['username'], self.clientContext['roomCode'])
+
+    def handle_game_room_list_resp(self, message):
+        logging.debug(
+            "[ROOM LIST] Handling RoomListResp: {}".format(message))
+        available_rooms = message['room_list']
+
+        self.roomList.clear()
+        if not available_rooms:
+            self.roomList.addItem('no available rooms :(')
+
+        for room in available_rooms:
+            self.roomList.addItem(QtWidgets.QListWidgetItem(
+                '{} - {}players - {}'.format(room['owner_name'], room['num_of_players'], room['room_code'])))
+
+    def room_list_element_clicked(self, item):
+        fetchedRoomCode = item.text()[-8:]
+        logging.debug(
+            "[ROOM LIST CLICKED] clicked: {},".format(item.text()[-8:], fetchedRoomCode))
+
+        if self.validate_nickname():
+            self.clientContext['username'] = self.nicknameField.text()
+            self.clientContext['roomCode'] = fetchedRoomCode
+            self.connHandler.send_join_room_req(
+                self.clientContext['username'], self.clientContext['roomCode'])
+
+    def update_room_list(self):
+        self.connHandler.send_game_room_list_req()
 
 
 if __name__ == '__main__':
