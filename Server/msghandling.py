@@ -2,7 +2,6 @@ import logging
 import gameroom as gr
 import networking as nw
 import msgcreation as mc
-import traceback
 
 class RoomNotExistsException(Exception):
     pass
@@ -160,7 +159,8 @@ def handle_ClearCanvasReq(resources, sender_conn, msg):
 def handle_GameRoomListReq(resources, sender_conn, msg):
     try:
         info_list = []
-        for room in resources['rooms']:
+        for room_code in resources['rooms']:
+            room = find_room(resources, room_code)
             if not room.is_started():
                 info_list.append(room.get_room_info())
 
