@@ -80,6 +80,8 @@ class GameWindow(QtWidgets.QWidget):
 
         self.scoreboard = QtWidgets.QTableWidget()
         self.scoreboard.setColumnCount(2)
+        self.scoreboard.horizontalHeader().stretchLastSection()
+        self.scoreboard.horizontalHeader().hide()
         self.bottomHBox.addWidget(self.scoreboard)
 
         self.canvasContainer = QtWidgets.QLabel()
