@@ -134,6 +134,7 @@ class GameWindow(QtWidgets.QWidget):
         self.connectSignals()
 
     def connectSignals(self):
+        self.connHandler.room_joined_signal(self.handleRoomJoinedSignal)
         self.connHandler.chat_message_signal.connect(self.display_message)
         self.connHandler.start_game_signal.connect(self.handleStartGameSignal)
         self.connHandler.word_selection_signal.connect(
@@ -155,17 +156,18 @@ class GameWindow(QtWidgets.QWidget):
         self.connHandler.game_over_signal.connect(self.handleGameOverSignal)
         self.connHandler.room_list_signal.connect(self.handleGameRoomListResp)
 
-    def initialize_room(self, contents):
-        # Set room state to a fresh one with just the owner
+    def handleRoomJoinedSignal(self, contents):
         self.gameState = GameState.PREGAME
-        self.owner = contents['owner']
+        self.owner = contents['users'][0]
         if self.player == self.owner:
             self.startButton.setDisabled(False)
         else:
             self.startButton.setDisabled(True)
-        self.players = contents['players']
-        if not self.players:
-            self.players[self.clientContext["username"]] = 0
+        self.players = {}
+        playerList = contents['users']
+        for player in playerList:
+            self.players[player] = 0
+        self.players[self.clientContext["username"]] = 0
         self.hint = "PREGAME"
         self.previousX = None
         self.previousY = None
@@ -202,6 +204,7 @@ class GameWindow(QtWidgets.QWidget):
         else:
             self.display_user_message(contents)
 
+    # DO NOT RENAME, breaks drawing
     def mouseMoveEvent(self, event):
         if self.artist != self.player:
             return
@@ -249,6 +252,7 @@ class GameWindow(QtWidgets.QWidget):
             "{} joined the room.".format(contents["player"]))
         self.players[contents["player"]] = 0
         self.updateScoreboard()
+        self.update()
 
     def handlePlayerLeftSignal(self, contents):
         logging.debug("Handling player_left_signal")
@@ -376,7 +380,7 @@ class GameWindow(QtWidgets.QWidget):
     def clearCanvasClicked(self):
         self.stroke = []
         self.strokes = []
-        self.clear()
+        self.clearCanvas()
         self.connHandler.send_clear_canvas_req(
             self.clientContext['username'], self.clientContext['roomCode'])
 
