@@ -29,7 +29,7 @@ class WordSelectionWindow(QtWidgets.QWidget):
 
         self.show()
 
-        self.setFixedSize(self.size())
+        #self.setFixedSize(self.size())
 
     def closeEvent(self, event):
         logging.debug('[WordSelectionWindow] Closing...')

@@ -44,7 +44,7 @@ class StartWindow(QtWidgets.QWidget):
 
         self.setLayout(self.rootVBox)
 
-        self.setFixedSize(self.size())
+        #self.setFixedSize(self.size())
 
     # TODO: Add validation for special characters!
     def validate_nickname(self):
