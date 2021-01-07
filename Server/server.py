@@ -17,7 +17,7 @@ class Server:
         self._server_socket = nw.create_and_bind_socket(self._resources['config'])
         
         self._map_message_handlers()
-        logging.debug('[SERVER] Initializing server...')
+        logging.debug('Initializing server...')
 
     def _load_config_file(self):
         try:
@@ -25,7 +25,7 @@ class Server:
             with open(config_path, 'r') as config_file:
                 self._resources['config'] = json.load(config_file)
         except:
-            logging.error('[SERVER] Error occurred when loading configuration file!')
+            logging.error('Error occurred when loading configuration file!')
             exit()
 
     def _prepare_list_of_words(self):
@@ -36,7 +36,7 @@ class Server:
                 for row in reader:
                     self._resources['words'].append(row[1])
         except:
-            logging.error('[SERVER] Error occurred when loading list of words!')
+            logging.error('Error occurred when loading list of words!')
             exit()
                 
     def _map_message_handlers(self):
@@ -53,7 +53,7 @@ class Server:
         }
 
     def start(self):
-        logging.debug('[SERVER] server is starting...')
+        logging.debug('Server is starting...')
         self._server_socket.listen()
 
         while True:
@@ -64,11 +64,13 @@ class Server:
             thread = threading.Thread(target=new_client.handle_client_messages)
             thread.start()
 
-            logging.debug('[SERVER] Active connections: {}'.format(threading.activeCount() - 1))
+            logging.debug('Active connections: {}'.format(threading.activeCount() - 1))
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d](%(funcName)s)  %(message)s',
+    datefmt='%Y-%m-%d:%H:%M:%S',
+    level=logging.DEBUG)
 
     coolambury_server = Server()
     coolambury_server.start()
