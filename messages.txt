@@ -101,12 +101,14 @@ WordGuessedBc():
     user_name (str) (person who's guessed the word)
     score_awarded ({"user_name": score, ...}) (assuming the guessing player is first)
 
+# TODO: consider removing below message
 {% comment %} Client -> Server {% endcomment %}
 FinishGameReq():
     msg_name (str)
     user_name (str)
     room_code (str)
 
+# TODO: consider removing below message
 {% comment %} Server -> Client {% endcomment %}
 FinishGameResp():
     msg_name (str)
@@ -116,7 +118,7 @@ FinishGameResp():
 {% comment %} Server -> Client {% endcomment %}
 GameFinishedBc():
     msg_name (str)
-    info (str) (eg: game started after 3 rounds)
+    info (str) (eg: game started after 3 rounds) [optional - present when the game is interrupted]
 
 GameRoomListReq():
     msg_name (str)
