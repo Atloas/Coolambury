@@ -1,4 +1,5 @@
 import logging
+import operator
 from enum import Enum
 
 from PyQt5 import QtCore, QtWidgets, QtGui
@@ -156,6 +157,10 @@ class GameWindow(QtWidgets.QWidget):
         # Set room state to a fresh one with just the owner
         self.gameState = GameState.PREGAME
         self.owner = contents['owner']
+        if self.player == self.owner:
+            self.startButton.setDisabled(False)
+        else:
+            self.startButton.setDisabled(True)
         self.players = contents['players']
         if not self.players:
             self.players[self.clientContext["username"]] = 0
@@ -254,7 +259,8 @@ class GameWindow(QtWidgets.QWidget):
 
     def handleArtistChangeSignal(self, contents):
         logging.debug("Handling artist_changed_signal")
-        self.wordSelectionWindow.close()
+        if self.wordSelectionWindow is not None:
+            self.wordSelectionWindow.close()
         # TODO: This drawings.append should be somewhere else, like in "guessing_over_signal", since now it won't fire on game over
         self.drawings.append(self.strokes.copy())
         self.display_system_message(
@@ -409,9 +415,11 @@ class GameWindow(QtWidgets.QWidget):
     def updateScoreboard(self):
         self.scoreboard.setRowCount(len(self.players))
         playerNumber = 0
-        for player in self.players:
-            score = self.players[player]
-            nameItem = QtWidgets.QTableWidgetItem(player)
+        sortedPlayers = sorted(self.players.items(), reverse=True, key=operator.itemgetter(1))
+        for player in sortedPlayers:
+            playerName = player[0]
+            score = player[1]
+            nameItem = QtWidgets.QTableWidgetItem(playerName)
             scoreItem = QtWidgets.QTableWidgetItem(str(score))
             self.scoreboard.setItem(playerNumber, 0, nameItem)
             self.scoreboard.setItem(playerNumber, 1, scoreItem)
