@@ -269,6 +269,9 @@ class Room:
 
     def handle_StartGameReq(self, msg, sender_conn):
         try:
+            if self._state not in [RoomState.PREGAME, RoomState.POSTGAME]:
+                raise StateErrorException()
+            
             user_name = msg['user_name']
             self.start_game(user_name)
             resp = mc.build_start_game_resp_ok()
