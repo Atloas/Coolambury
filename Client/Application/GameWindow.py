@@ -42,6 +42,7 @@ class GameWindow(QtWidgets.QWidget):
         self.player = self.clientContext['username']
         self.owner = None
         self.players = {}
+        self.players[self.player] = 0
         self.artist = None
         # The hint text, modifiable on server request.
         # For the painter, should display the full word. Placeholder for now.
@@ -79,11 +80,14 @@ class GameWindow(QtWidgets.QWidget):
         self.hints = QtWidgets.QLabel("")
         self.topHBox.addWidget(self.hints)
 
+        self.scoreboardColumnLabels = ['Nickname', 'Score']
         self.scoreboard = QtWidgets.QTableWidget()
-        self.scoreboard.setColumnCount(2)
-        self.scoreboard.horizontalHeader().stretchLastSection()
-        self.scoreboard.horizontalHeader().hide()
         self.scoreboard.verticalHeader().hide()
+        self.scoreboard.setColumnCount(len(self.scoreboardColumnLabels))
+        self.scoreboard.setHorizontalHeaderLabels(self.scoreboardColumnLabels)
+        for column in range(len(self.scoreboardColumnLabels)):
+            self.scoreboard.setColumnWidth(column, 125)
+
         self.bottomHBox.addWidget(self.scoreboard)
 
         self.canvasContainer = QtWidgets.QLabel()
@@ -129,12 +133,12 @@ class GameWindow(QtWidgets.QWidget):
         self.rootVBox.addLayout(self.bottomHBox)
 
         self.setLayout(self.rootVBox)
-        #self.setFixedSize(self.size())
+        # self.setFixedSize(self.size())
+        self.updateScoreboard()
 
         self.connectSignals()
 
     def connectSignals(self):
-        self.connHandler.room_joined_signal(self.handleRoomJoinedSignal)
         self.connHandler.chat_message_signal.connect(self.display_message)
         self.connHandler.start_game_signal.connect(self.handleStartGameSignal)
         self.connHandler.word_selection_signal.connect(
@@ -154,24 +158,7 @@ class GameWindow(QtWidgets.QWidget):
         self.connHandler.artist_change_signal.connect(
             self.handleArtistChangeSignal)
         self.connHandler.game_over_signal.connect(self.handleGameOverSignal)
-        self.connHandler.room_list_signal.connect(self.handleGameRoomListResp)
-
-    def handleRoomJoinedSignal(self, contents):
-        self.gameState = GameState.PREGAME
-        self.owner = contents['users'][0]
-        if self.player == self.owner:
-            self.startButton.setDisabled(False)
-        else:
-            self.startButton.setDisabled(True)
-        playerList = contents['users']
-        for player in playerList:
-            self.players[player] = 0
-        self.players[self.clientContext["username"]] = 0
-        self.updateScoreboard()
-
-        if self.player == self.owner:
-            self.display_system_message(
-                "Type !start to start the game once there's at least two players in the room!")
+        self.connHandler.scoreboard_update_signal.connect(self.updateScoreboardData)
 
     def closeEvent(self, event):
         logging.debug(
@@ -185,15 +172,15 @@ class GameWindow(QtWidgets.QWidget):
     def display_system_message(self, message):
         self.chat.append("<b>{}</b>".format(message))
 
-    def display_user_message(self, contents):
+    def display_user_message(self, message):
         self.chat.append("{}: {}".format(
-            contents['author'], contents['message']))
+            message['author'], message['message']))
 
-    def display_message(self, contents):
-        if contents['author'] == "SERVER":
-            self.display_system_message(contents['message'])
+    def display_message(self, message):
+        if message['author'] == "SERVER":
+            self.display_system_message(message['message'])
         else:
-            self.display_user_message(contents)
+            self.display_user_message(message)
 
     # DO NOT RENAME, breaks drawing
     def mouseMoveEvent(self, event):
@@ -231,36 +218,37 @@ class GameWindow(QtWidgets.QWidget):
                                               self.stroke.copy())
         self.stroke = []
 
-    def handleStartGameSignal(self, contents):
+    def handleStartGameSignal(self, message):
+        self.startButton.setDisabled(True)
         logging.debug("Handling start_game_signal")
         self.display_system_message("Game started!")
-        self.players = contents['score_awarded']
+        self.players = message['score_awarded']
         self.updateScoreboard()
 
-    def handlePlayerJoinedSignal(self, contents):
+    def handlePlayerJoinedSignal(self, message):
         logging.debug("Handling player_joined_signal")
         self.display_system_message(
-            "{} joined the room.".format(contents["player"]))
-        self.players[contents["player"]] = 0
+            "{} joined the room.".format(message["player"]))
+        self.players[message["player"]] = 0
         self.updateScoreboard()
         self.update()
 
-    def handlePlayerLeftSignal(self, contents):
+    def handlePlayerLeftSignal(self, message):
         logging.debug("Handling player_left_signal")
         self.display_system_message(
-            "{} left the room.".format(contents["player"]))
-        del self.players[contents["player"]]
+            "{} left the room.".format(message["player"]))
+        del self.players[message["player"]]
         self.updateScoreboard()
         # TODO: Handle all them edge cases.
         # TODO: What if the artist leaves, what if the owner leaves, what if the owner is left alone.
 
-    def handleArtistChangeSignal(self, contents):
+    def handleArtistChangeSignal(self, message):
         logging.debug("Handling artist_changed_signal")
         if self.wordSelectionWindow is not None:
             self.wordSelectionWindow.close()
         self.display_system_message(
-            "{} is now the artist.".format(contents["artist"]))
-        self.artist = contents["artist"]
+            "{} is now the artist.".format(message["artist"]))
+        self.artist = message["artist"]
         if self.player == self.artist:
             self.undoButton.setDisabled(False)
             self.clearCanvasButton.setDisabled(False)
@@ -272,37 +260,37 @@ class GameWindow(QtWidgets.QWidget):
         self.clearCanvas()
         self.gameState = GameState.WORD_SELECTION
 
-    def handleWordSelectionSignal(self, contents):
+    def handleWordSelectionSignal(self, message):
         logging.debug("Handling word_selection_signal")
-        self.wordSelectionWindow = WordSelectionWindow(contents["word_list"])
+        self.wordSelectionWindow = WordSelectionWindow(message["word_list"])
         self.wordSelectionWindow.prompt_locally_selected_signal.connect(
             self.handleWordLocallySelectedSignal)
         self.gameState = GameState.WORD_SELECTION
 
-    def handleWordLocallySelectedSignal(self, contents):
+    def handleWordLocallySelectedSignal(self, message):
         logging.debug("Handling word_locally_selected_signal")
         logging.debug("[Word Selection] Selected word = {}".format(
-            contents['selected_word']))
-        self.hints.setText(contents["selected_word"])
+            message['selected_word']))
+        self.hints.setText(message["selected_word"])
 
         self.connHandler.send_word_selection_resp(
-            self.clientContext['username'], self.clientContext['roomCode'], contents['selected_word'])
+            self.clientContext['username'], self.clientContext['roomCode'], message['selected_word'])
 
-    def handleWordHintSignal(self, contents):
+    def handleWordHintSignal(self, message):
         logging.debug("Handling word_hint_signal")
         if self.player == self.artist:
             return
         else:
             self.hint = ""
-            for i in range(len(contents["word_hint"]) - 1):
-                self.hint += contents["word_hint"][i] + " "
+            for i in range(len(message["word_hint"]) - 1):
+                self.hint += message["word_hint"][i] + " "
             self.hint += "_"
             self.hints.setText(self.hint)
         self.gameState = GameState.DRAWING
 
-    def handleStrokeSignal(self, contents):
+    def handleStrokeSignal(self, message):
         logging.debug("Handling draw_stroke_signal")
-        stroke = contents["stroke_coordinates"]
+        stroke = message["stroke_coordinates"]
         self.strokes.append(stroke.copy())
 
         painter = QtGui.QPainter(self.canvasContainer.pixmap())
@@ -327,18 +315,18 @@ class GameWindow(QtWidgets.QWidget):
         self.strokes = []
         self.clearCanvas()
 
-    def handleGuessCorrectSignal(self, contents):
+    def handleGuessCorrectSignal(self, message):
         logging.debug("Handling guess_correct_signal")
         self.display_system_message(
-            "{} guessed the word: {}!".format(contents["user_name"], contents["word"]))
+            "{} guessed the word: {}!".format(message["user_name"], message["word"]))
         self.drawings.append(self.strokes.copy())
-        self.players = contents['score_awarded']
+        self.players = message['score_awarded']
         self.updateScoreboard()
 
-    def handleGameOverSignal(self, contents):
+    def handleGameOverSignal(self, message):
+        self.startButton.setDisabled(False)
         logging.debug("Handling game_over_signal")
         self.gameState = GameState.POSTGAME
-        self.players = contents["final_scores"]
         self.artist = ""
         self.updateScoreboard()
         tie = False
@@ -358,10 +346,6 @@ class GameWindow(QtWidgets.QWidget):
         if self.drawings:
             self.drawingHistoryWindow = DrawingHistoryWindow(self.drawings)
         self.drawings = []
-
-    def handleGameRoomListResp(self, contents):
-        # TODO: Implement for room listing
-        pass
 
     def undoClicked(self):
         self.undo()
@@ -408,10 +392,16 @@ class GameWindow(QtWidgets.QWidget):
         pen.setColor(QtGui.QColor("black"))
         painter.setPen(pen)
 
+    def updateScoreboardData(self, message):
+        self.players = message['users_in_room']
+        self.updateScoreboard()
+
     def updateScoreboard(self):
+        # TODO: consider renaming players to scoreboardData
         self.scoreboard.setRowCount(len(self.players))
         playerNumber = 0
-        sortedPlayers = sorted(self.players.items(), reverse=True, key=operator.itemgetter(1))
+        sortedPlayers = sorted(self.players.items(),
+                               reverse=True, key=operator.itemgetter(1))
         for player in sortedPlayers:
             playerName = player[0]
             score = player[1]
