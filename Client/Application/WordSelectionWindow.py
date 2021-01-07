@@ -26,7 +26,10 @@ class WordSelectionWindow(QtWidgets.QWidget):
         self.wordButton2 = QtWidgets.QPushButton(self.words[2])
         self.wordButton2.clicked.connect(self.wordButton2Clicked)
         self.rootHBox.addWidget(self.wordButton2)
+
         self.show()
+
+        self.setFixedSize(self.size())
 
     def closeEvent(self, event):
         logging.debug('[WordSelectionWindow] Closing...')
