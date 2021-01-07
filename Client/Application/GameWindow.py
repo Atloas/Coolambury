@@ -129,7 +129,7 @@ class GameWindow(QtWidgets.QWidget):
         self.rootVBox.addLayout(self.bottomHBox)
 
         self.setLayout(self.rootVBox)
-        self.setFixedSize(self.size())
+        #self.setFixedSize(self.size())
 
         self.connectSignals()
 
