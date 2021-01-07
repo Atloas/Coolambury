@@ -108,3 +108,13 @@ def build_word_selection_req(user_name, room_code, word_list):
     }
 
     return req
+
+def build_word_guessed_bc(user_name, word, score_awarded):
+    msg = {
+        'msg_name': 'WordGuessedBc',
+        'user_name': user_name,
+        'word': word, 
+        'score_awarded': score_awarded
+    }
+    
+    return msg

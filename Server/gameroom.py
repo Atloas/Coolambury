@@ -87,6 +87,7 @@ class Room:
         self.lock = threading.Lock()
         self._round_time = round_time
         self._words = words
+        logging.info('[ROOM ID: {}] Room created'.format(room_code))
 
     def get_current_state(self):
         return self._state
@@ -117,7 +118,7 @@ class Room:
             try:
                 client[1].send(msg)
             except:
-                logging.warn('[ROOM ({})] Unable to send message {} to {}!'.format(self._room_code, msg['msg_name'], client[0]))
+                logging.warn('[ROOM ID: {}] Unable to send message {} to {}!'.format(self._room_code, msg['msg_name'], client[0]))
 
     def start_game(self, user_name):
         if user_name != self._owner:
@@ -129,7 +130,7 @@ class Room:
         if self.num_of_members() < 2:
             raise NotEnaughPlayersException()
 
-        logging.info('[ROOM ({})] Attempting to start a game!'.format(self._room_code))
+        logging.info('[ROOM ID: {}] Attempting to start a game!'.format(self._room_code))
         self._state = RoomState.STARTING_GAME
 
         self._score_awarded = {player[0]: 0 for player in self._joined_clients.items()}
@@ -146,7 +147,7 @@ class Room:
         self._select_artist_and_send_words()
     
     def _enter_word_selection_state(self):
-        logging.info('[ROOM ({})] Entering WORD_SELECTION state!'.format(self._room_code))
+        logging.info('[ROOM ID: {}] Entering WORD_SELECTION state!'.format(self._room_code))
         self._state = RoomState.WORD_SELECTION
 
         words_to_select = random.sample(self._words, 3)
@@ -156,7 +157,7 @@ class Room:
         del self._drawing_queue[0]
         self._drawing_queue.append(self._artist)
         
-        logging.debug('[ROOM ({})] Word draw result for artist {} : {}!'.format(self._room_code, self._artist, words_to_select))
+        logging.debug('[ROOM ID: {}] Word draw result for artist {} : {}!'.format(self._room_code, self._artist, words_to_select))
 
         self._round_time_controller = RoundTimeController(self, self._round_time)
         self._round_time_controller.start_round()
@@ -174,12 +175,9 @@ class Room:
         self.send_words_to_select_to_artist(words_to_select)
 
     def _announce_word_guessed(self, msg):
-        word_guessed_bc = {
-            'msg_name': 'WordGuessedBc',
-            'user_name': msg['user_name'],
-            'word': self._current_word, 
-            'score_awarded': self._score_awarded
-        }
+        word_guessed_bc = mc.build_word_guessed_bc(msg['user_name'],
+                                                   self._current_word,
+                                                   self._score_awarded)
         
         self.broadcast_message(word_guessed_bc)
         self._select_artist_and_send_words()
@@ -189,7 +187,7 @@ class Room:
             self._score_awarded[user_name] += 50
             self._score_awarded[self._artist] += round(self._round_time - time_passed)
         except:
-            logging.error('[ROOM ({})] Unknown error occurred when recalculating scoreboard'.format(self._room_code))
+            logging.error('[ROOM ID: {}] Unknown error occurred when recalculating scoreboard'.format(self._room_code))
 
     def handle_ChatMessageReq(self, msg, sender_conn):
         if self._state == RoomState.DRAWING:
@@ -224,7 +222,7 @@ class Room:
             join_notification = mc.build_join_notification(msg['user_name'])
             self.broadcast_message(join_notification)
 
-            logging.debug('[ROOM ({})] User {} joined'.format(self._room_code, msg['user_name']))
+            logging.debug('[ROOM ID: {}] User {} joined'.format(self._room_code, msg['user_name']))
 
         except GameAlreadyStartedException:
             info = 'Game already started!'
@@ -242,9 +240,9 @@ class Room:
             leave_notification = mc.build_leave_notification(user_name)
             self.broadcast_message(leave_notification)
 
-            logging.info('[ROOM ({})] Removed user {}'.format(self._room_code, user_name))
+            logging.info('[ROOM ID: {}] Removed user {}'.format(self._room_code, user_name))
         else:
-            logging.info('[ROOM ({})] User {} not found'.format(self._room_code, user_name))
+            logging.warn('[ROOM ID: {}] User {} not found'.format(self._room_code, user_name))
 
     def send_words_to_select_to_artist(self, words_to_select):
         self._state = RoomState.WORD_SELECTION
@@ -312,15 +310,18 @@ class Room:
 
         
         except WordSelectionRespNotFromArtistException:
-            logging.warn('[ROOM ({})] Received WordSelectionResp from {} - not artist'.format(self._room_code, msg['user_name']))
+            logging.warn('[ROOM ID: {}] Received WordSelectionResp from {} - not artist'.format(self._room_code, msg['user_name']))
         
         except StateErrorException:
-            logging.warn('[ROOM ({})] Received WordSelectionResp from {} not in state WORD_SELECTION'.format(self._room_code, msg['user_name']))
+            logging.warn('[ROOM ID: {}] Received WordSelectionResp from {} not in state WORD_SELECTION'.format(self._room_code, msg['user_name']))
         
     def handle_DrawStrokeReq(self, msg):
         try:
             if self._state != RoomState.DRAWING:
                 raise StateErrorException()
+            
+            if msg['user_name'] != self._artist:
+                raise RuntimeError()
 
             draw_stroke_bc = {
                 'msg_name': 'DrawStrokeBc',
@@ -329,36 +330,42 @@ class Room:
             self.broadcast_message(draw_stroke_bc)
             
         except StateErrorException:
-            logging.warn('[ROOM ({})] Received WordSelectionResp from {} not in state DRAWING'.format(self._room_code, msg['user_name']))
+            logging.warn('[ROOM ID: {}] Received WordSelectionResp from {} not in state DRAWING'.format(self._room_code, msg['user_name']))
         
         except:
-            logging.error('[ROOM ({})] Unknown error occurred when handling message {}'.format(self._room_code, msg))
+            logging.error('[ROOM ID: {}] Unknown error occurred when handling message {}'.format(self._room_code, msg))
 
     def handle_UndoLastStrokeReq(self, msg):
         try:
             if self._state != RoomState.DRAWING:
                 raise StateErrorException()
+            
+            if msg['user_name'] != self._artist:
+                raise RuntimeError()
 
             undo_last_stroke_bc = {'msg_name': 'UndoLastStrokeBc'}
             self.broadcast_message(undo_last_stroke_bc)
 
         except StateErrorException:
-            logging.warn('[ROOM ({})] Received UndoLastStrokeReq from {} not in state DRAWING'.format(self._room_code, msg['user_name']))
+            logging.warn('[ROOM ID: {}] Received UndoLastStrokeReq from {} not in state DRAWING'.format(self._room_code, msg['user_name']))
         
         except:
-            logging.error('[ROOM ({})] Unknown error occurred when handling message {}'.format(self._room_code, msg))
+            logging.error('[ROOM ID: {}] Unknown error occurred when handling message {}'.format(self._room_code, msg))
     
     def handle_ClearCanvasReq(self, msg):
         try:
             if self._state != RoomState.DRAWING:
                 raise StateErrorException()
+            
+            if msg['user_name'] != self._artist:
+                raise RuntimeError()
 
             clear_canvas_bc = {'msg_name': 'ClearCanvasBc'}
             self.broadcast_message(clear_canvas_bc)
 
         except StateErrorException:
-            logging.warn('[ROOM ({})] Received ClearCanvasReq from {} not in state DRAWING'.format(self._room_code, msg['user_name']))
+            logging.warn('[ROOM ID: {}] Received ClearCanvasReq from {} not in state DRAWING'.format(self._room_code, msg['user_name']))
         
         except:
-            logging.error('[ROOM ({})] Unknown error occurred when handling message {}'.format(self._room_code, msg))
+            logging.error('[ROOM ID: {}] Unknown error occurred when handling message {}'.format(self._room_code, msg))
             
