@@ -12,12 +12,13 @@ def create_and_bind_socket(config):
     return server_socket
 
 def send_NOT_OK_JoinRoomResp_with_info(conn, info):
-    logging.debug('[handle_JoinRoomReq] {}'.format(info))
+    logging.debug('{}'.format(info))
     resp = mc.build_not_ok_join_room_resp(info=info)
     conn.send(resp)
 
 
 class ClientConnection:
+    id_counter = 0
     def __init__(self, conn, addr, resources, msg_mapping):
         self._resources = resources
         self._conn = conn
@@ -25,8 +26,9 @@ class ClientConnection:
         self._msg_mapping = msg_mapping
         self._connected = True
         self._config = resources['config']
-        # TODO: Add time of logging
-        logging.debug('[NETWORKING] {} connected'.format(addr))
+        self._id = ClientConnection.id_counter
+        ClientConnection.id_counter += 1
+        logging.debug('[CLIENT ID: {}] connected'.format(self._id))
     
     def _receive_bytes(self, bytes_no):
         bytes_left = bytes_no
@@ -66,14 +68,14 @@ class ClientConnection:
         while self._connected:
             msg_name, msg_body = self._receive()
             if msg_body:
-                logging.debug('[NETWORKING] dispatching message {}'.format(msg_body))
+                logging.debug('[CLIENT ID: {}] dispatching message {}'.format(self._id, msg_name))
                 try:
                     handling_func = self._msg_mapping[msg_name]
                     handling_func(self._resources, self, msg_body)
                 except KeyError:
-                    logging.error('[NETWORKING] Handlind function not found for {}'.format(msg_name))
+                    logging.error('[CLIENT ID: {}] Handlind function not found for {}'.format(self._id, msg_name))
                 except:
-                    logging.error('[NETWORKING] Unknown error occurred when handling msg {} = {}'.format(msg_name, msg_body))
+                    logging.error('[CLIENT ID: {}] Unknown error occurred when handling msg {} = {}'.format(self._id, msg_name, msg_body))
 
 
     def close_connection(self):
@@ -82,6 +84,6 @@ class ClientConnection:
             self._conn.shutdown(socket.SHUT_RDWR)
             self._conn.close()
         except:
-            logging.error('[CLIENT CONNECTION] Unsuccessful socket shutdown!')
+            logging.error('[CLIENT ID: {}] Unsuccessful socket shutdown'.format(self._id))
 
-        logging.debug('[CLIENT CONNECTION] Closing connection')
+        logging.debug('[CLIENT ID: {}] Connection closed'.format(self._id))
