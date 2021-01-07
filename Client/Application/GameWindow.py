@@ -163,20 +163,10 @@ class GameWindow(QtWidgets.QWidget):
             self.startButton.setDisabled(False)
         else:
             self.startButton.setDisabled(True)
-        self.players = {}
         playerList = contents['users']
         for player in playerList:
             self.players[player] = 0
         self.players[self.clientContext["username"]] = 0
-        self.hint = "PREGAME"
-        self.previousX = None
-        self.previousY = None
-        self.drawings = []
-        self.strokes = []
-        self.stroke = []
-
-        self.chat.clear()
-        self.clearCanvas()
         self.updateScoreboard()
 
         if self.player == self.owner:
