@@ -85,21 +85,6 @@ class QdRecognition:
         predictions = self.model.predict(prepared_drawings)
         return self.labels[predictions[0].argmax()]
 
-    # def convert_strokes_list(self, strokes):
-        
-    #     new_strokes = []
-    #     for stroke in strokes:
-    #         xx = []
-    #         yy = []
-    #         print(stroke)
-    #         for coordinates in stroke:
-    #             pass
-    #             # print(coordinates)
-    #             # [xx.append(x) for x,y in coordinates]
-    #             # [yy.append(y) for x,y in coordinates]
-    #         new_stroke = [xx, yy]
-    #         new_strokes.append(new_stroke)
-    #     print(new_strokes)
     
     def convert_strokes_list(self, strokes):
         new_strokes = []
