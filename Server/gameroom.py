@@ -61,7 +61,6 @@ class RoundTimeController:
             self._timer = threading.Timer(self._round_time / 2, self._full_time_passed)
             self._timer.start()
 
-
     def _full_time_passed(self):
         if not self._round_finished:
             with self._room.lock:
@@ -89,8 +88,16 @@ class Room:
         self._words = words
         logging.info('[ROOM ID: {}] Room created'.format(room_code))
 
-    def get_current_state(self):
-        return self._state
+    def is_started(self):
+        return self._state not in [RoomState.PREGAME, RoomState.POSTGAME]
+
+    def get_room_info(self):
+        info = {
+            'owner_name': self._owner,
+            'num_of_players': len(self._joined_clients),
+            'room_code': self._room_code
+        }
+        return info
 
     def num_of_members(self):
         return len(self._joined_clients)
@@ -276,25 +283,25 @@ class Room:
             sender_conn.send(resp)
 
     def send_hint(self, num_of_letters=0):
-            if self._state != RoomState.DRAWING:
-                return
+        if self._state != RoomState.DRAWING:
+            return
 
-            hint = '_' * len(self._current_word)
+        hint = '_' * len(self._current_word)
 
-            letters_left = num_of_letters
+        letters_left = num_of_letters
 
-            for idx, val in enumerate(self._current_word):
-                if val == ' ':
-                    hint = replace_at_index(hint, ' ', idx)
-                elif letters_left > 0:
-                    hint = replace_at_index(hint, self._current_word[idx], idx)
-                    letters_left = letters_left - 1
+        for idx, val in enumerate(self._current_word):
+            if val == ' ':
+                hint = replace_at_index(hint, ' ', idx)
+            elif letters_left > 0:
+                hint = replace_at_index(hint, self._current_word[idx], idx)
+                letters_left = letters_left - 1
 
-            word_hint_bc = {
-                'msg_name': 'WordHintBc',
-                'word_hint': hint
-            }
-            self.broadcast_message(word_hint_bc)
+        word_hint_bc = {
+            'msg_name': 'WordHintBc',
+            'word_hint': hint
+        }
+        self.broadcast_message(word_hint_bc)
 
     def handle_WordSelectionResp(self, msg):
         try:
