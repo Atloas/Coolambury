@@ -61,7 +61,6 @@ class RoundTimeController:
             self._timer = threading.Timer(self._round_time / 2, self._full_time_passed)
             self._timer.start()
 
-
     def _full_time_passed(self):
         if not self._round_finished:
             with self._room.lock:
@@ -79,7 +78,7 @@ def replace_at_index(s, newstring, index, nofail=False):
     return s[:index] + newstring + s[index + 1:]
 
 class Room:
-    def __init__(self, owner_name, owner_connection, room_code, words, round_time=60.0):
+    def __init__(self, owner_name, owner_connection, room_code, words, score_limit=100, round_time=60.0):
         self._owner = owner_name
         self._joined_clients = {owner_name : owner_connection}
         self._room_code = room_code
@@ -87,10 +86,19 @@ class Room:
         self.lock = threading.Lock()
         self._round_time = round_time
         self._words = words
+        self._score_limit = score_limit
         logging.info('[ROOM ID: {}] Room created'.format(room_code))
 
-    def get_current_state(self):
-        return self._state
+    def is_started(self):
+        return self._state not in [RoomState.PREGAME, RoomState.POSTGAME]
+
+    def get_room_info(self):
+        info = {
+            'owner_name': self._owner,
+            'num_of_players': len(self._joined_clients),
+            'room_code': self._room_code
+        }
+        return info
 
     def num_of_members(self):
         return len(self._joined_clients)
@@ -174,13 +182,22 @@ class Room:
         self.broadcast_message(artist_pick_bc)
         self.send_words_to_select_to_artist(words_to_select)
 
+    def _finish_game(self):
+        logging.info('[ROOM ID: {}] Finishing game. Scoreboard: {}'.format(self._room_code, self._score_awarded))
+        self._state = RoomState.POSTGAME
+        msg_bc = mc.build_game_finished_bc()
+        self.broadcast_message(msg_bc)
+
     def _announce_word_guessed(self, msg):
         word_guessed_bc = mc.build_word_guessed_bc(msg['user_name'],
                                                    self._current_word,
                                                    self._score_awarded)
         
         self.broadcast_message(word_guessed_bc)
-        self._select_artist_and_send_words()
+        if max(list(self._score_awarded.values())) >= self._score_limit:
+            self._finish_game()
+        else:
+            self._select_artist_and_send_words()
 
     def _recalculate_score(self, user_name, time_passed):
         try:
@@ -276,25 +293,25 @@ class Room:
             sender_conn.send(resp)
 
     def send_hint(self, num_of_letters=0):
-            if self._state != RoomState.DRAWING:
-                return
+        if self._state != RoomState.DRAWING:
+            return
 
-            hint = '_' * len(self._current_word)
+        hint = '_' * len(self._current_word)
 
-            letters_left = num_of_letters
+        letters_left = num_of_letters
 
-            for idx, val in enumerate(self._current_word):
-                if val == ' ':
-                    hint = replace_at_index(hint, ' ', idx)
-                elif letters_left > 0:
-                    hint = replace_at_index(hint, self._current_word[idx], idx)
-                    letters_left = letters_left - 1
+        for idx, val in enumerate(self._current_word):
+            if val == ' ':
+                hint = replace_at_index(hint, ' ', idx)
+            elif letters_left > 0:
+                hint = replace_at_index(hint, self._current_word[idx], idx)
+                letters_left = letters_left - 1
 
-            word_hint_bc = {
-                'msg_name': 'WordHintBc',
-                'word_hint': hint
-            }
-            self.broadcast_message(word_hint_bc)
+        word_hint_bc = {
+            'msg_name': 'WordHintBc',
+            'word_hint': hint
+        }
+        self.broadcast_message(word_hint_bc)
 
     def handle_WordSelectionResp(self, msg):
         try:

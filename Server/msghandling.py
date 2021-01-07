@@ -156,3 +156,15 @@ def handle_ClearCanvasReq(resources, sender_conn, msg):
 
     except:
         logging.error('Unknown error occurred when handling message {}'.format(msg))
+
+def handle_GameRoomListReq(resources, sender_conn, msg):
+    try:
+        info_list = []
+        for room in resources['rooms']:
+            if not room.is_started():
+                info_list.append(room.get_room_info())
+
+        resp = mc.build_game_room_list_resp(info_list)
+        sender_conn.send(resp)
+    except:
+        logging.error('Unknown error occurred when handling message {}'.format(msg))
