@@ -83,6 +83,7 @@ class GameWindow(QtWidgets.QWidget):
         self.scoreboard.setColumnCount(2)
         self.scoreboard.horizontalHeader().stretchLastSection()
         self.scoreboard.horizontalHeader().hide()
+        self.scoreboard.verticalHeader().hide()
         self.bottomHBox.addWidget(self.scoreboard)
 
         self.canvasContainer = QtWidgets.QLabel()
@@ -128,6 +129,7 @@ class GameWindow(QtWidgets.QWidget):
         self.rootVBox.addLayout(self.bottomHBox)
 
         self.setLayout(self.rootVBox)
+        self.setFixedSize(self.size())
 
         self.connectSignals()
 
@@ -261,8 +263,6 @@ class GameWindow(QtWidgets.QWidget):
         logging.debug("Handling artist_changed_signal")
         if self.wordSelectionWindow is not None:
             self.wordSelectionWindow.close()
-        # TODO: This drawings.append should be somewhere else, like in "guessing_over_signal", since now it won't fire on game over
-        self.drawings.append(self.strokes.copy())
         self.display_system_message(
             "{} is now the artist.".format(contents["artist"]))
         self.artist = contents["artist"]
@@ -333,9 +333,10 @@ class GameWindow(QtWidgets.QWidget):
         self.clearCanvas()
 
     def handleGuessCorrectSignal(self, contents):
+        logging.debug("Handling guess_correct_signal")
         self.display_system_message(
             "{} guessed the word: {}!".format(contents["user_name"], contents["word"]))
-
+        self.drawings.append(self.strokes.copy())
         self.players = contents['score_awarded']
         self.updateScoreboard()
 

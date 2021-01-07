@@ -38,8 +38,10 @@ class DrawingHistoryWindow(QtWidgets.QWidget):
         self.controlsHBox.addWidget(self.nextButton)
 
         self.setLayout(self.rootVBox)
+        self.setFixedSize(self.size())
 
         self.draw()
+
         self.show()
 
     # TODO: in stead of a label as canvasContainer make a Canvas(QtWidgets.Label) class that handles all drawing?

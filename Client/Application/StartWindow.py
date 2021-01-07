@@ -14,30 +14,37 @@ class StartWindow(QtWidgets.QWidget):
         self.connHandler = connHandler
         self.clientContext = clientContext
 
-        self.setMinimumSize(250, 100)
-        self.setMaximumSize(350, 200)
         self.setWindowTitle("Coolambury")
-        self.vBox = QtWidgets.QVBoxLayout()
+
+        self.rootVBox = QtWidgets.QVBoxLayout()
+
         self.nicknameLabel = QtWidgets.QLabel('Enter your nickname:')
+        self.rootVBox.addWidget(self.nicknameLabel)
+
         self.nicknameField = QtWidgets.QLineEdit()
         self.nicknameField.maxLength = 15
+        self.rootVBox.addWidget(self.nicknameField)
+
         self.roomCodeLabel = QtWidgets.QLabel('Enter room code:')
+        self.rootVBox.addWidget(self.roomCodeLabel)
+
         self.roomCodeField = QtWidgets.QLineEdit()
         self.roomCodeField.maxLength = 8
+        self.rootVBox.addWidget(self.roomCodeField)
+
         self.joinButton = QtWidgets.QPushButton("Join room")
         self.joinButton.clicked.connect(self.delegate_room_join_to_handler)
-        self.createRoombutton = QtWidgets.QPushButton(
-            "Create Room")
-        self.createRoombutton.clicked.connect(
-            self.delegate_room_creation_to_handler)
+        self.rootVBox.addWidget(self.joinButton)
 
-        self.setLayout(self.vBox)
-        self.vBox.addWidget(self.nicknameLabel)
-        self.vBox.addWidget(self.nicknameField)
-        self.vBox.addWidget(self.roomCodeLabel)
-        self.vBox.addWidget(self.roomCodeField)
-        self.vBox.addWidget(self.joinButton)
-        self.vBox.addWidget(self.createRoombutton)
+        self.createRoomButton = QtWidgets.QPushButton(
+            "Create Room")
+        self.createRoomButton.clicked.connect(
+            self.delegate_room_creation_to_handler)
+        self.rootVBox.addWidget(self.createRoomButton)
+
+        self.setLayout(self.rootVBox)
+
+        self.setFixedSize(self.size())
 
     # TODO: Add validation for special characters!
     def validate_nickname(self):
@@ -66,7 +73,7 @@ class StartWindow(QtWidgets.QWidget):
     def closeEvent(self, event):
         logging.debug(
             "[EXITING ATTEMPT] Client is requesting for application exit")
-        if self.connHandler.is_connection_receiver_connected() == True:
+        if self.connHandler.is_connection_receiver_connected():
             self.connHandler.send_socket_disconnect_req()
             self.connHandler.kill_receiver()
 
