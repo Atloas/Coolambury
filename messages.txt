@@ -16,7 +16,7 @@ JoinRoomResp:
     msg_name (str)
     status (str)
     info (str)[exists if status == NOT_OK]
-    users ([str]) [list of users in room][exists if status == OK]
+    users_in_room ({score_awarded}) 
 
 ChatMessageReq:
     msg_name (str)

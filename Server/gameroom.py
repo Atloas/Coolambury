@@ -81,6 +81,7 @@ class Room:
     def __init__(self, owner_name, owner_connection, room_code, words, score_limit=100, round_time=60.0):
         self._owner = owner_name
         self._joined_clients = {owner_name : owner_connection}
+        self._score_awarded = {owner_name: 0}
         self._room_code = room_code
         self._state = RoomState.PREGAME
         self.lock = threading.Lock()
@@ -107,10 +108,12 @@ class Room:
         if self._state not in [RoomState.PREGAME, RoomState.POSTGAME]:
             raise GameAlreadyStartedException()
         self._joined_clients[user_name] = user_conn
+        self._score_awarded[user_name] = 0
         
     def remove_client_by_name_if_exists(self, user_name):
         try:
             del self._joined_clients[user_name]
+            del self._score_awarded[user_name]
             return True
         except:
             return False
@@ -232,12 +235,14 @@ class Room:
             if msg['user_name'] in self._joined_clients:
                 raise UsernameTakenException()
             
-            users = list(self._joined_clients.keys())
             self.add_client(msg['user_name'], sender_conn)
-            resp = mc.build_ok_join_room_resp(users)
+            resp = mc.build_ok_join_room_resp(self._score_awarded)
             sender_conn.send(resp)
             join_notification = mc.build_join_notification(msg['user_name'])
             self.broadcast_message(join_notification)
+
+            update_score_board_bc = {'msg_name': 'UpdateScoreboardBc', 'users_in_room': self._score_awarded}
+            self.broadcast_message(update_score_board_bc)
 
             logging.debug('[ROOM ID: {}] User {} joined'.format(self._room_code, msg['user_name']))
 
@@ -256,6 +261,9 @@ class Room:
         if removed:
             leave_notification = mc.build_leave_notification(user_name)
             self.broadcast_message(leave_notification)
+
+            update_score_board_bc = {'msg_name': 'UpdateScoreboardBc', 'users_in_room': self._score_awarded}
+            self.broadcast_message(update_score_board_bc)
 
             logging.info('[ROOM ID: {}] Removed user {}'.format(self._room_code, user_name))
         else:
