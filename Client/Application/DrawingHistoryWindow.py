@@ -5,6 +5,8 @@ class DrawingHistoryWindow(QtWidgets.QWidget):
     def __init__(self, drawings):
         QtWidgets.QWidget.__init__(self)
 
+        self.setWindowTitle("Drawing history")
+
         # Assumes drawings isn't empty
         # copy()?
         self.drawings = drawings
@@ -13,7 +15,7 @@ class DrawingHistoryWindow(QtWidgets.QWidget):
         # Window
         self.rootVBox = QtWidgets.QVBoxLayout()
 
-        self.canvas = QtGui.QPixmap(400, 300)
+        self.canvas = QtGui.QPixmap(400, 400)
         self.canvas.fill(QtGui.QColor("white"))
 
         self.canvasContainer = QtWidgets.QLabel()
