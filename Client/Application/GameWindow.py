@@ -29,7 +29,7 @@ class GameWindow(QtWidgets.QWidget):
         # TODO: Reset window's state on switch
         QtWidgets.QWidget.__init__(self)
         with self.thread_lock:
-            logging.debug("[GAMEWINDOW] Creating Game Window instance...")
+            logging.debug("[GameWindow] Creating Game Window instance...")
             self.clientContext = clientContext
             self.connHandler = connHandler
             self.setWindowTitle("Coolambury [{}] {}".format(
@@ -135,11 +135,12 @@ class GameWindow(QtWidgets.QWidget):
             self.rootVBox.addLayout(self.bottomHBox)
 
             self.setLayout(self.rootVBox)
-            # self.setFixedSize(self.size())
+            self.layout().setSizeConstraint(QtWidgets.QLayout.SetFixedSize)
+
             self.updateScoreboard()
 
             self.connectSignals()
-            logging.debug("[GAMEWINDOW] Game Window created...")
+            logging.debug("[GameWindow] Game Window created...")
 
     def connectSignals(self):
         self.connHandler.chat_message_signal.connect(self.display_message)
@@ -166,7 +167,7 @@ class GameWindow(QtWidgets.QWidget):
 
     def closeEvent(self, event):
         logging.debug(
-            "[EXITING ATTEMPT] Client is requesting for client exit")
+            "[GameWindow Exit] Client is requesting for client exit")
         if self.connHandler.is_connection_receiver_connected():
             self.connHandler.send_exit_client_req(
                 self.clientContext['username'], self.clientContext['roomCode'])
