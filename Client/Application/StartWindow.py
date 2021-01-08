@@ -43,7 +43,7 @@ class StartWindow(QtWidgets.QWidget):
         self.refreshRoomListButton = QtWidgets.QPushButton(
             "Refresh List")
         self.refreshRoomListButton.clicked.connect(self.update_room_list)
-        
+
         self.rootVBox.addWidget(self.roomList)
         self.rootVBox.addWidget(self.refreshRoomListButton)
 
@@ -59,7 +59,7 @@ class StartWindow(QtWidgets.QWidget):
 
         self.setLayout(self.rootVBox)
 
-        #self.setFixedSize(self.size())
+        # self.setFixedSize(self.size())
 
     # TODO: Add validation for special characters!
     def validate_nickname(self):
