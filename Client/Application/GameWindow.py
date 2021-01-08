@@ -1,6 +1,7 @@
 import logging
 import operator
 import threading
+import bleach
 from enum import Enum
 from PyQt5 import QtCore, QtWidgets, QtGui
 from .WordSelectionWindow import WordSelectionWindow
@@ -47,7 +48,7 @@ class GameWindow(QtWidgets.QWidget):
             self.artist = None
             # The hint text, modifiable on server request.
             # For the painter, should display the full word. Placeholder for now.
-            self.hint = "____"
+            self.hint = "_ _ _ _"
 
             self.wordSelectionWindow = None
             self.drawingHistoryWindow = None
@@ -89,12 +90,12 @@ class GameWindow(QtWidgets.QWidget):
                 self.scoreboardColumnLabels)
             for column in range(len(self.scoreboardColumnLabels)):
                 self.scoreboard.setColumnWidth(column, 125)
-
             self.bottomHBox.addWidget(self.scoreboard)
 
-            self.canvasContainer = QtWidgets.QLabel()
             self.canvas = QtGui.QPixmap(400, 400)
             self.canvas.fill(QtGui.QColor("white"))
+
+            self.canvasContainer = QtWidgets.QLabel()
             self.canvasContainer.setPixmap(self.canvas)
             self.gameAndControlsVBox.addWidget(self.canvasContainer)
 
@@ -178,8 +179,9 @@ class GameWindow(QtWidgets.QWidget):
         self.chat.append("<b>{}</b>".format(message))
 
     def display_user_message(self, message):
+        sanitized_message = bleach.clean(message)
         self.chat.append("{}: {}".format(
-            message['author'], message['message']))
+            message['author'], sanitized_message))
 
     def display_message(self, message):
         if message['author'] == "SERVER":
