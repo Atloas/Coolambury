@@ -35,16 +35,17 @@ class StartWindow(QtWidgets.QWidget):
         self.roomCodeField = QtWidgets.QLineEdit()
         self.roomCodeField.maxLength = 8
         self.rootVBox.addWidget(self.roomCodeField)
+
         self.roomList = QtWidgets.QListWidget()
         self.roomList.setMinimumSize(200, 100)
         self.roomList.addItem('no available rooms :(')
         self.roomList.itemDoubleClicked.connect(self.room_list_element_clicked)
         self.update_room_list()
+        self.rootVBox.addWidget(self.roomList)
+
         self.refreshRoomListButton = QtWidgets.QPushButton(
             "Refresh List")
         self.refreshRoomListButton.clicked.connect(self.update_room_list)
-
-        self.rootVBox.addWidget(self.roomList)
         self.rootVBox.addWidget(self.refreshRoomListButton)
 
         self.joinButton = QtWidgets.QPushButton("Join room")
@@ -58,8 +59,7 @@ class StartWindow(QtWidgets.QWidget):
         self.rootVBox.addWidget(self.createRoomButton)
 
         self.setLayout(self.rootVBox)
-
-        # self.setFixedSize(self.size())
+        self.layout().setSizeConstraint(QtWidgets.QLayout.SetFixedSize)
 
     # TODO: Add validation for special characters!
     def validate_nickname(self):
