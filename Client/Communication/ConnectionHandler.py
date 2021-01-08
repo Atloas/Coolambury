@@ -1,13 +1,12 @@
-from PyQt5 import QtWidgets, QtCore, QtGui
-
-from . import SocketMsgHandler
-from Utils.PopUpWindow import PopUpWindow
-
 import socket
 import threading
 import logging
 import json
 import sys
+from PyQt5 import QtWidgets, QtCore, QtGui
+from . import SocketMsgHandler
+from Utils.PopUpWindow import PopUpWindow
+from Application.GameWindow import GameWindow
 
 
 class ConnectionHandler(QtCore.QObject):
@@ -123,21 +122,23 @@ class ConnectionHandler(QtCore.QObject):
             "[MESSAGE DISPATCHER] handling CreateRoomResp Successful, STATUS OK")
 
     def handle_JoinRoomResp(self, received_msg):
-        if received_msg['status'] == 'OK':
-            # TODO: enhance window switching
-            self.switch_window.emit('Joining')
-        else:
-            PopUpWindow('Could not join to room!\n{}'.format(
-                received_msg['info']), 'ERROR')
+        with GameWindow.thread_lock:
+            if received_msg['status'] == 'OK':
+                # TODO: enhance window switching
+                self.switch_window.emit('Joining')
+            else:
+                PopUpWindow('Could not join to room!\n{}'.format(
+                    received_msg['info']), 'ERROR')
+                logging.debug(
+                    "[MESSAGE DISPATCHER] handling JoinRoomResp failed, STATUS NOK")
             logging.debug(
-                "[MESSAGE DISPATCHER] handling JoinRoomResp failed, STATUS NOK")
-        logging.debug(
-            "[MESSAGE DISPATCHER] handling JoinRoomResp Successful, STATUS OK")
+                "[MESSAGE DISPATCHER] handling JoinRoomResp Successful, STATUS OK")
 
     def handle_ChatMessageBc(self, received_msg):
-        logging.debug(
-            "[MESSAGE DISPATCHER] handling ChatMessageBc {}: {}".format(received_msg['author'], received_msg['message']))
-        self.chat_message_signal.emit(received_msg)
+        with GameWindow.thread_lock:
+            logging.debug(
+                "[MESSAGE DISPATCHER] handling ChatMessageBc {}: {}".format(received_msg['author'], received_msg['message']))
+            self.chat_message_signal.emit(received_msg)
 
     def handle_ExitClientReq(self, received_msg):
         self.kill_receiver()
@@ -212,7 +213,7 @@ class ConnectionHandler(QtCore.QObject):
 
     def handle_UpdateScoreboardBc(self, received_msg):
         logging.debug(
-            "[MESSAGE DISPATCHER] handling handle_UpdateScoreboardBc")
+            "[MESSAGE DISPATCHER] handling handle_UpdateScoreboardBc {}".format(received_msg))
         self.scoreboard_update_signal.emit(received_msg)
 
     def handle_UnrecognizedMessage(self, received_msg):

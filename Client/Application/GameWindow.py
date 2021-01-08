@@ -1,9 +1,8 @@
 import logging
 import operator
+import threading
 from enum import Enum
-
 from PyQt5 import QtCore, QtWidgets, QtGui
-
 from .WordSelectionWindow import WordSelectionWindow
 from .DrawingHistoryWindow import DrawingHistoryWindow
 from Utils.PopUpWindow import PopUpWindow
@@ -21,6 +20,7 @@ class GameState(Enum):
 
 
 class GameWindow(QtWidgets.QWidget):
+    thread_lock = threading.Lock()
     switch_window = QtCore.pyqtSignal()
     key_pressed_signal = QtCore.pyqtSignal(QtCore.QEvent)
     word_locally_selected_signal = QtCore.pyqtSignal(dict)
@@ -28,115 +28,118 @@ class GameWindow(QtWidgets.QWidget):
     def __init__(self, clientContext, connHandler):
         # TODO: Reset window's state on switch
         QtWidgets.QWidget.__init__(self)
+        with self.thread_lock:
+            logging.debug("[GAMEWINDOW] Creating Game Window instance...")
+            self.clientContext = clientContext
+            self.connHandler = connHandler
+            self.setWindowTitle("Coolambury [{}] {}".format(
+                self.clientContext['username'],
+                self.clientContext['roomCode']))
 
-        self.clientContext = clientContext
-        self.connHandler = connHandler
-        self.setWindowTitle("Coolambury [{}] {}".format(
-            self.clientContext['username'],
-            self.clientContext['roomCode']))
+            # Game
+            # Contains a dict of all player names and their scores, ex. {"Atloas": 100, "loska": 110}
+            # Player drawing order enforced by server?
+            self.gameState = None
+            self.player = self.clientContext['username']
+            self.owner = None
+            self.players = {}
+            self.players[self.player] = 0
+            self.artist = None
+            # The hint text, modifiable on server request.
+            # For the painter, should display the full word. Placeholder for now.
+            self.hint = "____"
 
-        # Game
-        # Contains a dict of all player names and their scores, ex. {"Atloas": 100, "loska": 110}
-        # Player drawing order enforced by server?
-        self.gameState = None
-        self.player = self.clientContext['username']
-        self.owner = None
-        self.players = {}
-        self.players[self.player] = 0
-        self.artist = None
-        # The hint text, modifiable on server request.
-        # For the painter, should display the full word. Placeholder for now.
-        self.hint = "____"
+            self.wordSelectionWindow = None
+            self.drawingHistoryWindow = None
 
-        self.wordSelectionWindow = None
-        self.drawingHistoryWindow = None
+            # Drawing
+            self.previousX = None
+            self.previousY = None
+            self.drawings = []
+            self.strokes = []
+            self.stroke = []
 
-        # Drawing
-        self.previousX = None
-        self.previousY = None
-        self.drawings = []
-        self.strokes = []
-        self.stroke = []
+            # Window
+            self.rootVBox = QtWidgets.QVBoxLayout()
+            self.topHBox = QtWidgets.QHBoxLayout()
+            self.bottomHBox = QtWidgets.QHBoxLayout()
+            self.gameAndControlsVBox = QtWidgets.QVBoxLayout()
+            self.controlsHBox = QtWidgets.QHBoxLayout()
+            self.chatVBox = QtWidgets.QVBoxLayout()
+            self.chatBottomHBox = QtWidgets.QHBoxLayout()
 
-        # Window
-        self.rootVBox = QtWidgets.QVBoxLayout()
-        self.topHBox = QtWidgets.QHBoxLayout()
-        self.bottomHBox = QtWidgets.QHBoxLayout()
-        self.gameAndControlsVBox = QtWidgets.QVBoxLayout()
-        self.controlsHBox = QtWidgets.QHBoxLayout()
-        self.chatVBox = QtWidgets.QVBoxLayout()
-        self.chatBottomHBox = QtWidgets.QHBoxLayout()
+            self.disconnectButton = QtWidgets.QPushButton("Disconnect")
+            self.disconnectButton.setMaximumSize(100, 50)
+            self.disconnectButton.clicked.connect(self.disconnect_clicked)
+            self.topHBox.addWidget(self.disconnectButton)
 
-        self.disconnectButton = QtWidgets.QPushButton("Disconnect")
-        self.disconnectButton.setMaximumSize(100, 50)
-        self.disconnectButton.clicked.connect(self.disconnect_clicked)
-        self.topHBox.addWidget(self.disconnectButton)
+            self.startButton = QtWidgets.QPushButton("Start")
+            self.startButton.setMaximumSize(100, 50)
+            self.startButton.clicked.connect(self.start_clicked)
+            self.topHBox.addWidget(self.startButton)
 
-        self.startButton = QtWidgets.QPushButton("Start")
-        self.startButton.setMaximumSize(100, 50)
-        self.startButton.clicked.connect(self.start_clicked)
-        self.topHBox.addWidget(self.startButton)
+            self.hints = QtWidgets.QLabel("")
+            self.topHBox.addWidget(self.hints)
 
-        self.hints = QtWidgets.QLabel("")
-        self.topHBox.addWidget(self.hints)
+            self.scoreboardColumnLabels = ['Nickname', 'Score']
+            self.scoreboard = QtWidgets.QTableWidget()
+            self.scoreboard.verticalHeader().hide()
+            self.scoreboard.setColumnCount(len(self.scoreboardColumnLabels))
+            self.scoreboard.setHorizontalHeaderLabels(
+                self.scoreboardColumnLabels)
+            for column in range(len(self.scoreboardColumnLabels)):
+                self.scoreboard.setColumnWidth(column, 125)
 
-        self.scoreboardColumnLabels = ['Nickname', 'Score']
-        self.scoreboard = QtWidgets.QTableWidget()
-        self.scoreboard.verticalHeader().hide()
-        self.scoreboard.setColumnCount(len(self.scoreboardColumnLabels))
-        self.scoreboard.setHorizontalHeaderLabels(self.scoreboardColumnLabels)
-        for column in range(len(self.scoreboardColumnLabels)):
-            self.scoreboard.setColumnWidth(column, 125)
+            self.bottomHBox.addWidget(self.scoreboard)
 
-        self.bottomHBox.addWidget(self.scoreboard)
+            self.canvasContainer = QtWidgets.QLabel()
+            self.canvas = QtGui.QPixmap(400, 400)
+            self.canvas.fill(QtGui.QColor("white"))
+            self.canvasContainer.setPixmap(self.canvas)
+            self.gameAndControlsVBox.addWidget(self.canvasContainer)
 
-        self.canvasContainer = QtWidgets.QLabel()
-        self.canvas = QtGui.QPixmap(400, 400)
-        self.canvas.fill(QtGui.QColor("white"))
-        self.canvasContainer.setPixmap(self.canvas)
-        self.gameAndControlsVBox.addWidget(self.canvasContainer)
+            self.undoButton = QtWidgets.QPushButton("Undo")
+            self.undoButton.setDisabled(True)
+            self.undoButton.clicked.connect(self.undoClicked)
+            self.controlsHBox.addWidget(self.undoButton)
 
-        self.undoButton = QtWidgets.QPushButton("Undo")
-        self.undoButton.setDisabled(True)
-        self.undoButton.clicked.connect(self.undoClicked)
-        self.controlsHBox.addWidget(self.undoButton)
+            self.clearCanvasButton = QtWidgets.QPushButton("Clear")
+            self.clearCanvasButton.setDisabled(True)
+            self.clearCanvasButton.clicked.connect(self.clearCanvasClicked)
+            self.controlsHBox.addWidget(self.clearCanvasButton)
 
-        self.clearCanvasButton = QtWidgets.QPushButton("Clear")
-        self.clearCanvasButton.setDisabled(True)
-        self.clearCanvasButton.clicked.connect(self.clearCanvasClicked)
-        self.controlsHBox.addWidget(self.clearCanvasButton)
+            self.gameAndControlsVBox.addLayout(self.controlsHBox)
 
-        self.gameAndControlsVBox.addLayout(self.controlsHBox)
+            self.chat = QtWidgets.QTextEdit()
+            self.chat.setReadOnly(True)
+            self.chat.append("GAME ROOM ID: {}".format(
+                self.clientContext['roomCode']))
 
-        self.chat = QtWidgets.QTextEdit()
-        self.chat.setReadOnly(True)
-        self.chat.append("GAME ROOM ID: {}".format(
-            self.clientContext['roomCode']))
+            self.chatEntryLine = QtWidgets.QLineEdit()
+            self.chatEntryLine.setPlaceholderText("Have a guess!")
+            self.chatEntryLine.returnPressed.connect(self.newChatMessage)
 
-        self.chatEntryLine = QtWidgets.QLineEdit()
-        self.chatEntryLine.setPlaceholderText("Have a guess!")
-        self.chatEntryLine.returnPressed.connect(self.newChatMessage)
+            self.chatEntryButton = QtWidgets.QPushButton("Send")
+            self.chatEntryButton.clicked.connect(self.newChatMessage)
 
-        self.chatEntryButton = QtWidgets.QPushButton("Send")
-        self.chatEntryButton.clicked.connect(self.newChatMessage)
+            self.chatBottomHBox.addWidget(self.chatEntryLine)
+            self.chatBottomHBox.addWidget(self.chatEntryButton)
 
-        self.chatBottomHBox.addWidget(self.chatEntryLine)
-        self.chatBottomHBox.addWidget(self.chatEntryButton)
+            self.chatVBox.addWidget(self.chat)
+            self.chatVBox.addLayout(self.chatBottomHBox)
 
-        self.chatVBox.addWidget(self.chat)
-        self.chatVBox.addLayout(self.chatBottomHBox)
+            self.bottomHBox.addLayout(self.gameAndControlsVBox)
+            self.bottomHBox.addLayout(self.chatVBox)
 
-        self.bottomHBox.addLayout(self.gameAndControlsVBox)
-        self.bottomHBox.addLayout(self.chatVBox)
+            self.rootVBox.addLayout(self.topHBox)
+            self.rootVBox.addLayout(self.bottomHBox)
 
-        self.rootVBox.addLayout(self.topHBox)
-        self.rootVBox.addLayout(self.bottomHBox)
+            self.setLayout(self.rootVBox)
+            # self.setFixedSize(self.size())
+            self.updateScoreboard()
 
-        self.setLayout(self.rootVBox)
-        # self.setFixedSize(self.size())
-        self.updateScoreboard()
-
-        self.connectSignals()
+            self.connectSignals()
+            logging.debug("[GAMEWINDOW] Game Window created...")
 
     def connectSignals(self):
         self.connHandler.chat_message_signal.connect(self.display_message)
@@ -158,7 +161,8 @@ class GameWindow(QtWidgets.QWidget):
         self.connHandler.artist_change_signal.connect(
             self.handleArtistChangeSignal)
         self.connHandler.game_over_signal.connect(self.handleGameOverSignal)
-        self.connHandler.scoreboard_update_signal.connect(self.updateScoreboardData)
+        self.connHandler.scoreboard_update_signal.connect(
+            self.updateScoreboardData)
 
     def closeEvent(self, event):
         logging.debug(
