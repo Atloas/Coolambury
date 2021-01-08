@@ -19,15 +19,20 @@ class QdRecognition:
 
     def top_3_acc(self, y_true, y_pred):
         return metrics.top_k_categorical_accuracy(y_true, y_pred, k=3)
-
-    def prepare(self, bitmaps):
-        bitmaps = np.array(bitmaps)
-        bitmaps = bitmaps.astype('float16') / 255.
-        bitmaps_to_analyse = np.empty([self.num_classes, len(bitmaps), self.img_size ])
-        bitmaps_to_analyse[0] = bitmaps
-        bitmaps_to_analyse = bitmaps_to_analyse.reshape(bitmaps_to_analyse.shape[0] * bitmaps_to_analyse.shape[1], self.img_size)
-        bitmaps_to_analyse = bitmaps_to_analyse.reshape(bitmaps_to_analyse.shape[0],self.img_width, self.img_height, self.img_dim)
-        return bitmaps_to_analyse
+    
+    def convert_strokes_list(self, strokes):
+    new_strokes = []
+    for coordinates in strokes:
+        x = []
+            y = [] 
+        new_stroke = []
+        for coordinate in coordinates:
+                x.append(coordinate[0])
+                y.append(coordinate[1])
+        new_stroke.append(x)
+        new_stroke.append(y)
+        new_strokes.append(new_stroke)
+    return new_strokes       
 
     def vector_to_raster(self, vector_images, side=28, line_diameter=16, padding=16, bg_color=(0,0,0), fg_color=(1,1,1)):
         """
@@ -75,6 +80,17 @@ class QdRecognition:
             raster_images.append(raster_image)
         
         return raster_images
+
+    def prepare(self, bitmaps):
+        bitmaps = np.array(bitmaps)
+        bitmaps = bitmaps.astype('float16') / 255.
+        bitmaps_to_analyse = np.empty([self.num_classes, len(bitmaps), self.img_size ])
+        bitmaps_to_analyse[0] = bitmaps
+        bitmaps_to_analyse = bitmaps_to_analyse.reshape(bitmaps_to_analyse.shape[0] * bitmaps_to_analyse.shape[1], self.img_size)
+        bitmaps_to_analyse = bitmaps_to_analyse.reshape(bitmaps_to_analyse.shape[0],self.img_width, self.img_height, self.img_dim)
+        return bitmaps_to_analyse
+
+
     
     def recognize(self, drawing):
         drawings = []
@@ -89,17 +105,5 @@ class QdRecognition:
         return self.labels[predictions[0].argmax()]
 
     
-    def convert_strokes_list(self, strokes):
-        new_strokes = []
-        for coordinates in strokes:
-            xx = []
-            yy = [] 
-            new_stroke = []
-            for coordinate in coordinates:
-                    xx.append(coordinate[0])
-                    yy.append(coordinate[1])
-            new_stroke.append(xx)
-            new_stroke.append(yy)
-            new_strokes.append(new_stroke)
-        return new_strokes           
+   
     
