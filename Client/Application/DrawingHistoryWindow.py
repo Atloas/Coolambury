@@ -15,6 +15,7 @@ class DrawingHistoryWindow(QtWidgets.QWidget):
 
         self.canvas = QtGui.QPixmap(400, 300)
         self.canvas.fill(QtGui.QColor("white"))
+
         self.canvasContainer = QtWidgets.QLabel()
         self.canvasContainer.setPixmap(self.canvas)
         self.rootVBox.addWidget(self.canvasContainer)
@@ -38,7 +39,7 @@ class DrawingHistoryWindow(QtWidgets.QWidget):
         self.controlsHBox.addWidget(self.nextButton)
 
         self.setLayout(self.rootVBox)
-        #self.setFixedSize(self.size())
+        self.layout().setSizeConstraint(QtWidgets.QLayout.SetFixedSize)
 
         self.draw()
 
