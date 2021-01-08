@@ -35,6 +35,7 @@ class StartWindow(QtWidgets.QWidget):
         self.roomCodeField = QtWidgets.QLineEdit()
         self.roomCodeField.maxLength = 8
         self.rootVBox.addWidget(self.roomCodeField)
+
         self.roomList = QtWidgets.QListWidget()
         self.roomList.setMinimumSize(200, 100)
         self.roomList.addItem('no available rooms :(')
@@ -59,6 +60,7 @@ class StartWindow(QtWidgets.QWidget):
 
         self.setLayout(self.rootVBox)
 
+        self.layout().setSizeConstraint(QtWidgets.QLayout.SetFixedSize)
         #self.setFixedSize(self.size())
 
     # TODO: Add validation for special characters!
