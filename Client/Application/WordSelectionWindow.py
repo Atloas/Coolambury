@@ -10,9 +10,9 @@ class WordSelectionWindow(QtWidgets.QWidget):
         self.words = words
         logging.debug(
             '[WordSelectionWindow] Window Initialization with words: {}'.format(self.words))
-        self.rootHBox = QtWidgets.QHBoxLayout()
-        self.setLayout(self.rootHBox)
         self.setWindowTitle("Choose your word")
+
+        self.rootHBox = QtWidgets.QHBoxLayout()
 
         # This could be done better, like with a list of buttons. Similarly the event handlers for button clicks
         self.wordButton0 = QtWidgets.QPushButton(self.words[0])
@@ -27,9 +27,10 @@ class WordSelectionWindow(QtWidgets.QWidget):
         self.wordButton2.clicked.connect(self.wordButton2Clicked)
         self.rootHBox.addWidget(self.wordButton2)
 
-        self.show()
+        self.setLayout(self.rootHBox)
+        self.layout().setSizeConstraint(QtWidgets.QLayout.SetFixedSize)
 
-        #self.setFixedSize(self.size())
+        self.show()
 
     def closeEvent(self, event):
         logging.debug('[WordSelectionWindow] Closing...')

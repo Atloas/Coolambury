@@ -38,7 +38,7 @@ class DrawingHistoryWindow(QtWidgets.QWidget):
         self.controlsHBox.addWidget(self.nextButton)
 
         self.setLayout(self.rootVBox)
-        #self.setFixedSize(self.size())
+        self.layout().setSizeConstraint(QtWidgets.QLayout.SetFixedSize)
 
         self.draw()
 
