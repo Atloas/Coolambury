@@ -80,7 +80,7 @@ class DrawingHistoryWindow(QtWidgets.QWidget):
         self.draw()
 
     def saveClicked(self):
-        # TODO: Test this (and everything else, but especially this)
+        # TODO: fix up the PNG filtering thing
         dialogResult = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Drawing', '.', 'PNG', 'PNG')
         filename = dialogResult[0] + ".png"
         self.canvasContainer.pixmap().save(filename, "png")

@@ -27,7 +27,6 @@ class GameWindow(QtWidgets.QWidget):
     word_locally_selected_signal = QtCore.pyqtSignal(dict)
 
     def __init__(self, clientContext, connHandler):
-        # TODO: Reset window's state on switch
         QtWidgets.QWidget.__init__(self)
         with self.thread_lock:
             logging.debug("[GameWindow] Creating Game Window instance...")
@@ -165,6 +164,7 @@ class GameWindow(QtWidgets.QWidget):
         self.connHandler.game_over_signal.connect(self.handleGameOverSignal)
         self.connHandler.scoreboard_update_signal.connect(
             self.updateScoreboardData)
+        self.connHandler.owner_changed_signal.connect(self.handleOwnerChangedSignal)
 
     def closeEvent(self, event):
         logging.debug(
@@ -331,9 +331,10 @@ class GameWindow(QtWidgets.QWidget):
         self.updateScoreboard()
 
     def handleGameOverSignal(self, message):
-        self.startButton.setDisabled(False)
         logging.debug("[GameWindow] Handling game_over_signal")
         self.gameState = GameState.POSTGAME
+        if self.player == self.owner:
+            self.startButton.setDisabled(False)
         self.artist = ""
         self.updateScoreboard()
         tie = False
@@ -353,6 +354,13 @@ class GameWindow(QtWidgets.QWidget):
         if self.drawings:
             self.drawingHistoryWindow = DrawingHistoryWindow(self.drawings)
         self.drawings = []
+
+    def handleOwnerChangedSignal(self, message):
+        logging.debug("[GameWindow] Handling owner_changed_signal")
+        self.owner = message["new_owner"]
+        self.display_system_message("{} is the new room owner!".format(self.owner))
+        if (self.gameState == GameState.PREGAME or self.gameState == GameState.POSTGAME) and self.player == self.owner:
+            self.startButton.setDisabled(False)
 
     def undoClicked(self):
         self.undo()
