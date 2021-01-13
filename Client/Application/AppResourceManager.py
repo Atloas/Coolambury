@@ -4,33 +4,33 @@ from Communication.ConnectionHandler import ConnectionHandler
 import logging
 from Utils.PopUpWindow import PopUpWindow
 
-# ApplicationResourcesManager
+
 class AppResourceManager:
 
-    def __init__(self, connHandler):
-        self.connHandler = connHandler
-        self.clientContext = {}
-        self.clientContext['username'] = ''
-        self.clientContext['roomCode'] = ''
-        self.startWindow = StartWindow(self.connHandler, self.clientContext)
-        self.gameWindow = None
+    def __init__(self, connection_handler):
+        self.connection_handler = connection_handler
+        self.client_context = {}
+        self.client_context['username'] = ''
+        self.client_context['roomCode'] = ''
+        self.start_window = StartWindow(self.connection_handler, self.client_context)
+        self.game_window = None
         # TODO: sort out the parameter order:
-        self.connHandler.switch_window.connect(self.show_game)
-        self.startWindow.show()
+        self.connection_handler.switch_window.connect(self.show_game)
+        self.start_window.show()
 
     def show_start(self):
-        if self.startWindow is not None:
-            if self.gameWindow is not None and self.gameWindow.isVisible():
-                self.gameWindow.hide()
-            self.startWindow.setVisible(True)
+        if self.start_window is not None:
+            if self.game_window is not None and self.game_window.isVisible():
+                self.game_window.hide()
+            self.start_window.setVisible(True)
 
-    def show_game(self, roomCode):
-        if roomCode != 'Joining':
-            self.clientContext['roomCode'] = roomCode
-        self.gameWindow = GameWindow(self.clientContext, self.connHandler)
-        self.gameWindow.switch_window.connect(self.show_start)
-        self.startWindow.hide()
-        self.gameWindow.show()
+    def show_game(self, room_code):
+        if room_code != 'Joining':
+            self.client_context['roomCode'] = room_code
+        self.game_window = GameWindow(self.client_context, self.connection_handler)
+        self.game_window.switch_window.connect(self.show_start)
+        self.start_window.hide()
+        self.game_window.show()
 
 
 if __name__ == '__main__':

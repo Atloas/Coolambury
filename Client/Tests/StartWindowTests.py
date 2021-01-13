@@ -32,14 +32,14 @@ class TestStartWindow(unittest.TestCase):
         self.assertFalse(self.sut.validate_nickname())
 
     def test_shouldSuccessfullyValidateNickname(self):
-        self.sut.nicknameField.setText('username')
+        self.sut.nickname_field.setText('username')
         self.assertTrue(self.sut.validate_nickname())
 
     def test_shouldValidateRoomCodeAndFailDueToEmptyValue(self):
         self.assertFalse(self.sut.validate_room_code())
 
     def test_shouldSuccessfullyValidateRoomCode(self):
-        self.sut.roomCodeField.setText('abcdefgh')
+        self.sut.room_code_field.setText('abcdefgh')
         self.assertTrue(self.sut.validate_room_code())
 
     # def test_shouldSuccesfullyPerformWindowCloseEvent(self):

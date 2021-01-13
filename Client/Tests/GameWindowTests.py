@@ -37,12 +37,12 @@ class TestGameWindow(unittest.TestCase):
         self.test_shouldDisplayGameRoomIdAfterWindowOpened()
         
         messageContent = '{}: {}'.format(
-            self.sut.clientContext['username'], 'Hej byczq')
+            self.sut.client_context['username'], 'Hej byczq')
         clearedChatEntry = ''
-        self.sut.chatEntryLine.setText(messageContent)
+        self.sut.chat_entry_line.setText(messageContent)
         self.sut.display_user_msg(messageContent)
 
-        self.assertEqual(self.sut.chatEntryLine.text(), clearedChatEntry
+        self.assertEqual(self.sut.chat_entry_line.text(), clearedChatEntry
         self.assertEqual(self.sut.chat.toPlainText(), '{}{}{}'.format(
             self.initialGameRoomIdMessage, messageContent, '\n'))
 
