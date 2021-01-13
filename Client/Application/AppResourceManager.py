@@ -28,7 +28,6 @@ class AppResourceManager:
         if roomCode != 'Joining':
             self.clientContext['roomCode'] = roomCode
         self.gameWindow = GameWindow(self.clientContext, self.connHandler)
-        # TODO: Move to GameWindow.__init__()?
         self.gameWindow.switch_window.connect(self.show_start)
         self.startWindow.hide()
         self.gameWindow.show()
