@@ -12,40 +12,41 @@ class WordSelectionWindow(QtWidgets.QWidget):
             '[WordSelectionWindow] Window Initialization with words: {}'.format(self.words))
         self.setWindowTitle("Choose your word")
 
-        self.rootHBox = QtWidgets.QHBoxLayout()
+        self.root_hBox = QtWidgets.QHBoxLayout()
 
         # This could be done better, like with a list of buttons. Similarly the event handlers for button clicks
-        self.wordButton0 = QtWidgets.QPushButton(self.words[0])
-        self.wordButton0.clicked.connect(self.wordButton0Clicked)
-        self.rootHBox.addWidget(self.wordButton0)
+        self.word_button_0 = QtWidgets.QPushButton(self.words[0])
+        self.word_button_0.clicked.connect(self.word_button_0_clicked)
+        self.root_hBox.addWidget(self.word_button_0)
 
-        self.wordButton1 = QtWidgets.QPushButton(self.words[1])
-        self.wordButton1.clicked.connect(self.wordButton1Clicked)
-        self.rootHBox.addWidget(self.wordButton1)
+        self.word_button_1 = QtWidgets.QPushButton(self.words[1])
+        self.word_button_1.clicked.connect(self.word_button_1_clicked)
+        self.root_hBox.addWidget(self.word_button_1)
 
-        self.wordButton2 = QtWidgets.QPushButton(self.words[2])
-        self.wordButton2.clicked.connect(self.wordButton2Clicked)
-        self.rootHBox.addWidget(self.wordButton2)
+        self.word_button_2 = QtWidgets.QPushButton(self.words[2])
+        self.word_button_2.clicked.connect(self.word_button_2_clicked)
+        self.root_hBox.addWidget(self.word_button_2)
 
         self.show()
 
-        self.setLayout(self.rootHBox)
+        self.setLayout(self.root_hBox)
         self.layout().setSizeConstraint(QtWidgets.QLayout.SetFixedSize)
 
+    # Do not rename
     def closeEvent(self, event):
         logging.debug('[WordSelectionWindow] Closing...')
 
-    def wordButton0Clicked(self):
+    def word_button_0_clicked(self):
         self.prompt_locally_selected_signal.emit(
             {"selected_word": self.words[0]})
         self.close()
 
-    def wordButton1Clicked(self):
+    def word_button_1_clicked(self):
         self.prompt_locally_selected_signal.emit(
             {"selected_word": self.words[1]})
         self.close()
 
-    def wordButton2Clicked(self):
+    def word_button_2_clicked(self):
         self.prompt_locally_selected_signal.emit(
             {"selected_word": self.words[2]})
         self.close()

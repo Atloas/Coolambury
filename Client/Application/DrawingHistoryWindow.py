@@ -13,34 +13,34 @@ class DrawingHistoryWindow(QtWidgets.QWidget):
         self.index = 0
 
         # Window
-        self.rootVBox = QtWidgets.QVBoxLayout()
+        self.root_vBox = QtWidgets.QVBoxLayout()
 
         self.canvas = QtGui.QPixmap(400, 400)
         self.canvas.fill(QtGui.QColor("white"))
 
-        self.canvasContainer = QtWidgets.QLabel()
-        self.canvasContainer.setPixmap(self.canvas)
-        self.rootVBox.addWidget(self.canvasContainer)
+        self.canvas_container = QtWidgets.QLabel()
+        self.canvas_container.setPixmap(self.canvas)
+        self.root_vBox.addWidget(self.canvas_container)
 
-        self.controlsHBox = QtWidgets.QHBoxLayout()
-        self.rootVBox.addLayout(self.controlsHBox)
+        self.controls_hBox = QtWidgets.QHBoxLayout()
+        self.root_vBox.addLayout(self.controls_hBox)
 
-        self.previousButton = QtWidgets.QPushButton("<")
-        self.previousButton.clicked.connect(self.previousClicked)
-        self.previousButton.setDisabled(True)
-        self.controlsHBox.addWidget(self.previousButton)
+        self.previous_button = QtWidgets.QPushButton("<")
+        self.previous_button.clicked.connect(self.previous_clicked)
+        self.previous_button.setDisabled(True)
+        self.controls_hBox.addWidget(self.previous_button)
 
-        self.saveButton = QtWidgets.QPushButton("Save")
-        self.saveButton.clicked.connect(self.saveClicked)
-        self.controlsHBox.addWidget(self.saveButton)
+        self.save_button = QtWidgets.QPushButton("Save")
+        self.save_button.clicked.connect(self.save_clicked)
+        self.controls_hBox.addWidget(self.save_button)
 
-        self.nextButton = QtWidgets.QPushButton(">")
-        self.nextButton.clicked.connect(self.nextClicked)
+        self.next_button = QtWidgets.QPushButton(">")
+        self.next_button.clicked.connect(self.next_clicked)
         if len(self.drawings) == 1:
-            self.nextButton.setDisabled(True)
-        self.controlsHBox.addWidget(self.nextButton)
+            self.next_button.setDisabled(True)
+        self.controls_hBox.addWidget(self.next_button)
 
-        self.setLayout(self.rootVBox)
+        self.setLayout(self.root_vBox)
         self.layout().setSizeConstraint(QtWidgets.QLayout.SetFixedSize)
 
         self.draw()
@@ -50,7 +50,7 @@ class DrawingHistoryWindow(QtWidgets.QWidget):
     # TODO: in stead of a label as canvasContainer make a Canvas(QtWidgets.Label) class that handles all drawing?
     def draw(self):
         strokes = self.drawings[self.index]
-        painter = QtGui.QPainter(self.canvasContainer.pixmap())
+        painter = QtGui.QPainter(self.canvas_container.pixmap())
         self.configurePen(painter)
         painter.eraseRect(0, 0, self.canvas.width(), self.canvas.height())
         for stroke in strokes:
@@ -65,22 +65,22 @@ class DrawingHistoryWindow(QtWidgets.QWidget):
         pen.setColor(QtGui.QColor("black"))
         painter.setPen(pen)
 
-    def previousClicked(self):
+    def previous_clicked(self):
         self.index -= 1
         if self.index == 0:
-            self.previousButton.setDisabled(True)
-        self.nextButton.setDisabled(False)
+            self.previous_button.setDisabled(True)
+        self.next_button.setDisabled(False)
         self.draw()
 
-    def nextClicked(self):
+    def next_clicked(self):
         self.index += 1
         if self.index == len(self.drawings) - 1:
-            self.nextButton.setDisabled(True)
-        self.previousButton.setDisabled(False)
+            self.next_button.setDisabled(True)
+        self.previous_button.setDisabled(False)
         self.draw()
 
-    def saveClicked(self):
+    def save_clicked(self):
         # TODO: fix up the PNG filtering thing
-        dialogResult = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Drawing', '.', 'PNG', 'PNG')
-        filename = dialogResult[0] + ".png"
-        self.canvasContainer.pixmap().save(filename, "png")
+        dialog_result = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Drawing', '.', 'PNG', 'PNG')
+        filename = dialog_result[0] + ".png"
+        self.canvas_container.pixmap().save(filename, "png")
