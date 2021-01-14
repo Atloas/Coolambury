@@ -180,7 +180,7 @@ class GameWindow(QtWidgets.QWidget):
         self.chat.append("<b>{}</b>".format(message))
 
     def display_user_message(self, message):
-        sanitized_message = bleach.clean(message)
+        sanitized_message = bleach.clean(message['message'])
         self.chat.append("{}: {}".format(
             message['author'], sanitized_message))
 
