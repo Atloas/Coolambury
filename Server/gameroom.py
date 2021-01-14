@@ -114,6 +114,15 @@ class Room:
         try:
             del self._joined_clients[user_name]
             del self._score_awarded[user_name]
+
+            if user_name == self._owner:
+                playser_list = list(self._joined_clients.keys())
+                new_owner = random.choice(playser_list)
+                self._owner = new_owner
+
+                owner_changed_bc = {'msg_name': 'OwnerChangedBc', 'owner': new_owner}
+                self.broadcast_message(owner_changed_bc)
+
             return True
         except:
             return False

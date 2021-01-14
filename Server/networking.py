@@ -63,6 +63,7 @@ class ClientConnection:
 
         self._conn.send(msg_header_bytes)
         self._conn.send(msg_body_bytes)
+        # TODO: handle except ConnectionResetError
 
     def handle_client_messages(self):
         while self._connected:

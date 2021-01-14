@@ -25,6 +25,7 @@ class ConnectionHandler(QtCore.QObject):
     artist_change_signal = QtCore.pyqtSignal(dict)
     game_over_signal = QtCore.pyqtSignal(dict)
     room_list_signal = QtCore.pyqtSignal(dict)
+    owner_changed_signal = QtCore.pyqtSignal(dict)
 
     def __init__(self):
         super().__init__()
@@ -108,6 +109,7 @@ class ConnectionHandler(QtCore.QObject):
             'GameRoomListResp': self.handle_GameRoomListResp,
             'WordHintBc': self.handle_WordHintBc,
             'UpdateScoreboardBc': self.handle_UpdateScoreboardBc,
+            'OwnerChangedBc': self.handle_OwnerChangedBc
         }
         return message_dispatcher.get(received_msg['msg_name'], self.handle_UnrecognizedMessage)(received_msg)
 
@@ -210,6 +212,11 @@ class ConnectionHandler(QtCore.QObject):
         logging.debug(
             "[MESSAGE DISPATCHER] handling WordHintBc")
         self.word_hint_signal.emit(received_msg)
+
+    def handle_OwnerChangedBc(self, received_msg):
+        logging.debug(
+            "[MESSAGE DISPATCHER] handling handle_OwnerChangedBc {}".format(received_msg))
+        self.owner_changed_signal.emit(received_msg)
 
     def handle_UpdateScoreboardBc(self, received_msg):
         logging.debug(
