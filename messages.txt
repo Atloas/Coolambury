@@ -127,3 +127,6 @@ UpdateScoreboardBc():
     msg_name (str)
     users_in_room ({"user_name": score, ...})
 
+OwnerChangedBc:
+    msg_name (str)
+    owner (str)

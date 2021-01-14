@@ -164,7 +164,7 @@ class GameWindow(QtWidgets.QWidget):
         self.connection_handler.game_over_signal.connect(self.handle_game_over_signal)
         self.connection_handler.scoreboard_update_signal.connect(
             self.update_scoreboard_data)
-        # self.connection_handler.owner_changed_signal.connect(self.handle_owner_changed_signal)
+        self.connection_handler.owner_changed_signal.connect(self.handle_owner_changed_signal)
 
     # Do not rename
     def closeEvent(self, event):
@@ -359,7 +359,7 @@ class GameWindow(QtWidgets.QWidget):
 
     def handle_owner_changed_signal(self, message):
         logging.debug("[GameWindow] Handling owner_changed_signal")
-        self.owner = message["new_owner"]
+        self.owner = message["owner"]
         self.display_system_message("{} is the new room owner!".format(self.owner))
         if (self.game_state == GameState.PREGAME or self.game_state == GameState.POSTGAME) and self.player == self.owner:
             self.start_button.setDisabled(False)
