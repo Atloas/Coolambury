@@ -44,6 +44,7 @@ class GameWindow(QtWidgets.QWidget):
             self.owner = None
             self.players = {}
             self.players[self.player] = 0
+            self.players['BOT'] = 0
             self.artist = None
             # The hint text, modifiable on server request.
             # For the painter, should display the full word. Placeholder for now.
