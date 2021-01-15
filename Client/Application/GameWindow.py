@@ -233,6 +233,8 @@ class GameWindow(QtWidgets.QWidget):
     def handle_room_created_signal(self, message):
         logging.debug("[GameWindow] Handling room_created_signal")
         self.owner = self.player
+        if len(self.players) > 1:
+            self.start_button.setDisabled(False)
         self.update_scoreboard()
 
     def handle_room_joined_signal(self, message):
