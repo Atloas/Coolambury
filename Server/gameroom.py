@@ -1,5 +1,6 @@
 import networking as nw
 import msgcreation as mc
+from qdrecognizer import QDRecognizer
 from enum import Enum
 import random
 import logging
@@ -81,7 +82,8 @@ class Room:
     def __init__(self, owner_name, owner_connection, room_code, words, score_limit=100, round_time=60.0):
         self._owner = owner_name
         self._joined_clients = {owner_name : owner_connection}
-        self._score_awarded = {owner_name: 0}
+        self._score_awarded = {owner_name: 0, 'BOT': 0}
+        self._game_bot = QDRecognizer()
         self._room_code = room_code
         self._state = RoomState.PREGAME
         self.lock = threading.Lock()
@@ -115,13 +117,33 @@ class Room:
             del self._joined_clients[user_name]
             del self._score_awarded[user_name]
 
+            leave_notification = mc.build_leave_notification(user_name)
+            self.broadcast_message(leave_notification)
+
+            update_score_board_bc = {'msg_name': 'UpdateScoreboardBc', 'users_in_room': self._score_awarded}
+            self.broadcast_message(update_score_board_bc)
+
+            logging.info('[ROOM ID: {}] Removed user {}'.format(self._room_code, user_name))
+
             if user_name == self._owner:
                 playser_list = list(self._joined_clients.keys())
                 new_owner = random.choice(playser_list)
                 self._owner = new_owner
-
+                
                 owner_changed_bc = {'msg_name': 'OwnerChangedBc', 'owner': new_owner}
                 self.broadcast_message(owner_changed_bc)
+
+            if self._state not in [RoomState.PREGAME, RoomState.POSTGAME]:
+                self._drawing_queue.remove(user_name)
+                if user_name == self._artist:
+                    self._round_time_controller.finish_round()
+                    # self._game_bot.clear_drawing()
+                    round_finished_notification = mc.build_chat_msg_bc(
+                            'SERVER',
+                            'Round interrupted - artist left the game - word: {}'.format(self._current_word))
+
+                    self.broadcast_message(round_finished_notification)
+                    self._select_artist_and_send_words()
 
             return True
         except:
@@ -144,7 +166,7 @@ class Room:
         if user_name != self._owner:
             raise StartedNotByOwnerException()
 
-        if self._state != RoomState.PREGAME:
+        if self._state not in [RoomState.PREGAME, RoomState.POSTGAME]:
             raise StateErrorException()
 
         if self.num_of_members() < 2:
@@ -154,6 +176,7 @@ class Room:
         self._state = RoomState.STARTING_GAME
 
         self._score_awarded = {player[0]: 0 for player in self._joined_clients.items()}
+        self._score_awarded['BOT'] = 0
 
         self._drawing_queue = list(self._joined_clients.keys())
         random.shuffle(self._drawing_queue)
@@ -162,7 +185,8 @@ class Room:
         round_finished_notification = mc.build_chat_msg_bc(
                 'SERVER',
                 'Time is over - word: {}'.format(self._current_word))
-
+        
+        # self._game_bot.clear_drawing()
         self.broadcast_message(round_finished_notification)
         self._select_artist_and_send_words()
     
@@ -243,7 +267,10 @@ class Room:
         try:
             if msg['user_name'] in self._joined_clients:
                 raise UsernameTakenException()
-            
+
+            if msg['user_name'] == 'BOT':
+                raise UsernameTakenException()
+
             self.add_client(msg['user_name'], sender_conn)
             resp = mc.build_ok_join_room_resp(self._score_awarded)
             sender_conn.send(resp)
@@ -265,24 +292,32 @@ class Room:
         
     def handle_ExitClientReq(self, msg, sender_conn):
         user_name = msg['user_name']
-        removed = self.remove_client_by_name_if_exists(user_name)
-
-        if removed:
-            leave_notification = mc.build_leave_notification(user_name)
-            self.broadcast_message(leave_notification)
-
-            update_score_board_bc = {'msg_name': 'UpdateScoreboardBc', 'users_in_room': self._score_awarded}
-            self.broadcast_message(update_score_board_bc)
-
-            logging.info('[ROOM ID: {}] Removed user {}'.format(self._room_code, user_name))
-        else:
-            logging.warn('[ROOM ID: {}] User {} not found'.format(self._room_code, user_name))
+        self.remove_client_by_name_if_exists(user_name)
 
     def send_words_to_select_to_artist(self, words_to_select):
         self._state = RoomState.WORD_SELECTION
         word_selection_req = mc.build_word_selection_req(self._artist, self._room_code, words_to_select)
         artist_connection = self._joined_clients[self._artist]
         artist_connection.send(word_selection_req)
+
+    def _start_bot_thread_timer(self):
+        timer = threading.Timer(self._round_time / 10, self._game_bot_thread_function)
+        timer.start()
+
+    def _game_bot_thread_function(self):
+        with self.lock:
+            if self._state not in [RoomState.PREGAME, RoomState.POSTGAME]:
+                self._start_bot_thread_timer()
+
+                if self._state == RoomState.DRAWING:
+                    bot_guess = self._game_bot.guess()
+                    chat_msg_req = {
+                        'msg_name': 'ChatMessageReq',
+                        'user_name': 'BOT',
+                        'room_code': self._room_code,
+                        'message': bot_guess
+                    }
+                    self.handle_ChatMessageReq(chat_msg_req, None)
 
     def handle_StartGameReq(self, msg, sender_conn):
         try:
@@ -295,6 +330,8 @@ class Room:
             sender_conn.send(resp)
 
             words_to_select = self._enter_word_selection_state()
+
+            # self._start_bot_thread_timer()
 
             start_game_bc = {'msg_name': 'StartGameBc', 'artist': self._artist, 'score_awarded' : self._score_awarded}
             self.broadcast_message(start_game_bc)
@@ -359,7 +396,8 @@ class Room:
             
             if msg['user_name'] != self._artist:
                 raise RuntimeError()
-
+            
+            # self._game_bot.add_stroke(msg['stroke_coordinates'])
             draw_stroke_bc = {
                 'msg_name': 'DrawStrokeBc',
                 'stroke_coordinates': msg['stroke_coordinates']
@@ -379,7 +417,8 @@ class Room:
             
             if msg['user_name'] != self._artist:
                 raise RuntimeError()
-
+            
+            # self._game_bot.undo_stroke()
             undo_last_stroke_bc = {'msg_name': 'UndoLastStrokeBc'}
             self.broadcast_message(undo_last_stroke_bc)
 
@@ -396,7 +435,8 @@ class Room:
             
             if msg['user_name'] != self._artist:
                 raise RuntimeError()
-
+            
+            # self._game_bot.clear_drawing()
             clear_canvas_bc = {'msg_name': 'ClearCanvasBc'}
             self.broadcast_message(clear_canvas_bc)
 

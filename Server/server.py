@@ -50,7 +50,8 @@ class Server:
             'DrawStrokeReq': mh.handle_DrawStrokeReq,
             'UndoLastStrokeReq': mh.handle_UndoLastStrokeReq,
             'ClearCanvasReq': mh.handle_ClearCanvasReq,
-            'GameRoomListReq': mh.handle_GameRoomListReq
+            'GameRoomListReq': mh.handle_GameRoomListReq,
+            'DisconnectSocketReq' : mh.handle_DisconnectSocketReq
         }
 
     def start(self):
@@ -65,7 +66,7 @@ class Server:
             thread = threading.Thread(target=new_client.handle_client_messages)
             thread.start()
 
-            logging.debug('Active connections: {}'.format(threading.activeCount() - 1))
+            logging.debug('Active connections: {}'.format(len(self._resources['clients'])))
 
 
 if __name__ == '__main__':
