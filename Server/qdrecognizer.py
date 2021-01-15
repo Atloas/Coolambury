@@ -18,8 +18,10 @@ class QDRecognizer:
 
     @staticmethod
     def prepare_model(model_path, labels_path):
-        QDRecognizer.labels = pd.read_csv(labels_path, index_col=0, header=None, squeeze=True).to_dict()   
-        QDRecognizer.model = load_model(model_path, custom_objects={"top_3_acc": QDRecognizer.top_3_acc})
+        QDRecognizer.labels = pd.read_csv(
+            labels_path, index_col=0, header=None, squeeze=True).to_dict()
+        QDRecognizer.model = load_model(model_path, custom_objects={
+                                        "top_3_acc": QDRecognizer.top_3_acc})
 
     def __init__(self):
         self.img_height = 28
@@ -116,8 +118,11 @@ class QDRecognizer:
 
     def guess(self):
         hurry_up_texts = ['Come on!', "I'm bored...",
-                          "You're drawing it ages", "how much longer????", "I'could draw it faster despite i'm a bot..", "noob"]
-        harry_up_text = random.choice(harry_up_texts)
+                          "You're drawing it ages", "how much longer????",
+                          "I'could draw it faster despite i'm a bot..", "noob",
+                          "nooooooooooooob", "n00b", "i'm gonna quit if he won't draw anything in a moment...",
+                          "Am I supposed to do this for you ...?"]
+        harry_up_text = random.choice(hurry_up_texts)
         try:
             if not self.drawing:
                 answer = harry_up_text
