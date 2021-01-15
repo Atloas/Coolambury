@@ -143,6 +143,8 @@ class GameWindow(QtWidgets.QWidget):
             logging.debug("[GameWindow] Game Window created...")
 
     def connect_signals(self):
+        self.connection_handler.room_created_signal.connect(self.handle_room_created_signal)
+        self.connection_handler.room_joined_signal.connect(self.handle_room_joined_signal)
         self.connection_handler.chat_message_signal.connect(self.display_message)
         self.connection_handler.start_game_signal.connect(self.handle_start_game_signal)
         self.connection_handler.word_selection_signal.connect(
@@ -227,9 +229,20 @@ class GameWindow(QtWidgets.QWidget):
                                                      self.stroke.copy())
         self.stroke = []
 
+    def handle_room_created_signal(self, message):
+        logging.debug("[GameWindow] Handling room_created_signal")
+        self.owner = self.player
+        self.update_scoreboard()
+
+    def handle_room_joined_signal(self, message):
+        logging.debug("[GameWindow] Handling room_joined_signal")
+        self.owner = message['owner']
+        self.players = message['users_in_room']
+        self.update_scoreboard()
+
     def handle_start_game_signal(self, message):
-        self.start_button.setDisabled(True)
         logging.debug("[GameWindow] Handling start_game_signal")
+        self.start_button.setDisabled(True)
         self.display_system_message("Game started!")
         self.players = message['score_awarded']
         self.update_scoreboard()
@@ -239,6 +252,8 @@ class GameWindow(QtWidgets.QWidget):
         self.display_system_message(
             "{} joined the room.".format(message["player"]))
         self.players[message["player"]] = 0
+        if len(self.players) > 1 and self.owner == self.player:
+            self.start_button.setDisabled(False)
         self.update_scoreboard()
         self.update()
 
@@ -247,9 +262,9 @@ class GameWindow(QtWidgets.QWidget):
         self.display_system_message(
             "{} left the room.".format(message["player"]))
         del self.players[message["player"]]
+        if len(self.players) < 2 and self.owner == self.player:
+            self.start_button.setDisabled(True)
         self.update_scoreboard()
-        # TODO: Handle all them edge cases.
-        # TODO: What if the artist leaves, what if the owner leaves, what if the owner is left alone.
 
     def handle_artist_changed_signal(self, message):
         logging.debug("[GameWindow] Handling artist_changed_signal")
