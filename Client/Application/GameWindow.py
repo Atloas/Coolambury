@@ -43,8 +43,6 @@ class GameWindow(QtWidgets.QWidget):
             self.player = self.client_context['username']
             self.owner = None
             self.players = {}
-            self.players[self.player] = 0
-            self.players['BOT'] = 0
             self.artist = None
             # The hint text, modifiable on server request.
             # For the painter, should display the full word. Placeholder for now.
@@ -233,6 +231,8 @@ class GameWindow(QtWidgets.QWidget):
     def handle_room_created_signal(self, message):
         logging.debug("[GameWindow] Handling room_created_signal")
         self.owner = self.player
+        self.players[self.player] = 0
+        self.players['BOT'] = 0
         if len(self.players) > 1:
             self.start_button.setDisabled(False)
         self.update_scoreboard()
