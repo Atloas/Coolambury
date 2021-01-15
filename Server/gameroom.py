@@ -79,7 +79,7 @@ def replace_at_index(s, newstring, index, nofail=False):
     return s[:index] + newstring + s[index + 1:]
 
 class Room:
-    def __init__(self, owner_name, owner_connection, room_code, words, score_limit=100, round_time=60.0):
+    def __init__(self, owner_name, owner_connection, room_code, words, score_limit=500, round_time=60.0):
         self._owner = owner_name
         self._joined_clients = {owner_name : owner_connection}
         self._score_awarded = {owner_name: 0, 'BOT': 0}
@@ -281,7 +281,7 @@ class Room:
                 raise UsernameTakenException()
 
             self.add_client(msg['user_name'], sender_conn)
-            resp = mc.build_ok_join_room_resp(self._score_awarded)
+            resp = mc.build_ok_join_room_resp(self._owner, self._score_awarded)
             sender_conn.send(resp)
             join_notification = mc.build_join_notification(msg['user_name'])
             self.broadcast_message(join_notification)
