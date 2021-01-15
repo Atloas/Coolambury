@@ -42,28 +42,51 @@ class ClientConnection:
         received_bytes_word = b''.join(received_bytes)
         return received_bytes_word
 
+    def _remove_client_after_connection_error(self):
+        rooms = self._resources['rooms']
+        for room_code in rooms:
+            room = rooms[room_code]
+            with room.lock:
+                is_removed = room.remove_client_by_connection_if_exists(self)
+                if is_removed:
+                    if room.num_of_members() == 0:
+                        del self._resources['rooms'][room_code]
+                        logging.info('Room with code {} deleted (0 players)'.format(room_code))
+                    break
+
     def _receive(self):
-        msg_header_bytes = self._receive_bytes(self._config['HEADER_LEN'])
-        if msg_header_bytes != b'':
-            msg_header = pickle.loads(msg_header_bytes)
-            msg_body_bytes = self._receive_bytes(msg_header['length'])
-            msg_body = pickle.loads(msg_body_bytes)
+        try:
+            msg_header_bytes = self._receive_bytes(self._config['HEADER_LEN'])
+            if msg_header_bytes != b'':
+                msg_header = pickle.loads(msg_header_bytes)
+                msg_body_bytes = self._receive_bytes(msg_header['length'])
+                msg_body = pickle.loads(msg_body_bytes)
 
-            return (msg_header['name'], msg_body)
+                return (msg_header['name'], msg_body)
 
-        return ('', None)
+            return ('', None)
+
+        except ConnectionResetError:
+            self._remove_client_after_connection_error()
+            self.close_connection()
+
+            return ('', None)
 
     def send(self, msg_body):
-        msg_body_bytes = pickle.dumps(msg_body)
-        msg_header = {'length': len(msg_body_bytes), 'name': msg_body['msg_name']}
-        msg_header_bytes = pickle.dumps(msg_header)
-        msg_header_string_len = len(msg_header_bytes)
+        try:
+            msg_body_bytes = pickle.dumps(msg_body)
+            msg_header = {'length': len(msg_body_bytes), 'name': msg_body['msg_name']}
+            msg_header_bytes = pickle.dumps(msg_header)
+            msg_header_string_len = len(msg_header_bytes)
 
-        msg_header_bytes += b' ' * (self._config['HEADER_LEN'] - msg_header_string_len)
+            msg_header_bytes += b' ' * (self._config['HEADER_LEN'] - msg_header_string_len)
 
-        self._conn.send(msg_header_bytes)
-        self._conn.send(msg_body_bytes)
-        # TODO: handle except ConnectionResetError
+            self._conn.send(msg_header_bytes)
+            self._conn.send(msg_body_bytes)
+
+        except ConnectionResetError:
+            self._remove_client_after_connection_error()
+            self.close_connection()
 
     def handle_client_messages(self):
         while self._connected:
@@ -78,13 +101,12 @@ class ClientConnection:
                 except:
                     logging.error('[CLIENT ID: {}] Unknown error occurred when handling msg {} = {}'.format(self._id, msg_name, msg_body))
 
-
     def close_connection(self):
         try:
+            self._resources['clients'].remove(self)
             self._connected = False
-            self._conn.shutdown(socket.SHUT_RDWR)
             self._conn.close()
         except:
-            logging.error('[CLIENT ID: {}] Unsuccessful socket shutdown'.format(self._id))
+            logging.error('[CLIENT ID: {}] Unknown error occurred when closing connection!'.format(self._id))
 
         logging.debug('[CLIENT ID: {}] Connection closed'.format(self._id))

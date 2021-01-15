@@ -80,7 +80,12 @@ def handle_ExitClientReq(resources, sender_conn, msg):
 
     except:
         logging.error('Error occurred when handling message {}'.format(msg))
-
+        
+def handle_DisconnectSocketReq(resources, sender_conn, msg):
+    try:
+       sender_conn.close_connection()
+    except:
+        logging.error('Error occurred when handling message {}'.format(msg))
 
 def handle_StartGameReq(resources, sender_conn, msg):
     try:
