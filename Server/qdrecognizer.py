@@ -129,4 +129,4 @@ class QDRecognizer:
         except:
             answer = "Error while analysing bitmap"
 
-        return guess
+        return answer
