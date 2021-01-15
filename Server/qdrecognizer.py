@@ -116,7 +116,7 @@ class QDRecognizer:
     def guess(self):
         try:
             if not self.drawing:
-                guess = ''
+                answer = ''
             else:
                 appropriate_list = self.convert_strokes_list(self.drawing)
                 drawings = []
@@ -125,8 +125,8 @@ class QDRecognizer:
                 rastered_drawings = self.vector_to_raster(drawings)
                 prepared_drawings = self.prepare(rastered_drawings)
                 predictions = QDRecognizer.model.predict(prepared_drawings)
-                guess = QDRecognizer.labels[predictions[0].argmax()]
+                answer = QDRecognizer.labels[predictions[0].argmax()]
         except:
-            quess = "Error while analysing bitmap"
+            answer = "Error while analysing bitmap"
 
         return guess
