@@ -1,4 +1,3 @@
-import time
 from keras.models import load_model
 from keras.utils import np_utils
 from keras import metrics
@@ -40,9 +39,9 @@ class QDRecognizer:
     def clear_drawing(self):
         self.drawing = []
 
-    # strokes are encoded as list of (x,y),(x,y) besides [x,x,x],[y,y,y] so it has to be converted
+    # strokes are encoded as list of (x,y),(x,y) instead     [x,x,x],[y,y,y] so it has to be converted
     # because vector_to_raster works on [x,x,x][y,y,y]
-    def convert_strokes_list(self, strokes):
+    def convert_strokes_encoding(self, strokes):
         new_strokes = []
         for coordinates in strokes:
             x = []
@@ -56,7 +55,8 @@ class QDRecognizer:
             new_strokes.append(new_stroke)
         return new_strokes
 
-    # model analyses rastered image, not vector of pixel coordinates so conversion is needed
+    # model analyses rastered image, not vector of colored pixel coordinates so conversion is needed
+    # works the best with orginal_side = 256
     def vector_to_raster(self, vector_images, side=28, line_diameter=16, padding=16, bg_color=(0, 0, 0), fg_color=(1, 1, 1)):
         """
         padding and line_diameter are relative to the original 256x256 image.
@@ -104,6 +104,7 @@ class QDRecognizer:
 
         return raster_images
 
+    # bitmap has to be prepared for model before prediction
     def prepare(self, bitmaps):
         bitmaps = np.array(bitmaps)
         bitmaps = bitmaps.astype('float16') / 255.
@@ -116,21 +117,24 @@ class QDRecognizer:
             bitmaps_to_analyse.shape[0], self.img_width, self.img_height, self.img_dim)
         return bitmaps_to_analyse
 
-    def guess(self):
-        hurry_up_texts = ['Come on!', "I'm bored...",
+    def hurry_up(self):
+        hurry_up_texts = ["Come on!", "I'm bored...",
                           "You're drawing it ages", "how much longer????",
                           "I'could draw it faster despite i'm a bot..", "noob",
                           "nooooooooooooob", "n00b", "i'm gonna quit if he won't draw anything in a moment...",
-                          "Am I supposed to do this for you ...?"]
-        harry_up_text = random.choice(hurry_up_texts)
+                          "Am I supposed to do this for you ...?", "hurry up!", "¯\_(ツ)_/¯"]
+        return random.choice(hurry_up_texts)
+
+    def guess(self):
+
         try:
             if not self.drawing:
-                answer = harry_up_text
+                answer = self.hurry_up()
             else:
-                appropriate_list = self.convert_strokes_list(self.drawing)
+                properly_encoded_drawing = self.convert_strokes_encoding(
+                    self.drawing)
                 drawings = []
-                drawings.append(appropriate_list)
-
+                drawings.append(properly_encoded_drawing)
                 rastered_drawings = self.vector_to_raster(drawings)
                 prepared_drawings = self.prepare(rastered_drawings)
                 predictions = QDRecognizer.model.predict(prepared_drawings)
