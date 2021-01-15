@@ -10,6 +10,8 @@ from Application.GameWindow import GameWindow
 
 
 class ConnectionHandler(QtCore.QObject):
+    room_created_signal = QtCore.pyqtSignal(dict)
+    room_joined_signal = QtCore.pyqtSignal(dict)
     chat_message_signal = QtCore.pyqtSignal(dict)
     scoreboard_update_signal = QtCore.pyqtSignal(dict)
     switch_window = QtCore.pyqtSignal(str)

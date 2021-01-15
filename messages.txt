@@ -16,6 +16,7 @@ JoinRoomResp:
     msg_name (str)
     status (str)
     info (str)[exists if status == NOT_OK]
+    owner (str)
     users_in_room ({score_awarded}) 
 
 ChatMessageReq:

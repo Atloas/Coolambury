@@ -40,10 +40,11 @@ def build_not_ok_create_room_resp():
     return resp
 
 
-def build_ok_join_room_resp(score_awarded):
+def build_ok_join_room_resp(owner, score_awarded):
     resp = {
         'msg_name': 'JoinRoomResp',
         'status': 'OK',
+        'owner': owner,
         'users_in_room': score_awarded
     }
 
