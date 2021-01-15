@@ -1,5 +1,6 @@
 import logging
 import threading
+from qdrecognizer import QDRecognizer
 import sys
 import json
 import msghandling as mh
@@ -15,8 +16,9 @@ class Server:
         self._load_config_file()
         self._prepare_list_of_words()
         self._server_socket = nw.create_and_bind_socket(self._resources['config'])
-        
         self._map_message_handlers()
+        config = self._resources['config']
+        QDRecognizer.prepare_model(config['model_path'], config['labels_path'])
         logging.debug('Initializing server...')
 
     def _load_config_file(self):
@@ -31,7 +33,7 @@ class Server:
     def _prepare_list_of_words(self):
         self._resources['words'] = []
         try:
-            with open('Server/resources/labels.csv') as f:
+            with open(self._resources['config']['labels_path']) as f:
                 reader = csv.reader(f, delimiter=',')
                 for row in reader:
                     self._resources['words'].append(row[1])

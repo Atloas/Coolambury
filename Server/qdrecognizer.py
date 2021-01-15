@@ -15,10 +15,10 @@ class QDRecognizer:
     def top_3_acc(y_true, y_pred):
         return metrics.top_k_categorical_accuracy(y_true, y_pred, k=3)
 
-    model_path = os.path.join(sys.path[0], 'resources/model.h5')
-    labels = pd.read_csv(os.path.join(
-        sys.path[0], 'resources/labels.csv'), index_col=0, header=None, squeeze=True).to_dict()
-    model = load_model(model_path, custom_objects={"top_3_acc": top_3_acc})
+    @staticmethod
+    def prepare_model(model_path, labels_path):
+        QDRecognizer.labels = pd.read_csv(labels_path, index_col=0, header=None, squeeze=True).to_dict()   
+        QDRecognizer.model = load_model(model_path, custom_objects={"top_3_acc": QDRecognizer.top_3_acc})
 
     def __init__(self):
         self.img_height = 28
