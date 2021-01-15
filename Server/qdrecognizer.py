@@ -37,6 +37,8 @@ class QDRecognizer:
     def clear_drawing(self):
         self.drawing = []
 
+    # strokes are encoded as list of (x,y),(x,y) besides [x,x,x],[y,y,y] so it has to be converted
+    # because vector_to_raster works on [x,x,x][y,y,y]
     def convert_strokes_list(self, strokes):
         new_strokes = []
         for coordinates in strokes:
@@ -51,6 +53,7 @@ class QDRecognizer:
             new_strokes.append(new_stroke)
         return new_strokes
 
+    # model analyses rastered image, not vector of pixel coordinates so conversion is needed
     def vector_to_raster(self, vector_images, side=28, line_diameter=16, padding=16, bg_color=(0, 0, 0), fg_color=(1, 1, 1)):
         """
         padding and line_diameter are relative to the original 256x256 image.
@@ -111,12 +114,19 @@ class QDRecognizer:
         return bitmaps_to_analyse
 
     def guess(self):
-        appropriate_list = self.convert_strokes_list(self.drawing)
-        drawings = []
-        drawings.append(appropriate_list)
+        try:
+            if not self.drawing:
+                guess = ''
+            else:
+                appropriate_list = self.convert_strokes_list(self.drawing)
+                drawings = []
+                drawings.append(appropriate_list)
 
-        rastered_drawings = self.vector_to_raster(drawings)
-        prepared_drawings = self.prepare(rastered_drawings)
-        predictions = QDRecognizer.model.predict(prepared_drawings)
+                rastered_drawings = self.vector_to_raster(drawings)
+                prepared_drawings = self.prepare(rastered_drawings)
+                predictions = QDRecognizer.model.predict(prepared_drawings)
+                guess = QDRecognizer.labels[predictions[0].argmax()]
+        except:
+            quess = "Error while analysing bitmap"
 
-        return QDRecognizer.labels[predictions[0].argmax()]
+        return guess
