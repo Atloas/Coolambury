@@ -1,6 +1,6 @@
 import networking as nw
 import msgcreation as mc
-from qdrecognizer import QDRecognizer
+# from qdrecognizer import QDRecognizer
 from enum import Enum
 import random
 import logging
@@ -83,7 +83,7 @@ class Room:
         self._owner = owner_name
         self._joined_clients = {owner_name : owner_connection}
         self._score_awarded = {owner_name: 0, 'BOT': 0}
-        self._game_bot = QDRecognizer()
+        # self._game_bot = QDRecognizer()
         self._room_code = room_code
         self._state = RoomState.PREGAME
         self.lock = threading.Lock()
@@ -300,24 +300,24 @@ class Room:
         artist_connection = self._joined_clients[self._artist]
         artist_connection.send(word_selection_req)
 
-    def _start_bot_thread_timer(self):
-        timer = threading.Timer(self._round_time / 10, self._game_bot_thread_function)
-        timer.start()
+    # def _start_bot_thread_timer(self):
+    #     timer = threading.Timer(self._round_time / 10, self._game_bot_thread_function)
+    #     timer.start()
 
-    def _game_bot_thread_function(self):
-        with self.lock:
-            if self._state not in [RoomState.PREGAME, RoomState.POSTGAME]:
-                self._start_bot_thread_timer()
+    # def _game_bot_thread_function(self):
+    #     with self.lock:
+    #         if self._state not in [RoomState.PREGAME, RoomState.POSTGAME]:
+    #             self._start_bot_thread_timer()
 
-                if self._state == RoomState.DRAWING:
-                    bot_guess = self._game_bot.guess()
-                    chat_msg_req = {
-                        'msg_name': 'ChatMessageReq',
-                        'user_name': 'BOT',
-                        'room_code': self._room_code,
-                        'message': bot_guess
-                    }
-                    self.handle_ChatMessageReq(chat_msg_req, None)
+    #             if self._state == RoomState.DRAWING:
+    #                 bot_guess = self._game_bot.guess()
+    #                 chat_msg_req = {
+    #                     'msg_name': 'ChatMessageReq',
+    #                     'user_name': 'BOT',
+    #                     'room_code': self._room_code,
+    #                     'message': bot_guess
+    #                 }
+    #                 self.handle_ChatMessageReq(chat_msg_req, None)
 
     def handle_StartGameReq(self, msg, sender_conn):
         try:
