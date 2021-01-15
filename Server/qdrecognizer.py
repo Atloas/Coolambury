@@ -7,6 +7,7 @@ import pandas as pd
 import os
 import sys
 import cairocffi as cairo
+import random
 
 
 class QDRecognizer:
@@ -114,9 +115,12 @@ class QDRecognizer:
         return bitmaps_to_analyse
 
     def guess(self):
+        hurry_up_texts = ['Come on!', "I'm bored...",
+                          "You're drawing it ages", "how much longer????", "I'could draw it faster despite i'm a bot..", "noob"]
+        harry_up_text = random.choice(harry_up_texts)
         try:
             if not self.drawing:
-                answer = ''
+                answer = harry_up_text
             else:
                 appropriate_list = self.convert_strokes_list(self.drawing)
                 drawings = []
@@ -127,6 +131,6 @@ class QDRecognizer:
                 predictions = QDRecognizer.model.predict(prepared_drawings)
                 answer = QDRecognizer.labels[predictions[0].argmax()]
         except:
-            answer = "Error while analysing bitmap"
+            answer = "I have no idea ¯\_(ツ)_/¯"
 
         return answer
