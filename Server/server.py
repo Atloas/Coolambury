@@ -72,9 +72,10 @@ class Server:
 
 
 if __name__ == '__main__':
-    logging.basicConfig(format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d](%(funcName)s)  %(message)s',
-    datefmt='%Y-%m-%d:%H:%M:%S',
-    level=logging.DEBUG)
+    logging.basicConfig(
+        format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d](%(funcName)s)  %(message)s',
+        datefmt='%Y-%m-%d:%H:%M:%S',
+        level=logging.DEBUG)
 
     coolambury_server = Server()
     coolambury_server.start()

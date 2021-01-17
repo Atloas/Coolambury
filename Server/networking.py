@@ -4,12 +4,14 @@ import msgcreation as mc
 import pickle
 import socket
 
+
 def create_and_bind_socket(config):
     ADDR = ('', config['PORT'])
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind(ADDR)
 
     return server_socket
+
 
 def send_NOT_OK_JoinRoomResp_with_info(conn, info):
     logging.debug('{}'.format(info))
@@ -19,6 +21,7 @@ def send_NOT_OK_JoinRoomResp_with_info(conn, info):
 
 class ClientConnection:
     id_counter = 0
+
     def __init__(self, conn, addr, resources, msg_mapping):
         self._resources = resources
         self._conn = conn
@@ -62,15 +65,15 @@ class ClientConnection:
                 msg_body_bytes = self._receive_bytes(msg_header['length'])
                 msg_body = pickle.loads(msg_body_bytes)
 
-                return (msg_header['name'], msg_body)
+                return msg_header['name'], msg_body
 
-            return ('', None)
+            return '', None
 
         except ConnectionResetError:
             self._remove_client_after_connection_error()
             self.close_connection()
 
-            return ('', None)
+            return '', None
 
     def send(self, msg_body):
         try:

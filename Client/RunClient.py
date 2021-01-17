@@ -27,5 +27,6 @@ if __name__ == "__main__":
     AppResourceManager = AppResourceManager(connHandler)
     logging.debug('[CLIENT STARTED]')
     AppResourceManager.show_start()
-    sys.exit(app.exec_())
+    app_return = app.exec_()
     connHandler.kill_receiver()
+    sys.exit(app_return)

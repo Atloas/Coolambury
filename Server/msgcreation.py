@@ -4,10 +4,10 @@ import string
 
 def generate_unique_code(length, rooms):
     letters = string.ascii_lowercase
-    result_str = ''.join(random.choice(letters) for i in range(length))
+    result_str = ''.join(random.choice(letters) for _ in range(length))
 
     while result_str in rooms:
-        result_str = ''.join(random.choice(letters) for i in range(length))
+        result_str = ''.join(random.choice(letters) for _ in range(length))
 
     return result_str
 
@@ -68,14 +68,16 @@ def build_join_notification(joined_user):
                             'SERVER',
                             '{} has joined the game'.format(joined_user))
     return join_notification
-    
+
+
 def build_leave_notification(user_name):
     join_notification = build_chat_msg_bc(
                             'SERVER',
                             '{} has left the game'.format(user_name))
     
     return join_notification
-    
+
+
 def build_start_game_resp_ok(info=None):
     resp = {
         'msg_name': 'StartGameResp',
@@ -85,6 +87,7 @@ def build_start_game_resp_ok(info=None):
         resp['info'] = info
 
     return resp
+
 
 def build_start_game_resp_not_ok(info=None):
     resp = {
@@ -97,6 +100,7 @@ def build_start_game_resp_not_ok(info=None):
 
     return resp
 
+
 def build_word_selection_req(user_name, room_code, word_list):
     req = {
         'msg_name': 'WordSelectionReq',
@@ -106,6 +110,7 @@ def build_word_selection_req(user_name, room_code, word_list):
     }
 
     return req
+
 
 def build_word_guessed_bc(user_name, word, score_awarded):
     msg = {
@@ -117,6 +122,7 @@ def build_word_guessed_bc(user_name, word, score_awarded):
     
     return msg
 
+
 def build_game_room_list_resp(info_list):
     resp = {
         'msg_name': 'GameRoomListResp',
@@ -124,6 +130,7 @@ def build_game_room_list_resp(info_list):
     }
 
     return resp
+
 
 def build_game_finished_bc(info=None):
     msg = {
