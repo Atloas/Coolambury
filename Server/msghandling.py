@@ -3,8 +3,10 @@ import gameroom as gr
 import networking as nw
 import msgcreation as mc
 
+
 class RoomNotExistsException(Exception):
     pass
+
 
 def find_room(resources, room_code):
     try:
@@ -17,6 +19,7 @@ def find_room(resources, room_code):
 
     except:
         raise RuntimeError()
+
 
 def handle_ChatMessageReq(resources, sender_conn, msg):
     try:
@@ -47,6 +50,7 @@ def handle_CreateRoomReq(resources, sender_conn, msg):
 
         resp = mc.build_not_ok_create_room_resp()
         sender_conn.send(resp)
+
 
 def handle_JoinRoomReq(resources, sender_conn, msg):
     try:
@@ -80,12 +84,14 @@ def handle_ExitClientReq(resources, sender_conn, msg):
 
     except:
         logging.error('Error occurred when handling message {}'.format(msg))
-        
+
+
 def handle_DisconnectSocketReq(resources, sender_conn, msg):
     try:
        sender_conn.close_connection()
     except:
         logging.error('Error occurred when handling message {}'.format(msg))
+
 
 def handle_StartGameReq(resources, sender_conn, msg):
     try:
@@ -105,6 +111,7 @@ def handle_StartGameReq(resources, sender_conn, msg):
         resp = mc.build_start_game_resp_not_ok()
         sender_conn.send(resp)
 
+
 def handle_WordSelectionResp(resources, sender_conn, msg):
     try:
         room = find_room(resources, msg['room_code'])
@@ -118,7 +125,8 @@ def handle_WordSelectionResp(resources, sender_conn, msg):
     
     except:
         logging.error('Unknown error occurred when handling message {}'.format(msg))
-    
+
+
 def handle_DrawStrokeReq(resources, sender_conn, msg):
     try:
         room = find_room(resources, msg['room_code'])
@@ -132,7 +140,8 @@ def handle_DrawStrokeReq(resources, sender_conn, msg):
         
     except:
         logging.error('Unknown error occurred when handling message {}'.format(msg))
-        
+
+
 def handle_UndoLastStrokeReq(resources, sender_conn, msg):
     try:
         room = find_room(resources, msg['room_code'])
@@ -147,6 +156,7 @@ def handle_UndoLastStrokeReq(resources, sender_conn, msg):
     except:
         logging.error('Unknown error occurred when handling message {}'.format(msg))
 
+
 def handle_ClearCanvasReq(resources, sender_conn, msg):
     try:
         room = find_room(resources, msg['room_code'])
@@ -160,6 +170,7 @@ def handle_ClearCanvasReq(resources, sender_conn, msg):
 
     except:
         logging.error('Unknown error occurred when handling message {}'.format(msg))
+
 
 def handle_GameRoomListReq(resources, sender_conn, msg):
     try:

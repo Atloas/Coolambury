@@ -64,7 +64,7 @@ class ConnectionHandler(QtCore.QObject):
                 return json.load(config_file)
         except:
             logging.error(
-                '[LOADING CONFIG FILE] Error occured when loading configuration file!')
+                '[LOADING CONFIG FILE] Error occurred when loading configuration file!')
             exit()
 
     def is_connection_receiver_connected(self):

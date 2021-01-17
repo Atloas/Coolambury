@@ -13,6 +13,7 @@ def send(conn, msg_body, config):
     conn.send(msg_header_bytes)
     conn.send(msg_body_bytes)
 
+
 def receive_bytes(conn, bytes_no):
     bytes_left = bytes_no
     received_bytes = []
@@ -25,6 +26,7 @@ def receive_bytes(conn, bytes_no):
     received_bytes_word = b''.join(received_bytes)
     return received_bytes_word
 
+
 def receive(conn, config):
     
     msg_header_bytes = receive_bytes(conn, config['HEADER_LEN'])
@@ -33,6 +35,6 @@ def receive(conn, config):
         msg_body_bytes = receive_bytes(conn, msg_header['length'])
         msg_body = pickle.loads(msg_body_bytes)
 
-        return (msg_header['name'], msg_body)
+        return msg_header['name'], msg_body
     
-    return ('', None)
+    return '', None
