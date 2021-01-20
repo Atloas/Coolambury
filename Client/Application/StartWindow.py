@@ -42,25 +42,20 @@ class StartWindow(QtWidgets.QWidget):
     # TODO: Add validation for special characters!
     def validate_nickname(self):
         isNickNameValid = not self.nicknameField.text() == ''
-
         logging.debug(
             "[NICKNAME VALIDATION] Given nickname is valid: {}".format(isNickNameValid))
         if isNickNameValid:
             return True
-        PopUpWindow(
-            "Nickname not valid!", 'ERROR')
         return False
 
     def validate_room_code(self):
-
         isRoomCodeValid = not self.roomCodeField.text() == ''
+        isRoomCodeValid = len(self.roomCodeField.text()) == 8
 
         logging.debug(
             "[ROOM CODE VALIDATION] Room code specified: {}".format(isRoomCodeValid))
         if isRoomCodeValid:
             return True
-        PopUpWindow(
-            "Room code not specified!", 'ERROR')
         return False
 
     def closeEvent(self, event):
@@ -75,13 +70,21 @@ class StartWindow(QtWidgets.QWidget):
             self.clientContext['username'] = self.nicknameField.text()
             self.connHandler.send_create_room_req(
                 self.clientContext['username'])
+        else:
+            PopUpWindow("Nickname not valid!", 'ERROR')
 
     def delegate_room_join_to_handler(self):
-        if self.validate_nickname() and self.validate_room_code():
+        is_nickname_valid = self.validate_nickname()
+        is_room_code_valid = self.validate_room_code()
+        if is_nickname_valid and is_room_code_valid:
             self.clientContext['username'] = self.nicknameField.text()
             self.clientContext['roomCode'] = self.roomCodeField.text()
             self.connHandler.send_join_room_req(
                 self.clientContext['username'], self.clientContext['roomCode'])
+        elif (not is_nickname_valid):
+            PopUpWindow("Nickname not valid!", 'ERROR')
+        elif (not is_room_code_valid):
+            PopUpWindow("Room code not specified!", 'ERROR')
 
 
 if __name__ == '__main__':
