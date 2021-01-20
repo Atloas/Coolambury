@@ -63,7 +63,7 @@ class StartWindow(QtWidgets.QWidget):
 
     # TODO: Add validation for special characters!
     def validate_nickname(self):
-        is_nickname_valid = not self.nicknameField.text() == ''
+        is_nickname_valid = not self.nickname_field.text() == ''
         logging.debug(
             "[NICKNAME VALIDATION] Given nickname is valid: {}".format(is_nickname_valid))
         if is_nickname_valid:
