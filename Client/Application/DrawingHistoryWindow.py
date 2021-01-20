@@ -14,7 +14,7 @@ class DrawingHistoryWindow(QtWidgets.QWidget):
         self.rootVBox = QtWidgets.QVBoxLayout()
 
         self.canvas = QtGui.QPixmap(400, 300)
-        self.canvas.fill(QtGui.QColor("white"))
+        self.canvas.fill(QtGui.QColor('white'))
         self.canvasContainer = QtWidgets.QLabel()
         self.canvasContainer.setPixmap(self.canvas)
         self.rootVBox.addWidget(self.canvasContainer)
@@ -22,16 +22,16 @@ class DrawingHistoryWindow(QtWidgets.QWidget):
         self.controlsHBox = QtWidgets.QHBoxLayout()
         self.rootVBox.addLayout(self.controlsHBox)
 
-        self.previousButton = QtWidgets.QPushButton("<")
+        self.previousButton = QtWidgets.QPushButton('<')
         self.previousButton.clicked.connect(self.previousClicked)
         self.previousButton.setDisabled(True)
         self.controlsHBox.addWidget(self.previousButton)
 
-        self.saveButton = QtWidgets.QPushButton("Save")
+        self.saveButton = QtWidgets.QPushButton('Save')
         self.saveButton.clicked.connect(self.saveClicked)
         self.controlsHBox.addWidget(self.saveButton)
 
-        self.nextButton = QtWidgets.QPushButton(">")
+        self.nextButton = QtWidgets.QPushButton('>')
         self.nextButton.clicked.connect(self.nextClicked)
         if len(self.drawings) == 1:
             self.nextButton.setDisabled(True)
@@ -57,7 +57,7 @@ class DrawingHistoryWindow(QtWidgets.QWidget):
     def configurePen(self, painter):
         pen = painter.pen()
         pen.setWidth(4)
-        pen.setColor(QtGui.QColor("black"))
+        pen.setColor(QtGui.QColor('black'))
         painter.setPen(pen)
 
     def previousClicked(self):
@@ -77,5 +77,5 @@ class DrawingHistoryWindow(QtWidgets.QWidget):
     def saveClicked(self):
         # TODO: Test this (and everything else, but especially this)
         dialogResult = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Drawing', '.', 'PNG', 'PNG')
-        filename = dialogResult[0] + ".png"
-        self.canvasContainer.pixmap().save(filename, "png")
+        filename = dialogResult[0] + '.png'
+        self.canvasContainer.pixmap().save(filename, 'png')
