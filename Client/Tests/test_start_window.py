@@ -1,5 +1,4 @@
 import pytest
-
 # TODO: Replace unittest.mock with PyTestMock
 from unittest.mock import Mock
 from Application.StartWindow import StartWindow

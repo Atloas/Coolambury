@@ -29,13 +29,13 @@ class WordSelectionWindow(QtWidgets.QWidget):
         self.show()
 
     def wordButton0Clicked(self):
-        self.prompt_locally_selected_signal.emit({'word': self.words[0]})
+        self.prompt_locally_selected_signal.emit({"word": self.words[0]})
         self.close()
 
     def wordButton1Clicked(self):
-        self.prompt_locally_selected_signal.emit({'word': self.words[1]})
+        self.prompt_locally_selected_signal.emit({"word": self.words[1]})
         self.close()
 
     def wordButton2Clicked(self):
-        self.prompt_locally_selected_signal.emit({'word': self.words[2]})
+        self.prompt_locally_selected_signal.emit({"word": self.words[2]})
         self.close()
