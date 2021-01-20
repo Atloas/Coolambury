@@ -7,8 +7,10 @@ import Communication.SocketMsgHandler
 from PyQt5.QtWidgets import QApplication
 import sys
 
-# for UT:
+# for UT on windows(PowerShell):
 # $env:PYTHONPATH = ".\Client\"
+#
+# python  .\Client\Tests\StartWindowTests.py
 
 app = QApplication(sys.argv)
 

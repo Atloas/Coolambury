@@ -26,7 +26,6 @@ class ConnectionHandler(QtCore.QObject):
     artist_change_signal = QtCore.pyqtSignal(dict)
     game_over_signal = QtCore.pyqtSignal(dict)
 
-
     def __init__(self):
         super().__init__()
         self.connectedReceiverStatus = True
@@ -155,6 +154,9 @@ class ConnectionHandler(QtCore.QObject):
         logging.debug(
             "[MESSAGE DISPATCHER] handling ArtistPickBc, Artist: {}".format(received_msg['artist']))
         self.artist_change_signal.emit(received_msg)
+
+    def handle_WordSelectionReq(self, received_msg):
+        logging.debug(
             "[MESSAGE DISPATCHER] handling WordSelectionReq, Word List: {}".format(received_msg['word_list']))
         self.word_selection_signal.emit(received_msg)
 
