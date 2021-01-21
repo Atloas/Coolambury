@@ -11,16 +11,18 @@ from Utils.PopUpWindow import PopUpWindow
 
 # for UT:
 # $env:PYTHONPATH = ".\Client\"
-if __name__ == "__main__":
-    logging.basicConfig(format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d](%(funcName)s) %(message)s',
-                        datefmt='%Y-%m-%d:%H:%M:%S',
-                        level=logging.DEBUG)
+if __name__ == '__main__':
+    logging.basicConfig(
+        format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d](%(funcName)s) %(message)s',
+        datefmt='%Y-%m-%d:%H:%M:%S',
+        level=logging.DEBUG,
+    )
     logging.debug('[STARTING] Client is being loaded ...')
     app = QApplication([])
     try:
         connHandler = ConnectionHandler()
     except:
-        logging.debug("[SOCKET CONNECTION] Connection to server failed")
+        logging.debug('[SOCKET CONNECTION] Connection to server failed')
         PopUpWindow('Game server is unreachable!')
         exit()
 

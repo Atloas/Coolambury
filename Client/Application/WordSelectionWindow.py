@@ -9,8 +9,9 @@ class WordSelectionWindow(QtWidgets.QWidget):
         super().__init__()
         self.words = words
         logging.debug(
-            '[WordSelectionWindow] Window Initialization with words: {}'.format(self.words))
-        self.setWindowTitle("Choose your word")
+            '[WordSelectionWindow] Window Initialization with words: {}'.format(self.words)
+        )
+        self.setWindowTitle('Choose your word')
 
         self.root_hBox = QtWidgets.QHBoxLayout()
 
@@ -37,16 +38,13 @@ class WordSelectionWindow(QtWidgets.QWidget):
         logging.debug('[WordSelectionWindow] Closing...')
 
     def word_button_0_clicked(self):
-        self.prompt_locally_selected_signal.emit(
-            {"selected_word": self.words[0]})
+        self.prompt_locally_selected_signal.emit({'selected_word': self.words[0]})
         self.close()
 
     def word_button_1_clicked(self):
-        self.prompt_locally_selected_signal.emit(
-            {"selected_word": self.words[1]})
+        self.prompt_locally_selected_signal.emit({'selected_word': self.words[1]})
         self.close()
 
     def word_button_2_clicked(self):
-        self.prompt_locally_selected_signal.emit(
-            {"selected_word": self.words[2]})
+        self.prompt_locally_selected_signal.emit({'selected_word': self.words[2]})
         self.close()

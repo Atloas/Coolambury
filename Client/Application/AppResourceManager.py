@@ -6,7 +6,6 @@ from Utils.PopUpWindow import PopUpWindow
 
 
 class AppResourceManager:
-
     def __init__(self, connection_handler):
         self.connection_handler = connection_handler
         self.client_context = {}

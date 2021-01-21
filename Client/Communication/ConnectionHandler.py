@@ -41,7 +41,8 @@ class ConnectionHandler(QtCore.QObject):
         self.conn.connect(self.ADDR)
 
         self.receiver_thread = threading.Thread(
-            target=self.receive, args=(self.conn, self.server_config))
+            target=self.receive, args=(self.conn, self.server_config)
+        )
         self.receiver_thread.deamon = True
         self.receiver_thread.start()
 
@@ -52,10 +53,8 @@ class ConnectionHandler(QtCore.QObject):
             self.conn.close()
             self.receiver_thread.join()
         except:
-            logging.debug(
-                "[SOCKET RECEIVER] Unsuccessful socket shutdown!")
-        logging.debug(
-            '[EXITING CONFIRMED] Killing all threads and exiting the client window')
+            logging.debug('[SOCKET RECEIVER] Unsuccessful socket shutdown!')
+        logging.debug('[EXITING CONFIRMED] Killing all threads and exiting the client window')
 
     def _load_config_file(self):
         try:
@@ -63,8 +62,7 @@ class ConnectionHandler(QtCore.QObject):
             with open(config_path, 'r') as config_file:
                 return json.load(config_file)
         except:
-            logging.error(
-                '[LOADING CONFIG FILE] Error occurred when loading configuration file!')
+            logging.error('[LOADING CONFIG FILE] Error occurred when loading configuration file!')
             exit()
 
     def is_connection_receiver_connected(self):
@@ -72,25 +70,20 @@ class ConnectionHandler(QtCore.QObject):
 
     def receive(self, conn, server_config):
         while self.connectedReceiverStatus:
-            logging.debug(
-                "[SOCKET RECEIVER] Awaiting for incoming messages ...")
+            logging.debug('[SOCKET RECEIVER] Awaiting for incoming messages ...')
             received_msg_name = None
             received_msg = None
             try:
-                received_msg_name, received_msg = SocketMsgHandler.receive(
-                    conn, server_config)
+                received_msg_name, received_msg = SocketMsgHandler.receive(conn, server_config)
                 if not received_msg:
                     continue
             except:
-                logging.debug(
-                    "[SOCKET RECEIVER] Shutting down and closing socket connection")
+                logging.debug('[SOCKET RECEIVER] Shutting down and closing socket connection')
 
             if received_msg_name == 'DrawStrokeBc':
-                logging.debug(
-                    "[SOCKET RECEIVER] Received Message: {}".format('DrawStrokeBc'))
+                logging.debug('[SOCKET RECEIVER] Received Message: {}'.format('DrawStrokeBc'))
             else:
-                logging.debug(
-                    "[SOCKET RECEIVER] Received Message: {}".format(received_msg))
+                logging.debug('[SOCKET RECEIVER] Received Message: {}'.format(received_msg))
             self.dispatch_received_message(received_msg)
 
     def dispatch_received_message(self, received_msg):
@@ -111,19 +104,19 @@ class ConnectionHandler(QtCore.QObject):
             'GameRoomListResp': self.handle_GameRoomListResp,
             'WordHintBc': self.handle_WordHintBc,
             'UpdateScoreboardBc': self.handle_UpdateScoreboardBc,
-            'OwnerChangedBc': self.handle_OwnerChangedBc
+            'OwnerChangedBc': self.handle_OwnerChangedBc,
         }
-        return message_dispatcher.get(received_msg['msg_name'], self.handle_UnrecognizedMessage)(received_msg)
+        return message_dispatcher.get(received_msg['msg_name'], self.handle_UnrecognizedMessage)(
+            received_msg
+        )
 
     def handle_CreateRoomResp(self, received_msg):
         if received_msg['status'] == 'OK':
             self.switch_window.emit(received_msg['room_code'])
         else:
             PopUpWindow('Room could not be created!', 'ERROR')
-            logging.debug(
-                "[MESSAGE DISPATCHER] handling CreateRoomResp failed, STATUS NOK")
-        logging.debug(
-            "[MESSAGE DISPATCHER] handling CreateRoomResp Successful, STATUS OK")
+            logging.debug('[MESSAGE DISPATCHER] handling CreateRoomResp failed, STATUS NOK')
+        logging.debug('[MESSAGE DISPATCHER] handling CreateRoomResp Successful, STATUS OK')
 
     def handle_JoinRoomResp(self, received_msg):
         with GameWindow.thread_lock:
@@ -131,214 +124,195 @@ class ConnectionHandler(QtCore.QObject):
                 # TODO: enhance window switching
                 self.switch_window.emit('Joining')
             else:
-                PopUpWindow('Could not join to room!\n{}'.format(
-                    received_msg['info']), 'ERROR')
-                logging.debug(
-                    "[MESSAGE DISPATCHER] handling JoinRoomResp failed, STATUS NOK")
-            logging.debug(
-                "[MESSAGE DISPATCHER] handling JoinRoomResp Successful, STATUS OK")
+                PopUpWindow('Could not join to room!\n{}'.format(received_msg['info']), 'ERROR')
+                logging.debug('[MESSAGE DISPATCHER] handling JoinRoomResp failed, STATUS NOK')
+            logging.debug('[MESSAGE DISPATCHER] handling JoinRoomResp Successful, STATUS OK')
 
     def handle_ChatMessageBc(self, received_msg):
         with GameWindow.thread_lock:
             logging.debug(
-                "[MESSAGE DISPATCHER] handling ChatMessageBc {}: {}".format(received_msg['author'], received_msg['message']))
+                '[MESSAGE DISPATCHER] handling ChatMessageBc {}: {}'.format(
+                    received_msg['author'], received_msg['message']
+                )
+            )
             self.chat_message_signal.emit(received_msg)
 
     def handle_ExitClientReq(self, received_msg):
         self.kill_receiver()
-        self.chat_message_signal.emit("{} has left the game".format(
-            received_msg['user_name']))
-        logging.debug(
-            "[MESSAGE DISPATCHER] handling ExitClientReq Successful, STATUS OK")
+        self.chat_message_signal.emit('{} has left the game'.format(received_msg['user_name']))
+        logging.debug('[MESSAGE DISPATCHER] handling ExitClientReq Successful, STATUS OK')
 
     def handle_StartGameResp(self, received_msg):
         logging.debug(
-            "[MESSAGE DISPATCHER] handling StartGameResp, STATUS {}".format(received_msg['status']))
+            '[MESSAGE DISPATCHER] handling StartGameResp, STATUS {}'.format(received_msg['status'])
+        )
         if received_msg['status'] == 'NOT_OK':
             PopUpWindow(received_msg['info'], 'ERROR')
 
     def handle_StartGameBc(self, received_msg):
         logging.debug(
-            "[MESSAGE DISPATCHER] handling StartGameBc, Artist: {}".format(received_msg['artist']))
+            '[MESSAGE DISPATCHER] handling StartGameBc, Artist: {}'.format(received_msg['artist'])
+        )
         self.start_game_signal.emit(received_msg)
         self.artist_change_signal.emit(received_msg)
 
     def handle_ArtistPickBc(self, received_msg):
         logging.debug(
-            "[MESSAGE DISPATCHER] handling ArtistPickBc, Artist: {}".format(received_msg['artist']))
+            '[MESSAGE DISPATCHER] handling ArtistPickBc, Artist: {}'.format(received_msg['artist'])
+        )
         self.artist_change_signal.emit(received_msg)
 
     def handle_WordSelectionReq(self, received_msg):
         logging.debug(
-            "[MESSAGE DISPATCHER] handling WordSelectionReq, Word List: {}".format(received_msg['word_list']))
+            '[MESSAGE DISPATCHER] handling WordSelectionReq, Word List: {}'.format(
+                received_msg['word_list']
+            )
+        )
         self.word_selection_signal.emit(received_msg)
 
     def handle_DrawStrokeBc(self, received_msg):
-        logging.debug(
-            "[MESSAGE DISPATCHER] handling DrawStrokeBc")
+        logging.debug('[MESSAGE DISPATCHER] handling DrawStrokeBc')
         self.draw_stroke_signal.emit(received_msg)
 
     def handle_UndoLastStrokeBc(self, received_msg):
-        logging.debug(
-            "[MESSAGE DISPATCHER] handling UndoStrokeDrawBc")
+        logging.debug('[MESSAGE DISPATCHER] handling UndoStrokeDrawBc')
         self.undo_last_stroke_signal.emit()
 
     def handle_ClearCanvasBc(self, received_msg):
-        logging.debug(
-            "[MESSAGE DISPATCHER] handling ClearCanvasBc")
+        logging.debug('[MESSAGE DISPATCHER] handling ClearCanvasBc')
         self.clear_canvas_signal.emit()
 
     def handle_WordGuessedBc(self, received_msg):
-        logging.debug(
-            "[MESSAGE DISPATCHER] handling WordGuessedBc")
+        logging.debug('[MESSAGE DISPATCHER] handling WordGuessedBc')
         self.guess_correct_signal.emit(received_msg)
         logging.debug(
-            "[GUESS CORRECT] {} has guessed the word and gained {} points".format(received_msg['user_name'], received_msg['score_awarded'][received_msg['user_name']]))
+            '[GUESS CORRECT] {} has guessed the word and gained {} points'.format(
+                received_msg['user_name'], received_msg['score_awarded'][received_msg['user_name']]
+            )
+        )
 
     def handle_FinishGameResp(self, received_msg):
-        logging.debug(
-            "[MESSAGE DISPATCHER] handling FinishGameResp")
+        logging.debug('[MESSAGE DISPATCHER] handling FinishGameResp')
         self.game_over_signal.emit(received_msg)
 
     def handle_GameFinishedBc(self, received_msg):
-        logging.debug(
-            "[MESSAGE DISPATCHER] handling GameFinishedBc")
+        logging.debug('[MESSAGE DISPATCHER] handling GameFinishedBc')
         self.game_over_signal.emit(received_msg)
 
     def handle_GameRoomListResp(self, received_msg):
-        logging.debug(
-            "[MESSAGE DISPATCHER] handling GameRoomListResp")
+        logging.debug('[MESSAGE DISPATCHER] handling GameRoomListResp')
         self.room_list_signal.emit(received_msg)
 
     def handle_WordHintBc(self, received_msg):
-        logging.debug(
-            "[MESSAGE DISPATCHER] handling WordHintBc")
+        logging.debug('[MESSAGE DISPATCHER] handling WordHintBc')
         self.word_hint_signal.emit(received_msg)
 
     def handle_OwnerChangedBc(self, received_msg):
-        logging.debug(
-            "[MESSAGE DISPATCHER] handling handle_OwnerChangedBc {}".format(received_msg))
+        logging.debug('[MESSAGE DISPATCHER] handling handle_OwnerChangedBc {}'.format(received_msg))
         self.owner_changed_signal.emit(received_msg)
 
     def handle_UpdateScoreboardBc(self, received_msg):
         logging.debug(
-            "[MESSAGE DISPATCHER] handling handle_UpdateScoreboardBc {}".format(received_msg))
+            '[MESSAGE DISPATCHER] handling handle_UpdateScoreboardBc {}'.format(received_msg)
+        )
         self.scoreboard_update_signal.emit(received_msg)
 
     def handle_UnrecognizedMessage(self, received_msg):
         logging.debug(
-            "[MESSAGE DISPATCHER] No defined handler for message: {}".format(received_msg))
+            '[MESSAGE DISPATCHER] No defined handler for message: {}'.format(received_msg)
+        )
 
     def send_create_room_req(self, user_name):
-        send_create_room_req_msg = {
-            'msg_name': 'CreateRoomReq',
-            'user_name': user_name
-        }
-        SocketMsgHandler.send(self.conn, send_create_room_req_msg,
-                              self.server_config)
+        send_create_room_req_msg = {'msg_name': 'CreateRoomReq', 'user_name': user_name}
+        SocketMsgHandler.send(self.conn, send_create_room_req_msg, self.server_config)
 
     def send_join_room_req(self, user_name, room_code):
         send_join_room_req_msg = {
             'msg_name': 'JoinRoomReq',
             'user_name': user_name,
-            'room_code': room_code
+            'room_code': room_code,
         }
 
-        SocketMsgHandler.send(self.conn, send_join_room_req_msg,
-                              self.server_config)
+        SocketMsgHandler.send(self.conn, send_join_room_req_msg, self.server_config)
 
     def send_chat_msg_req(self, user_name, room_code, message):
-        logging.debug(
-            '[CHAT MESSAGE] Sending message {}: {}'.format(user_name, message))
+        logging.debug('[CHAT MESSAGE] Sending message {}: {}'.format(user_name, message))
         send_char_msg = {
             'msg_name': 'ChatMessageReq',
             'user_name': user_name,
             'room_code': room_code,
-            'message': message
+            'message': message,
         }
-        SocketMsgHandler.send(self.conn, send_char_msg,
-                              self.server_config)
+        SocketMsgHandler.send(self.conn, send_char_msg, self.server_config)
 
     def send_exit_client_req(self, user_name, room_code):
         notify_server_about_leaving = {
             'msg_name': 'ExitClientReq',
             'user_name': user_name,
-            'room_code': room_code
+            'room_code': room_code,
         }
-        SocketMsgHandler.send(
-            self.conn, notify_server_about_leaving, self.server_config)
+        SocketMsgHandler.send(self.conn, notify_server_about_leaving, self.server_config)
 
     def send_socket_disconnect_req(self):
-        socket_disconnect_req = {
-            'msg_name': 'DisconnectSocketReq'
-        }
-        SocketMsgHandler.send(
-            self.conn, socket_disconnect_req, self.server_config)
+        socket_disconnect_req = {'msg_name': 'DisconnectSocketReq'}
+        SocketMsgHandler.send(self.conn, socket_disconnect_req, self.server_config)
 
     def send_start_game_req(self, user_name, room_code):
         start_game_req = {
             'msg_name': 'StartGameReq',
             'user_name': user_name,
-            'room_code': room_code
+            'room_code': room_code,
         }
-        SocketMsgHandler.send(
-            self.conn, start_game_req, self.server_config)
+        SocketMsgHandler.send(self.conn, start_game_req, self.server_config)
 
     def send_word_selection_resp(self, user_name, room_code, selected_word):
         logging.debug(
-            "[SENDING MESSAGE] WordSelectionResp, selected word = {}".format(selected_word))
+            '[SENDING MESSAGE] WordSelectionResp, selected word = {}'.format(selected_word)
+        )
         word_selection_resp = {
             'msg_name': 'WordSelectionResp',
             'user_name': user_name,
             'room_code': room_code,
-            'selected_word': selected_word
+            'selected_word': selected_word,
         }
-        SocketMsgHandler.send(
-            self.conn, word_selection_resp, self.server_config)
+        SocketMsgHandler.send(self.conn, word_selection_resp, self.server_config)
 
     def send_draw_stroke_req(self, user_name, room_code, stroke_coordinates):
         draw_stroke_req = {
             'msg_name': 'DrawStrokeReq',
             'user_name': user_name,
             'room_code': room_code,
-            'stroke_coordinates': stroke_coordinates
+            'stroke_coordinates': stroke_coordinates,
         }
-        SocketMsgHandler.send(
-            self.conn, draw_stroke_req, self.server_config)
+        SocketMsgHandler.send(self.conn, draw_stroke_req, self.server_config)
 
     def send_undo_last_stroke_req(self, user_name, room_code):
         undo_last_stroke_req = {
             'msg_name': 'UndoLastStrokeReq',
             'user_name': user_name,
-            'room_code': room_code
+            'room_code': room_code,
         }
-        SocketMsgHandler.send(
-            self.conn, undo_last_stroke_req, self.server_config)
+        SocketMsgHandler.send(self.conn, undo_last_stroke_req, self.server_config)
 
     def send_clear_canvas_req(self, user_name, room_code):
         clear_canvas_req = {
             'msg_name': 'ClearCanvasReq',
             'user_name': user_name,
-            'room_code': room_code
+            'room_code': room_code,
         }
-        SocketMsgHandler.send(
-            self.conn, clear_canvas_req, self.server_config)
+        SocketMsgHandler.send(self.conn, clear_canvas_req, self.server_config)
 
     def send_finish_game_req(self, user_name, room_code):
         finish_game_req = {
             'msg_name': 'FinishGameReq',
             'user_name': user_name,
-            'room_code': room_code
+            'room_code': room_code,
         }
-        SocketMsgHandler.send(
-            self.conn, finish_game_req, self.server_config)
+        SocketMsgHandler.send(self.conn, finish_game_req, self.server_config)
 
     def send_game_room_list_req(self):
-        game_room_list_req = {
-            'msg_name': 'GameRoomListReq',
-        }
-        SocketMsgHandler.send(
-            self.conn, game_room_list_req, self.server_config)
+        game_room_list_req = {'msg_name': 'GameRoomListReq'}
+        SocketMsgHandler.send(self.conn, game_room_list_req, self.server_config)
 
 
 if __name__ == '__main__':

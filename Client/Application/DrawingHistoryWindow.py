@@ -5,7 +5,7 @@ class DrawingHistoryWindow(QtWidgets.QWidget):
     def __init__(self, drawings):
         QtWidgets.QWidget.__init__(self)
 
-        self.setWindowTitle("Drawing history")
+        self.setWindowTitle('Drawing history')
 
         # Assumes drawings isn't empty
         # copy()?
@@ -16,7 +16,7 @@ class DrawingHistoryWindow(QtWidgets.QWidget):
         self.root_vBox = QtWidgets.QVBoxLayout()
 
         self.canvas = QtGui.QPixmap(400, 400)
-        self.canvas.fill(QtGui.QColor("white"))
+        self.canvas.fill(QtGui.QColor('white'))
 
         self.canvas_container = QtWidgets.QLabel()
         self.canvas_container.setPixmap(self.canvas)
@@ -25,16 +25,16 @@ class DrawingHistoryWindow(QtWidgets.QWidget):
         self.controls_hBox = QtWidgets.QHBoxLayout()
         self.root_vBox.addLayout(self.controls_hBox)
 
-        self.previous_button = QtWidgets.QPushButton("<")
+        self.previous_button = QtWidgets.QPushButton('<')
         self.previous_button.clicked.connect(self.previous_clicked)
         self.previous_button.setDisabled(True)
         self.controls_hBox.addWidget(self.previous_button)
 
-        self.save_button = QtWidgets.QPushButton("Save")
+        self.save_button = QtWidgets.QPushButton('Save')
         self.save_button.clicked.connect(self.save_clicked)
         self.controls_hBox.addWidget(self.save_button)
 
-        self.next_button = QtWidgets.QPushButton(">")
+        self.next_button = QtWidgets.QPushButton('>')
         self.next_button.clicked.connect(self.next_clicked)
         if len(self.drawings) == 1:
             self.next_button.setDisabled(True)
@@ -62,7 +62,7 @@ class DrawingHistoryWindow(QtWidgets.QWidget):
     def configurePen(self, painter):
         pen = painter.pen()
         pen.setWidth(4)
-        pen.setColor(QtGui.QColor("black"))
+        pen.setColor(QtGui.QColor('black'))
         painter.setPen(pen)
 
     def previous_clicked(self):
@@ -81,6 +81,8 @@ class DrawingHistoryWindow(QtWidgets.QWidget):
 
     def save_clicked(self):
         # TODO: fix up the PNG filtering thing
-        dialog_result = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Drawing', '.', 'PNG', 'PNG')
-        filename = dialog_result[0] + ".png"
-        self.canvas_container.pixmap().save(filename, "png")
+        dialog_result = QtWidgets.QFileDialog.getSaveFileName(
+            self, 'Save Drawing', '.', 'PNG', 'PNG'
+        )
+        filename = dialog_result[0] + '.png'
+        self.canvas_container.pixmap().save(filename, 'png')
