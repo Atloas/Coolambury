@@ -175,9 +175,6 @@ class GameWindow(QtWidgets.QWidget):
         self.chat.append('<b>{}</b>'.format(message))
 
     def display_user_message(self, message):
-        # TODO: Why clear() and setText('')? Shouldn't one suffice?
-        self.chat_entry_line.clear()
-        self.chat_entry_line.setText('')
         sanitized_message = bleach.clean(message['message'], tags=[])
         self.chat.append('{}: {}'.format(message['author'], sanitized_message))
 
@@ -446,9 +443,7 @@ class GameWindow(QtWidgets.QWidget):
 
     def new_chat_message(self):
         message = self.chat_entry_line.text()
-        # TODO: Why clear() and setText('')? Shouldn't one suffice?
         self.chat_entry_line.clear()
-        self.chat_entry_line.setText('')
         self.connection_handler.send_chat_msg_req(
             self.client_context['username'], self.client_context['roomCode'], message
         )
