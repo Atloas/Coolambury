@@ -246,6 +246,7 @@ class GameWindow(QtWidgets.QWidget):
 
     def handle_player_joined_signal(self, message):
         logging.debug('[GameWindow] Handling player_joined_signal')
+        logging.debug('[GameWindow] Owner = {}, player = {}'.format(self.owner, self.player))
         self.display_system_message('{} joined the room.'.format(message['player']))
         self.players[message['player']] = 0
         if len(self.players) > 2 and self.owner == self.player:
@@ -426,6 +427,8 @@ class GameWindow(QtWidgets.QWidget):
 
     def update_scoreboard_data(self, message):
         self.players = message['users_in_room']
+        if len(self.players) > 2 and self.owner == self.player:
+            self.start_button.setDisabled(False)
         self.update_scoreboard()
 
     def update_scoreboard(self):
