@@ -43,7 +43,7 @@ class GameWindow(QtWidgets.QWidget):
             # Player drawing order enforced by server?
             self.game_state = None
             self.player = self.client_context['username']
-            self.owner = None
+            self.owner = self.player
             self.players = {}
             self.players[self.player] = 0
             self.players['BOT'] = 0
@@ -79,6 +79,7 @@ class GameWindow(QtWidgets.QWidget):
             self.start_button = QtWidgets.QPushButton('Start')
             self.start_button.setMaximumSize(100, 50)
             self.start_button.clicked.connect(self.start_clicked)
+            self.start_button.setDisabled(True)
             self.top_hBox.addWidget(self.start_button)
 
             self.hints = QtWidgets.QLabel('')
@@ -247,7 +248,7 @@ class GameWindow(QtWidgets.QWidget):
         logging.debug('[GameWindow] Handling player_joined_signal')
         self.display_system_message('{} joined the room.'.format(message['player']))
         self.players[message['player']] = 0
-        if len(self.players) > 1 and self.owner == self.player:
+        if len(self.players) > 2 and self.owner == self.player:
             self.start_button.setDisabled(False)
         self.update_scoreboard()
         self.update()
