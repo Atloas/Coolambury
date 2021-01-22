@@ -113,6 +113,7 @@ class ConnectionHandler(QtCore.QObject):
     def handle_CreateRoomResp(self, received_msg):
         if received_msg['status'] == 'OK':
             self.switch_window.emit(received_msg['room_code'])
+            self.room_created_signal.emit(received_msg)
         else:
             PopUpWindow('Room could not be created!', 'ERROR')
             logging.debug('[MESSAGE DISPATCHER] handling CreateRoomResp failed, STATUS NOK')
@@ -123,6 +124,7 @@ class ConnectionHandler(QtCore.QObject):
             if received_msg['status'] == 'OK':
                 # TODO: enhance window switching
                 self.switch_window.emit('Joining')
+                self.room_joined_signal.emit(received_msg)
             else:
                 PopUpWindow('Could not join to room!\n{}'.format(received_msg['info']), 'ERROR')
                 logging.debug('[MESSAGE DISPATCHER] handling JoinRoomResp failed, STATUS NOK')
