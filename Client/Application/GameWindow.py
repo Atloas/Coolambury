@@ -176,7 +176,7 @@ class GameWindow(QtWidgets.QWidget):
         # TODO: Why clear() and setText('')? Shouldn't one suffice?
         self.chat_entry_line.clear()
         self.chat_entry_line.setText('')
-        sanitized_message = bleach.clean(message['message'])
+        sanitized_message = bleach.clean(message['message'], tags=[])
         self.chat.append('{}: {}'.format(message['author'], sanitized_message))
 
     def display_message(self, message):
