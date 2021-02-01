@@ -43,7 +43,7 @@ class GameWindow(QtWidgets.QWidget):
             # Player drawing order enforced by server?
             self.game_state = None
             self.player = self.client_context['username']
-            self.owner = self.player
+            self.owner = ""
             self.players = {}
             self.players[self.player] = 0
             self.players['BOT'] = 0

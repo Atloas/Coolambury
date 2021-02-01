@@ -13,7 +13,6 @@ class AppResourceManager:
         self.client_context['roomCode'] = ''
         self.start_window = StartWindow(self.connection_handler, self.client_context)
         self.game_window = None
-        # TODO: sort out the parameter order:
         self.connection_handler.switch_window.connect(self.show_game)
         self.start_window.show()
 
