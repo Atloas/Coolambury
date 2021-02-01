@@ -227,7 +227,7 @@ class GameWindow(QtWidgets.QWidget):
         self.owner = self.player
         self.players[self.player] = 0
         self.players['BOT'] = 0
-        if len(self.players) > 1:
+        if len(self.players) > 2:
             self.start_button.setDisabled(False)
         self.update_scoreboard()
 
