@@ -26,23 +26,19 @@ class GameWindow(QtWidgets.QWidget):
     key_pressed_signal = QtCore.pyqtSignal(QtCore.QEvent)
     word_locally_selected_signal = QtCore.pyqtSignal(dict)
 
-    def __init__(self, client_context, connection_handler):
+    def __init__(self, connection_handler):
         QtWidgets.QWidget.__init__(self)
         with self.thread_lock:
             logging.debug('[GameWindow] Creating Game Window instance...')
-            self.client_context = client_context
+
+            self.client_context = None
             self.connection_handler = connection_handler
-            self.setWindowTitle(
-                'Coolambury [{}] {}'.format(
-                    self.client_context['username'], self.client_context['roomCode']
-                )
-            )
 
             # Game
             # Contains a dict of all player names and their scores, ex. {"Atloas": 100, "loska": 110}
             # Player drawing order enforced by server?
             self.game_state = None
-            self.player = self.client_context['username']
+            self.player = ""
             self.owner = ""
             self.players = {}
             self.players[self.player] = 0
@@ -115,7 +111,6 @@ class GameWindow(QtWidgets.QWidget):
 
             self.chat = QtWidgets.QTextEdit()
             self.chat.setReadOnly(True)
-            self.chat.append('GAME ROOM ID: {}'.format(self.client_context['roomCode']))
 
             self.chat_entry_line = QtWidgets.QLineEdit()
             self.chat_entry_line.setPlaceholderText('Have a guess!')
@@ -142,6 +137,7 @@ class GameWindow(QtWidgets.QWidget):
             self.update_scoreboard()
 
             self.connect_signals()
+
             logging.debug('[GameWindow] Game Window created...')
 
     def connect_signals(self):
@@ -222,22 +218,78 @@ class GameWindow(QtWidgets.QWidget):
         )
         self.stroke = []
 
+    def initialize_room(self, client_context):
+        logging.debug('[GameWindow] Initializing Game Window...')
+        self.client_context = client_context
+        self.setWindowTitle(
+            'Coolambury [{}] {}'.format(
+                self.client_context['username'], self.client_context['roomCode']
+            )
+        )
+
+        self.chat.clear()
+
+        logging.debug('[GameWindow] Game Window initialized!')
+
     def handle_room_created_signal(self, message):
         logging.debug('[GameWindow] Handling room_created_signal')
+        self.game_state = None
+        self.player = self.client_context['username']
         self.owner = self.player
+        self.players = {}
         self.players[self.player] = 0
         self.players['BOT'] = 0
+        self.artist = None
+        # The hint text, modifiable on server request.
+        # For the painter, should display the full word. Placeholder for now.
+        self.hint = '_ _ _ _'
+
+        self.word_selection_window = None
+        self.drawing_history_window = None
+
+        # Drawing
+        self.previous_x = None
+        self.previous_y = None
+        self.drawings = []
+        self.strokes = []
+        self.stroke = []
+
         if len(self.players) > 2:
             self.start_button.setDisabled(False)
+
+        self.clear_canvas()
         self.update_scoreboard()
+        self.update()
+
+        logging.debug("[GameWindow] Room created. Player = {}, Owner = {}".format(self.player, self.owner))
 
     def handle_room_joined_signal(self, message):
         logging.debug('[GameWindow] Handling room_joined_signal')
         logging.debug('[GameWindow] Owner = {}', message['owner'])
+        self.game_state = None
+        self.player = self.client_context['username']
         self.owner = message['owner']
         self.players = message['users_in_room']
+        self.artist = None
+        # The hint text, modifiable on server request.
+        # For the painter, should display the full word. Placeholder for now.
+        self.hint = '_ _ _ _'
+
+        self.word_selection_window = None
+        self.drawing_history_window = None
+
+        # Drawing
+        self.previous_x = None
+        self.previous_y = None
+        self.drawings = []
+        self.strokes = []
+        self.stroke = []
+
         self.start_button.setDisabled(True)
+
+        self.clear_canvas()
         self.update_scoreboard()
+        self.update()
 
     def handle_start_game_signal(self, message):
         logging.debug('[GameWindow] Handling start_game_signal')
@@ -260,7 +312,7 @@ class GameWindow(QtWidgets.QWidget):
         logging.debug('[GameWindow] Handling player_left_signal')
         self.display_system_message('{} left the room.'.format(message['player']))
         del self.players[message['player']]
-        if len(self.players) < 2 and self.owner == self.player:
+        if len(self.players) < 3 and self.owner == self.player:
             self.start_button.setDisabled(True)
         self.update_scoreboard()
 

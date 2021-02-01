@@ -1,8 +1,5 @@
 from .GameWindow import GameWindow
 from .StartWindow import StartWindow
-from Communication.ConnectionHandler import ConnectionHandler
-import logging
-from Utils.PopUpWindow import PopUpWindow
 
 
 class AppResourceManager:
@@ -12,7 +9,7 @@ class AppResourceManager:
         self.client_context['username'] = ''
         self.client_context['roomCode'] = ''
         self.start_window = StartWindow(self.connection_handler, self.client_context)
-        self.game_window = None
+        self.game_window = GameWindow(self.connection_handler)
         self.connection_handler.switch_window.connect(self.show_game)
         self.start_window.show()
 
@@ -25,7 +22,8 @@ class AppResourceManager:
     def show_game(self, room_code):
         if room_code != 'Joining':
             self.client_context['roomCode'] = room_code
-        self.game_window = GameWindow(self.client_context, self.connection_handler)
+
+        self.game_window.initialize_room(self.client_context)
         self.game_window.switch_window.connect(self.show_start)
         self.start_window.hide()
         self.game_window.show()
