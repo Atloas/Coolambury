@@ -233,6 +233,7 @@ class GameWindow(QtWidgets.QWidget):
 
     def handle_room_joined_signal(self, message):
         logging.debug('[GameWindow] Handling room_joined_signal')
+        logging.debug('[GameWindow] Owner = {}', message['owner'])
         self.owner = message['owner']
         self.players = message['users_in_room']
         self.start_button.setDisabled(True)
