@@ -125,7 +125,6 @@ class ConnectionHandler(QtCore.QObject):
             if received_msg['status'] == 'OK':
                 # TODO: enhance window switching
                 self.switch_window.emit('Joining')
-                time.sleep(0.5)
                 self.room_joined_signal.emit(received_msg)
             else:
                 PopUpWindow('Could not join to room!\n{}'.format(received_msg['info']), 'ERROR')
