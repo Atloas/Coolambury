@@ -159,7 +159,7 @@ class GameWindow(QtWidgets.QWidget):
         self.connection_handler.guess_correct_signal.connect(self.handle_guess_correct_signal)
         self.connection_handler.artist_change_signal.connect(self.handle_artist_changed_signal)
         self.connection_handler.game_over_signal.connect(self.handle_game_over_signal)
-        self.connection_handler.scoreboard_update_signal.connect(self.update_scoreboard_data)
+        self.connection_handler.scoreboard_update_signal.connect(self.handle_scoreboard_update_signal)
         self.connection_handler.owner_changed_signal.connect(self.handle_owner_changed_signal)
 
     # Do not rename
@@ -425,10 +425,13 @@ class GameWindow(QtWidgets.QWidget):
         pen.setColor(QtGui.QColor('black'))
         painter.setPen(pen)
 
-    def update_scoreboard_data(self, message):
+    def handle_scoreboard_update_signal(self, message):
+        logging.debug('[GameWindow] Handling scoreboard_update_signal')
         self.players = message['users_in_room']
         if len(self.players) > 2 and self.owner == self.player:
             self.start_button.setDisabled(False)
+        else:
+            self.start_button.setDisabled(True)
         self.update_scoreboard()
 
     def update_scoreboard(self):
