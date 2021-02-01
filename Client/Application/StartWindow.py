@@ -126,12 +126,15 @@ class StartWindow(QtWidgets.QWidget):
             '[ROOM LIST CLICKED] clicked: {},'.format(item.text()[-8:], fetched_room_code)
         )
 
-        if self.validate_nickname():
+        is_nickname_valid = self.validate_nickname()
+        if is_nickname_valid:
             self.client_context['username'] = self.nickname_field.text()
             self.client_context['roomCode'] = fetched_room_code
             self.connection_handler.send_join_room_req(
                 self.client_context['username'], self.client_context['roomCode']
             )
+        else:
+            PopUpWindow('Nickname not valid!', 'ERROR')
 
     def update_room_list(self):
         self.connection_handler.send_game_room_list_req()
