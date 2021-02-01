@@ -403,7 +403,7 @@ class GameWindow(QtWidgets.QWidget):
     def handle_game_over_signal(self, message):
         logging.debug('[GameWindow] Handling game_over_signal')
         self.game_state = GameState.POSTGAME
-        if self.player == self.owner:
+        if len(self.players) < 3 and self.player == self.owner:
             self.start_button.setDisabled(False)
         self.artist = ''
         self.update_scoreboard()
