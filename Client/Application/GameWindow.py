@@ -405,6 +405,8 @@ class GameWindow(QtWidgets.QWidget):
         self.game_state = GameState.POSTGAME
         if len(self.players) < 3 and self.player == self.owner:
             self.start_button.setDisabled(False)
+        else:
+            self.start_button.setDisabled(True)
         self.artist = ''
         self.update_scoreboard()
         tie = False
