@@ -403,6 +403,8 @@ class GameWindow(QtWidgets.QWidget):
     def handle_game_over_signal(self, message):
         logging.debug('[GameWindow] Handling game_over_signal')
         self.game_state = GameState.POSTGAME
+        self.undo_button.setDisabled(True)
+        self.clear_canvas_button.setDisabled(True)
         if len(self.players) > 2 and self.player == self.owner:
             self.start_button.setDisabled(False)
         else:
