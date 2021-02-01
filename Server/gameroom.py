@@ -126,51 +126,59 @@ class Room:
         self._joined_clients[user_name] = user_conn
         self._score_awarded[user_name] = 0
         
+    def _choice_new_owner(self):
+        playser_list = list(self._joined_clients.keys())
+        new_owner = random.choice(playser_list)
+        self._owner = new_owner
+        
+        owner_changed_bc = {'msg_name': 'OwnerChangedBc', 'owner': new_owner}
+        self.broadcast_message(owner_changed_bc)
+
+    def _finish_game_with_info(self, info='Game finished!'):
+        self._round_time_controller.finish_round()
+        game_interrupted_notification = mc.build_chat_msg_bc('SERVER', info)
+
+        self.broadcast_message(game_interrupted_notification)
+        self._finish_game()
+
+    def _remove_user_from_drawing_queue(self, user_name):
+        self._drawing_queue.remove(user_name)
+        if user_name == self._artist:
+            self._round_time_controller.finish_round()
+            self._game_bot.clear_drawing()
+            round_finished_notification = mc.build_chat_msg_bc(
+                    'SERVER',
+                    'Round interrupted - artist left the game - word: {}'.format(self._current_word))
+
+            self.broadcast_message(round_finished_notification)
+            self._select_artist_and_send_words()
+
     def remove_client_by_name_if_exists(self, user_name):
         try:
             del self._joined_clients[user_name]
             del self._score_awarded[user_name]
 
-            leave_notification = mc.build_leave_notification(user_name)
-            self.broadcast_message(leave_notification)
-
-            update_score_board_bc = {'msg_name': 'UpdateScoreboardBc', 'users_in_room': self._score_awarded}
-            self.broadcast_message(update_score_board_bc)
-
-            logging.info('[ROOM ID: {}] Removed user {}'.format(self._room_code, user_name))
-
-            if user_name == self._owner:
-                playser_list = list(self._joined_clients.keys())
-                new_owner = random.choice(playser_list)
-                self._owner = new_owner
-                
-                owner_changed_bc = {'msg_name': 'OwnerChangedBc', 'owner': new_owner}
-                self.broadcast_message(owner_changed_bc)
-
-            if self.num_of_members() < 2:
-                self._round_time_controller.finish_round()
-                game_interrupted_notification = mc.build_chat_msg_bc(
-                            'SERVER',
-                            'Game Interrupted - less than {} human players left!'.format(2))
-
-                self.broadcast_message(game_interrupted_notification)
-                self._finish_game()
-
-            if self._state not in [RoomState.PREGAME, RoomState.POSTGAME]:
-                self._drawing_queue.remove(user_name)
-                if user_name == self._artist:
-                    self._round_time_controller.finish_round()
-                    self._game_bot.clear_drawing()
-                    round_finished_notification = mc.build_chat_msg_bc(
-                            'SERVER',
-                            'Round interrupted - artist left the game - word: {}'.format(self._current_word))
-
-                    self.broadcast_message(round_finished_notification)
-                    self._select_artist_and_send_words()
-
-            return True
-        except:
+        except KeyError:
             return False
+
+        leave_notification = mc.build_leave_notification(user_name)
+        self.broadcast_message(leave_notification)
+
+        update_score_board_bc = {'msg_name': 'UpdateScoreboardBc', 'users_in_room': self._score_awarded}
+        self.broadcast_message(update_score_board_bc)
+
+        logging.info('[ROOM ID: {}] Removed user {}'.format(self._room_code, user_name))
+
+        if user_name == self._owner:
+            self._choice_new_owner()
+
+        if self.num_of_members() < 2:
+            self._finish_game_with_info('Game Interrupted - less than {} human players left!'.format(2))
+            
+        if self._state not in [RoomState.PREGAME, RoomState.POSTGAME]:
+            self._remove_user_from_drawing_queue(user_name)
+
+        return True
 
     def remove_client_by_connection_if_exists(self, user_conn):
         for user_name, value in self._joined_clients.items():
