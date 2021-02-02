@@ -17,41 +17,27 @@ def gameWindowFixutre(qtbot):
     client_context_dummy = {}
     client_context_dummy['username'] = 'test_user'
     client_context_dummy['roomCode'] = 'abcdefgh'
-    sut = GameWindow(client_context_dummy, connHandlerMock)
+    sut = GameWindow(connHandlerMock)
+    sut.initialize_room(client_context_dummy)
     qtbot.addWidget(sut)
-
-    pytest.initial_game_room_id_message = 'GAME ROOM ID: {}'.format(
-        client_context_dummy['roomCode']
-    )
-    pytest.cleared_chat_entry = ''
     return sut
 
 
 def _assert_that_chat_contains_message(message_content: dict, gameWindowFixutre):
     message_text = '{}: {}'.format(message_content['author'], message_content['message'])
 
-    actual_chat_contents_after_first_chat_msg = '{}\n{}'.format(
-        pytest.initial_game_room_id_message, message_text
-    )
+    actual_chat_contents_after_first_chat_msg = '{}'.format(message_text)
 
     assert gameWindowFixutre.chat.toPlainText() == actual_chat_contents_after_first_chat_msg
 
 
 def _assert_that_chat_contains_text(message_content: str, gameWindowFixutre):
-    actual_chat_contents_after_first_chat_msg = '{}\n{}'.format(
-        pytest.initial_game_room_id_message, message_content
-    )
+    actual_chat_contents_after_first_chat_msg = '{}'.format(message_content)
 
     assert gameWindowFixutre.chat.toPlainText() == actual_chat_contents_after_first_chat_msg
 
 
-def test_should_display_game_room_id_after_window_opened(gameWindowFixutre):
-    assert gameWindowFixutre.chat.toPlainText() == pytest.initial_game_room_id_message
-
-
 def test_should_properly_display_user_msg_in_chat_and_clear_chat_entry_line(gameWindowFixutre):
-    test_should_display_game_room_id_after_window_opened(gameWindowFixutre)
-
     # fmt: off
     message_content = {
         'author': gameWindowFixutre.client_context['username'],
@@ -63,8 +49,6 @@ def test_should_properly_display_user_msg_in_chat_and_clear_chat_entry_line(game
 
     gameWindowFixutre.chat_entry_line.setText(message_text)
     gameWindowFixutre.display_message(message_content)
-
-    # assert gameWindowFixutre.chat_entry_line.text() == pytest.cleared_chat_entry
 
     _assert_that_chat_contains_message(message_content, gameWindowFixutre)
 
@@ -78,12 +62,6 @@ def test_should_properly_display_server_announcement_message(gameWindowFixutre):
     # fmt: on
     gameWindowFixutre.display_message(message_from_server)
 
-    # assert gameWindowFixutre.chat_entry_line.text() == pytest.cleared_chat_entry
-
-    actual_chat_contents_after_first_chat_msg = '{}\n{}'.format(
-        pytest.initial_game_room_id_message, message_from_server
-    )
-
 
 def test_chat_entry_line_clears_after_adding_message_to_chat(gameWindowFixutre):
     # fmt: off
@@ -94,8 +72,6 @@ def test_chat_entry_line_clears_after_adding_message_to_chat(gameWindowFixutre):
     # fmt: on
     gameWindowFixutre.chat_entry_line.setText(chat_entry['message'])
     gameWindowFixutre.display_user_message(chat_entry)
-
-    # assert gameWindowFixutre.chat_entry_line.text() == pytest.cleared_chat_entry
 
     _assert_that_chat_contains_message(chat_entry, gameWindowFixutre)
 
