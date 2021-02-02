@@ -1,5 +1,3 @@
-# Coolambury
-
 # Table of Contents
 
 - [Coolambury](#coolambury)
@@ -15,6 +13,8 @@
     + [Game Window](#game-window)
     + [Drawing HistoryWindow](#drawing-historywindow)
 - [NN Model](#nn-model)
+
+# Coolambury
 
 *Coolambury* is a word guessing and drawing game - commonly known as *charades*. The game was created by a group of 4 Masters Degree students from the University of Technology and Science in Poland, Kraków (AGH). The goal of the project was to create an application using web communication between clients. In order to satisfy the requirements, we have chosen to create a Socket based Server alongside the Client written mainly in PyQt5.
 
